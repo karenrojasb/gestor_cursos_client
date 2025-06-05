@@ -1,7 +1,7 @@
 const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
   const { name, value } = e.target;
 
-  const camposNumericos = ["Publico","Linea", "Modalidad", "Estado", "Unidad", "IdTipoCurso", "Valor", "CupoMax", "Horas"];
+  const camposNumericos = ["Publico", "Linea", "Modalidad", "Estado", "Unidad", "IdTipoCurso", "Valor", "CupoMax", "Horas", "Profesor", "SegundoPro"];
   const camposProfesor = ["Profesor", "SegundoPro"];
 
   const nuevoValor = camposNumericos.includes(name) ? Number(value) : value;
@@ -18,7 +18,7 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
 
   setFormData((prev) => ({
     ...prev,
-    [name]: nuevoValor, 
-    ...nombreCampoExtra, 
+    [name]: nuevoValor,
+    ...nombreCampoExtra,
   }));
 };
