@@ -1,21 +1,35 @@
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label>Profesor</label>
-      <select name="NombreProfesor" value={formData.NombreProfesor ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg">
-        <option value="">Selecciona una opción</option>
-        {profesores.map((p) => (
-          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-        ))}
-      </select>
-      {formData.NombreProfesor}
-    </div>
-    <div>
-      <label>Segundo Profesor</label>
-      <select name="NombreSegundoPro" value={formData.NombreSegundoPro ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
-        <option value="">Selecciona una opción</option>
-        {profesores.map((p) => (
-          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-        ))}
-      </select>
-    </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div>
+    <label>Profesor</label>
+    <select
+      name="NombreProfesor"
+      value={formData.NombreProfesor ?? ""}
+      onChange={handleChange}
+      className="w-full border p-2 rounded-lg"
+    >
+      <option value="">Selecciona una opción</option>
+      {profesores.map((p) => (
+        <option key={p.id_emp} value={p.id_emp}>
+          {p.nombre}
+        </option>
+      ))}
+    </select>
   </div>
+
+  <div>
+    <label>Segundo Profesor</label>
+    <select
+      name="NombreSegundoPro"
+      value={formData.NombreSegundoPro ?? ""}
+      onChange={handleChange}
+      className="w-full border p-2 rounded-lg"
+    >
+      <option value="">Selecciona una opción</option>
+      {profesores.map((p) => (
+        <option key={p.id_emp} value={p.id_emp}>
+          {p.nombre}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
