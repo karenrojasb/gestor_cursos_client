@@ -75,13 +75,14 @@ export default function CursoEditarModal({
     Estado: "",
     Modalidad: "",
     Unidad: "",
-    Profesor: "",
+   
     SegundoPro: "",  
     Proexterno: "",  
     Descripcion: "", 
     IdTipoCurso: "",
     InicioInscr: "",
     FinInscr: "",
+    NombreProfesor: "",
 
   });
   const [loading, setLoading] = useState(false);
@@ -183,23 +184,20 @@ export default function CursoEditarModal({
         fetcUnidades(); 
     }, []);
 
-    useEffect(() => {
-      async function fetchProfesores() {
-        try {
-          const response = await fetch("http://localhost:8090/api/cursos/profesores");
-          if (!response.ok) throw new Error("Error al obtener los profesores");
-    
-          const data = await response.json();
-          const profesoresPublicos = data.filter((prof: any) => prof.publico === 1);
-          setProfesores(profesoresPublicos);
-          console.log("Profesores públicos:", profesoresPublicos);
-        } catch (error) {
+      useEffect(()  => {
+    async function fetcProfesores() {
+      try {
+        const response = await fetch("http://localhost:8090/api/cursos/profesores")
+        if (!response.ok) throw new Error("Error al obtener los profesores");
+
+        const data = await response.json();
+        setProfesores(data);
+        } catch(error){
           console.error("Error cargando los profesores:", error);
         }
       }
-    
-      fetchProfesores();
-    }, []);
+      fetcProfesores(); 
+  }, []);
 
 
 const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -410,26 +408,27 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   </div>
 
   {/* Profesor | Segundo Profesor */}
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label>Profesor</label>
-      <select name="Profesor" value={formData.Profesor ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
-        <option value="">Selecciona una opción</option>
-        {profesores.map((p) => (
-          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-        ))}
-      </select>
-    </div>
-    <div>
-      <label>Segundo Profesor</label>
-      <select name="SegundoPro" value={formData.SegundoPro ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
-        <option value="">Selecciona una opción</option>
-        {profesores.map((p) => (
-          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-        ))}
-      </select>
-    </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div>
+    <label>Profesor</label>
+    <select name="Profesor" value={formData.Profesor ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+      <option value="">{formData.Profesor || "Selecciona una opción"} </option>
+      {profesores.map((p) => (
+        <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
+      ))}
+    </select>
   </div>
+  <div>
+    <label>Segundo Profesor</label>
+    <select name="SegundoPro" value={formData.SegundoPro ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+      <option value="">{formData.SegundoPro || "Selecciona una opción"}</option>
+      {profesores.map((p) => (
+        <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
+      ))}
+    </select>
+  </div>
+</div>
+
 
   {/* Profesor Externo */}
   <div>
