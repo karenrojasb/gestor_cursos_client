@@ -1,6 +1,6 @@
-if (error)
-  return (
-    <p className="absolute top-0 left-0 right-0 bg-red-100 text-red-800 px-4 py-2 text-center text-sm font-semibold z-10">
-      {error}
-    </p>
-  );
+  <div className="text-center mt-6">
+    <button type="submit" className="bg-[#990000] text-white px-6 py-2 rounded-lg hover:bg-red-800 transition-colors">Guardar Curso</button>
+  
+    <button type="submit" className="bg-gray-500 text-white px-11 py-2 rounded-lg hover:bg-gray-800 transition-colors">Cancelar</button>
+  
+  </div>
