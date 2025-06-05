@@ -6,28 +6,16 @@ useEffect(() => {
 
       const data = await response.json();
 
-      const profesoresPublicos = data.filter((prof: any) => prof.publico === 1);
+      // Aquí con el tipado rápido del parámetro prof
+      const profesoresPublicos = data.filter((prof: { publico: number }) => prof.publico === 1);
 
-      // Asegura que formData.Profesor no sea null/undefined
-      if (formData.Profesor != null) {
-        const yaIncluido = profesoresPublicos.some(p => p.id_emp === formData.Profesor);
-
-        if (!yaIncluido) {
-          const profesorOriginal = data.find((p: any) => p.id_emp === formData.Profesor);
-
-          if (profesorOriginal) {
-            profesoresPublicos.push({
-              id_emp: profesorOriginal.id_emp,
-              nombre: profesorOriginal.nombre || "Profesor no público",
-            });
-          } else {
-            // Opción si no se encuentra en data (inconsistencia)
-            profesoresPublicos.push({
-              id_emp: formData.Profesor,
-              nombre: "Profesor no registrado",
-            });
-          }
-        }
+      // Si ya cargamos el curso y su profesor no está en la lista de públicos, lo añadimos
+      const profesorCurso = profesoresPublicos.find(p => p.id_emp === formData.Profesor);
+      if (!profesorCurso && formData.Profesor) {
+        profesoresPublicos.push({
+          id_emp: formData.Profesor,
+          nombre: data.find((p: any) => p.id_emp === formData.Profesor)?.nombre || "Profesor no público",
+        });
       }
 
       setProfesores(profesoresPublicos);
