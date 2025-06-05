@@ -1,245 +1,496 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateInscripcionDto } from './dto/create-inscripciones.dto';
-import { UpdateInscripcionDto } from './dto/update-inscripciones.dto';
+import { useEffect, useState } from "react";
+import { CheckCircleIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
 
-@Injectable()
-export class InscripcionesService {
-  constructor(private readonly prisma: PrismaService) {}
+interface Curso {
+  id: number;
+  NombreCurso?: string;
+  Valor?: string;
+  Publico?: string;
+  Periodo?: string;
+  Inicio?: string;
+  Fin?: string;
+  Horas?: string;
+  CupoMax?: string;
+  Lugar?: string;
+  Linea?: string;
+  Estado?: string;
+  Modalidad?: string;
+  Unidad?: string;
+  Profesor?:number;
+  SegundoPro?: string;
+  Proexterno?: string;
+  Descripcion: string;
+  IdTipoCurso: string;
+  LunesIni?: string;
+  LunesFin?: string;
+  MartesIni?: string;
+  MartesFin?: string;
+  MiercolesIni?: string;
+  MiercolesFin?: string;
+  JuevesIni?: string;
+  JuevesFin?: string;
+  ViernesIni?: string;
+  ViernesFin?: string;
+  SabadoIni?: string;
+  SabadoFin?: string;
+  DomingoIni?: string;
+  DomingoFin?: string;
+  NombreProfesor?: string;
+  InicioInscr?: string;
+  FinInscr?: string; 
+}
 
-  // CREAR INSCRITO
-  async createRegistration(data: CreateInscripcionDto) {
-    const inscripcionExistente = await this.prisma.inscripciones.findFirst({
-      where: {
-        idCur: data.idCur,
-        docInscr: data.docInscr,
-      },
-    });
+interface CursoEditarModalProps {
+  courseId: number | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onUpdate: () => void;
+}
 
-    if (inscripcionExistente) {
-      return this.prisma.inscripciones.update({
-        where: { id: inscripcionExistente.id },
-        data: { est: true },
-      });
-    }
+interface Opcion {
+  id: number;
+  Especificacion: string;
+  Tipo: number;
+}
 
-    const curso = await this.prisma.cursos.findUnique({
-      where: { id: data.idCur },
-      select: { CupoMax: true },
-    });
+export default function CursoEditarModal({
+  courseId,
+  isOpen,
+  onClose,
+  onUpdate,
+}: CursoEditarModalProps) {
+  const [formData, setFormData] = useState<Curso>({
+    id: 0,
+   NombreCurso: "",
+    Valor: "",
+    Publico: "",
+    Periodo: "",
+    Inicio: "",
+    Fin: "",
+    Horas: "",
+    CupoMax: "",
+    Lugar: "",
+    Linea: "",
+    Estado: "",
+    Modalidad: "",
+    Unidad: "",
+    Profesor: 0,
+    SegundoPro: "",  
+    Proexterno: "",  
+    Descripcion: "", 
+    IdTipoCurso: "",
+    InicioInscr: "",
+    FinInscr: "",
 
-    if (!curso) {
-      throw new NotFoundException('Curso no encontrado');
-    }
-
-    if (curso.CupoMax === null) {
-      return this.prisma.inscripciones.create({
-        data: {
-          idCur: data.idCur,
-          docInscr: data.docInscr,
-          est: true,
-          fecreg: new Date(),
-        },
-      });
-    }
-
-    const inscripcionesContadas = await this.prisma.inscripciones.count({
-      where: { idCur: data.idCur },
-    });
-
-    if (inscripcionesContadas >= curso.CupoMax) {
-      throw new Error('El cupo máximo del curso ha sido alcanzado');
-    }
-
-    return this.prisma.inscripciones.create({
-      data: {
-        idCur: data.idCur,
-        docInscr: data.docInscr,
-        est: true,
-        fecreg: new Date(),
-      },
-    });
-  }
-
-  // OBTENER DATOS DE TODOS LOS INSCRITOS
-  async getRegistration() {
-    return this.prisma.$queryRawUnsafe<
-      Array<{
-        id: number;
-        idCur: number;
-        NombreCurso: string;
-        docInscr: string;
-        nombre: string | null;
-        est: boolean;
-        fecreg: Date;
-        Profesor: number;
-        SegundoPro: number;
-        CupoMax: number | null;
-        Proexterno: string;
-      }>
-    >(
-      `SELECT 
-        i.id, 
-        i.idCur, 
-        c.NombreCurso, 
-        i.docInscr, 
-        e.nombre, 
-        i.est, 
-        i.fecreg,
-        c.Profesor,
-        c.SegundoPro,
-        c.CupoMax,
-        c.Proexterno
-      FROM gescur.Inscripciones i
-      LEFT JOIN gescur.Cursos c ON i.idCur = c.id
-      LEFT JOIN gescur.emp_nomina e ON i.docInscr = e.id_emp
-      WHERE i.est = 1`
-    );
-  }
-
-
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [opcionesPublico, setOpcionesPublico] = useState<Opcion[]>([]);
+  const [opcionesLinea, setOpcionesLinea] = useState<Opcion[]>([]);
+  const [opcionesModalidad, setOpcionesModalidad] = useState<Opcion[]>([]);
+  const [opcionesEstado, setOpcionesEstado] = useState<Opcion[]>([]);
+  const [opcionesTipoCurso, setOpcionesTipoCurso] = useState<Opcion[]>([]);
+  const [unidad, setUnidad] = useState<{ codigo: number; nombre: string}[]>([])
+  const [opcionesPeriodos, setOpcionesPeriodos] = useState<{ periodo: string}[]>([]);
+  const [profesores, setProfesores] = useState<{ id_emp: number; nombre: string}[]>([])
+  const [showSuccess, setShowSuccess] = useState(false);
+  
  
 
+  // CARGAR DATOS DE CURSO
+  useEffect(() => {
+    if (!courseId || !isOpen) return; 
 
-  async getCoursesTeacher(idProfesor: number) {
-    return this.prisma.$queryRawUnsafe<
-      Array<{
-        id: number;
-        idCur: number;
-        NombreCurso: string;
-        Publico: number;
-        Profesor: number;
-        SegundoPro: number;
-        Valor: number; 
-        Horas: number;
-        Lugar: string;
-        Inicio: Date;
-        Fin: Date;
-        LunesIni: string;
-        LunesFin: string;
-        MartesIni: string;                       
-        MartesFin: string;                        
-        MiercolesIni: string;
-        MiercolesFin: string;              
-        JuevesIni: string;                       
-        JuevesFin: string;                  
-        ViernesIni: string;                 
-        ViernesFin: string;                     
-        SabadoIni: string;                      
-        SabadoFin: string;                       
-        DomingoIni: string;                     
-        DomingoFin: string;
-        Periodo: number;
-        Linea: number;
-        Proexterno, 
-        Estado: string;
-        Modalidad: number;
-        Unidad: number;
-        docInscr: string;
-        nombre: string | null;
-        fecreg: Date;
-        rol: string;
-        CupoMax: number | null;
-        Nota: number | null;
-        Especificacion: string | null;
-        InscritoNumerico: number | null;
-      }>
-    >(
-      `SELECT 
-        i.id,
-        i.idCur,
-        c.NombreCurso,
-        lp.Especificacion AS Publico,
-        c.Profesor,
-        c.SegundoPro,
-        c.Valor,
-        c.Horas,
-        c.Lugar,
-        c.Inicio,
-        c.Fin,
-        c.LunesIni,                          
-        c.LunesFin,                         
-        c.MartesIni,                       
-        c.MartesFin,                        
-        c.MiercolesIni,                      
-        c.MiercolesFin,                      
-        c.JuevesIni,                         
-        c.JuevesFin,                         
-        c.ViernesIni,                        
-        c.ViernesFin,                        
-        c.SabadoIni,                         
-        c.SabadoFin,                         
-        c.DomingoIni,                        
-        c.DomingoFin,
-        c.Periodo,
-        ll.Especificacion AS Linea,
-        c.Proexterno, 
-        c.Estado,
-        est.Especificacion AS Est, 
-        m.Especificacion AS Modalidad,
-        u.nombre AS Unidad,
-        i.docInscr,
-        e.nombre,
-        i.fecreg,
-        c.CupoMax,
-        sp.nombre AS SegundoProfe, 
-        e.nombre AS NombreProfesor,
-       
+    setLoading(true);
+    setError(null);
 
-        TRY_CAST(i.docInscr AS INT) AS InscritoNumerico,
-        n.Nota,
-        l.Especificacion,
-        CASE 
-          WHEN c.Profesor = ${idProfesor} THEN 'Titular'
-          WHEN c.SegundoPro = ${idProfesor} THEN 'Segundo'
-          ELSE 'Otro'
-        END AS rol
-      FROM gescur.Cursos c
-      LEFT JOIN gescur.Inscripciones i ON i.idCur = c.id
-      LEFT JOIN gescur.emp_nomina e ON i.docInscr = e.id_emp
+    console.log("Cargando curso con ID:", courseId);
+
+    fetch(`http://localhost:8090/api/cursos/${courseId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Error al cargar el curso");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Datos del curso recibidos:", data);
+        if (data) {
+          setFormData(data);
+        } else {
+          throw new Error("Datos del curso vacíos");
+        }
+      })
+      .catch((err) => {
+        setError(err.message || "No se pudo cargar el curso");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [courseId, isOpen]);
+
+
+    useEffect(() => {
+      async function fetchOpciones() {
+        try {
+          const response = await fetch("http://localhost:8090/api/cursos/especificaciones");
+          if (!response.ok) throw new Error("Error al obtener las opciones");
   
-      OUTER APPLY (
-        SELECT TOP 1 n.Nota 
-        FROM gescur.Notas n 
-        WHERE n.idInscrito = TRY_CAST(i.docInscr AS INT)
-        ORDER BY n.id ASC
-      ) n
-      LEFT JOIN gescur.Listas l ON l.id = n.Nota
-      LEFT JOIN gescur.listas lp ON lp.id = c.Publico AND lp.Tipo = 1
-      LEFT JOIN gescur.listas ll ON ll.id = c.Linea AND ll.Tipo = 2
-      LEFT JOIN gescur.listas m ON m.id = c.Modalidad AND m.Tipo = 3
-      LEFT JOIN gescur.listas est ON est.id = c.Estado AND est.Tipo = 4
-      LEFT JOIN gescur.unidad u ON c.Unidad = u.codigo
-      LEFT JOIN gescur.emp_nomina sp ON CAST(c.SegundoPro AS VARCHAR) = sp.id_emp
-    
-    
-    
+          const data: Opcion[] = await response.json();
+  
+          setOpcionesPublico(data.filter((item) => item.Tipo === 1));
+          setOpcionesLinea(data.filter((item) => item.Tipo === 2));
+          setOpcionesModalidad(data.filter((item) => item.Tipo === 3));
+          setOpcionesEstado(data.filter((item) => item.Tipo === 4));
+          setOpcionesTipoCurso(data.filter((item) => item.Tipo === 8));
+        } catch (error) {
+          console.error("Error cargando las opciones:", error);
+        }
+      }
+  
+      fetchOpciones();
+    }, []);
 
-
-      WHERE (c.Profesor = ${idProfesor} OR c.SegundoPro = ${idProfesor})
-        AND i.est = 1`
-    );
-  }
+    useEffect(()  => {
+      async function fetcPeriodos() {
+        try {
+          const response = await fetch("http://localhost:8090/api/cursos/periodos")
+          if (!response.ok) throw new Error("Error al obtener los periodos");
+  
+          const data = await response.json();
+          setOpcionesPeriodos(data);
+          } catch(error){
+            console.error("Error cargando lista de periodos:", error);
+          }
+        }
+        fetcPeriodos(); 
+    }, []);
   
   
+    useEffect(()  => {
+      async function fetcUnidades() {
+        try {
+          const response = await fetch("http://localhost:8090/api/cursos/unidad")
+          if (!response.ok) throw new Error("Error al obtener las unidades");
+  
+          const data = await response.json();
+          setUnidad(data);
+          } catch(error){
+            console.error("Error cargando lista de unidades:", error);
+          }
+        }
+        fetcUnidades(); 
+    }, []);
 
-  // OBTENER INSCRIPCIONES POR ID
-  async getRegistrationId(id: number) {
-    const inscripcion = await this.prisma.inscripciones.findUnique({ where: { id } });
-    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
-    return inscripcion;
-  }
+    useEffect(() => {
+      async function fetchProfesores() {
+        try {
+          const response = await fetch("http://localhost:8090/api/cursos/profesores");
+          if (!response.ok) throw new Error("Error al obtener los profesores");
+    
+          const data = await response.json();
+          const profesoresPublicos = data.filter((prof: any) => prof.publico === 1);
+          setProfesores(profesoresPublicos);
+          console.log("Profesores públicos:", profesoresPublicos);
+        } catch (error) {
+          console.error("Error cargando los profesores:", error);
+        }
+      }
+    
+      fetchProfesores();
+    }, []);
 
-  //  ACTUALIZAR EL ESTADO DEL INSCRITO
-  async getState(id: number, dto: UpdateInscripcionDto) {
-    return this.prisma.inscripciones.update({
-      where: { id },
-      data: { est: Boolean(dto.est) },
-    });
-  }
 
-  // ELIMINAR LA INSCRIPCIÓN
-  async deleteRegistration(id: number) {
-    return this.prisma.inscripciones.delete({ where: { id } });
-  }
+const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value } = e.target;
+
+ 
+  const camposNumericos = ["Publico", "Linea", "Modalidad", "Estado", "Unidad", "Profesor", "SegundoPro", "IdTipoCurso", "Valor", "CupoMax", "Horas"];
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: camposNumericos.includes(name) ? Number(value) : value,
+  }));
+};
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData) return;
+  
+    try {
+      const res = await fetch(`http://localhost:8090/api/cursos/${courseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!res.ok) throw new Error("Error al actualizar el curso");
+  
+      setShowSuccess(true);
+      setTimeout(()=> {
+        setShowSuccess(false);
+        onUpdate();
+        onClose();
+      }, 2000)
+      
+    } catch (err) {
+      setError("No se pudo actualizar el curso");
+    }
+  };
+
+  if (!isOpen) return null; 
+  if (loading) return <p>Cargando...</p>;
+  if (error) return <p>{error}</p>;
+  if (!formData) return <p>No se encontró el curso</p>;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className=" relative bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl opacity-100 animate-fade-in max-h-[80vh] overflow-y-auto">
+      <motion.div
+        className="relative bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl overflow-y-auto"
+        initial={{ opacity: 0}}
+        animate={{ opacity: 1}}
+        exit={{ opacity: 0}}
+        transition={{ duration: 0.3}}
+        >
+      <button 
+          onClick={onClose} 
+          className="absolute top-4 right-4 text-gray-500 hover:text-[#990000] transition-transform duration-300 hover:rotate-90"
+        >
+          <XMarkIcon className="w-6 h-6" />
+        </button>
+        <h2 className="text-3xl font-bold text-[#990000] text-center mb-6 ">Editar Curso</h2>
+        {/* FORMULARIO DE EDITAR CURSO */}
+        <form onSubmit={handleSubmit} className="space-y-4 seleccion-personalizada">
+
+  {/* Nombre del curso */}
+  <div>
+    <label>Nombre Curso</label>
+    <input type="text" name="NombreCurso" value={formData.NombreCurso ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+  </div>
+
+  {/* Valor | Público | Periodo */}
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+      <label>Valor</label>
+      <input type="number" name="Valor" value={formData.Valor ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+    <div>
+      <label>Público</label>
+      <select name="Publico" value={formData.Publico} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesPublico.map((opcion) => (
+          <option key={opcion.id} value={opcion.id}>{opcion.Especificacion}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label>Periodo</label>
+      <select name="Periodo" value={formData.Periodo} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesPeriodos.map((opcion, idx) => (
+          <option key={idx} value={opcion.periodo}>{opcion.periodo}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Inicio curso | Fin curso */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Fecha Inicio curso</label>
+      <input type="date" name="Inicio" value={formData.Inicio ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+    <div>
+      <label>Fecha Fin curso</label>
+      <input type="date" name="Fin" value={formData.Fin ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+  </div>
+
+  {/* Horario */}
+  <div>
+    <h3 className="text-lg font-semibold mt-4">Horarios</h3>
+<table className="w-full border-collapse border border-gray-300 text-center">
+  <thead>
+    <tr className="bg-gray-200">
+      <th className="border border-gray-300 px-2 py-1">Día</th>
+      <th className="border border-gray-300 px-2 py-1">Hora Inicio</th>
+      <th className="border border-gray-300 px-2 py-1">Hora Fin</th>
+    </tr>
+  </thead>
+  <tbody>
+    {["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"].map((dia) => (
+      <tr key={dia}>
+        <td className="border border-gray-300 px-2 py-1 font-semibold">{dia}</td>
+        <td className="border border-gray-300 px-2 py-1">
+          <input
+            type="time"
+            name={`${dia}Ini`}
+            value={formData[`${dia}Ini` as keyof typeof formData] || ""}
+            onChange={handleChange}
+            className="w-full border p-1 rounded-lg focus:ring-2 focus:ring-[#990000] outline-none"
+          />
+        </td>
+        <td className="border border-gray-300 px-2 py-1">
+          <input
+            type="time"
+            name={`${dia}Fin`}
+            value={formData[`${dia}Fin` as keyof typeof formData] || ""}
+            onChange={handleChange}
+            className="w-full border p-1 rounded-lg focus:ring-2 focus:ring-[#990000] outline-none"
+          />
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+  </div>
+
+  {/* Horas | Cupo máximo */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Horas</label>
+      <input type="number" name="Horas" value={formData.Horas ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+    <div>
+      <label>Cupo máximo</label>
+      <input type="number" name="CupoMax" value={formData.CupoMax ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+  </div>
+
+  {/* Lugar */}
+  <div>
+    <label>Lugar</label>
+    <input type="text" name="Lugar" value={formData.Lugar ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+  </div>
+
+  {/* Línea | Estado */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Línea</label>
+      <select name="Linea" value={formData.Linea ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesLinea.map((opcion) => (
+          <option key={opcion.id} value={opcion.id}>{opcion.Especificacion}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label>Estado</label>
+      <select name="Estado" value={formData.Estado ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesEstado.map((opcion) => (
+          <option key={opcion.id} value={opcion.id}>{opcion.Especificacion}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Modalidad | Unidad */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Modalidad</label>
+      <select name="Modalidad" value={formData.Modalidad ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesModalidad.map((opcion) => (
+          <option key={opcion.id} value={opcion.id}>{opcion.Especificacion}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label>Unidad</label>
+      <select name="Unidad" value={formData.Unidad ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {unidad.map((u) => (
+          <option key={u.codigo} value={u.codigo}>{u.nombre}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Profesor | Segundo Profesor */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Profesor</label>
+      <select name="Profesor" value={formData.Profesor ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {profesores.map((p) => (
+          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
+        ))}
+      </select>
+    </div>
+    <div>
+      <label>Segundo Profesor</label>
+      <select name="SegundoPro" value={formData.SegundoPro ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {profesores.map((p) => (
+          <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+  {/* Profesor Externo */}
+  <div>
+    <label>Profesor Externo</label>
+    <input type="text" name="Proexterno" value={formData.Proexterno ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+  </div>
+
+  {/* Inicio Inscripciones | Fin Inscripciones */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label>Fecha Inicio Inscripciones</label>
+      <input type="date" name="InicioInscr" value={formData.InicioInscr ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+    <div>
+      <label>Fecha Fin Inscripciones</label>
+      <input type="date" name="FinInscr" value={formData.FinInscr ?? 0} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+  </div>
+
+  {/* Tipo de curso | Descripción */}
+  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+    <div>
+      <label>Tipo de curso</label>
+      <select name="IdTipoCurso" value={formData.IdTipoCurso ??  0} onChange={handleChange} className="w-full border p-2 rounded-lg">
+        <option value="">Selecciona una opción</option>
+        {opcionesTipoCurso.map((opcion) => (
+          <option key={opcion.id} value={opcion.id}>{opcion.Especificacion}</option>
+        ))}
+      </select>
+    </div>
+    
+  </div>
+  <div>
+      <label>Descripción</label>
+      <input type="text" name="Descripcion" value={formData.Descripcion ?? ""} onChange={handleChange} className="w-full border p-2 rounded-lg" />
+    </div>
+
+  {/* Botón Guardar */}
+  <div className="text-center mt-6">
+    <button type="submit" className="bg-[#990000] text-white px-6 py-2 rounded-lg hover:bg-red-800 transition-colors">Guardar Curso</button>
+  </div>
+
+</form>
+
+
+        </motion.div>
+      </div>
+
+      
+      
+
+      {showSuccess && (
+  <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 z-[9999]">
+    <div className="animate-check-spin scale-125">
+      <CheckCircleIcon className="h-32 w-32 text-green-500" />
+    </div>
+    <p className="text-white text-2xl font-bold mt-2 animate-fade-in">Curso actualizado</p>
+  </div>
+)}
+
+
+    </div>
+  );
 }
