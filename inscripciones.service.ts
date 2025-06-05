@@ -6,15 +6,14 @@ useEffect(() => {
 
       const data = await response.json();
 
-      // Aquí con el tipado rápido del parámetro prof
       const profesoresPublicos = data.filter((prof: { publico: number }) => prof.publico === 1);
 
-      // Si ya cargamos el curso y su profesor no está en la lista de públicos, lo añadimos
-      const profesorCurso = profesoresPublicos.find(p => p.id_emp === formData.Profesor);
+      const profesorCurso = profesoresPublicos.find(p => p.id_emp.toString() === formData.Profesor.toString());
       if (!profesorCurso && formData.Profesor) {
+        const profesorEncontrado = data.find((p: any) => p.id_emp.toString() === formData.Profesor.toString());
         profesoresPublicos.push({
           id_emp: formData.Profesor,
-          nombre: data.find((p: any) => p.id_emp === formData.Profesor)?.nombre || "Profesor no público",
+          nombre: profesorEncontrado ? profesorEncontrado.nombre : formData.Profesor.toString(),
         });
       }
 
