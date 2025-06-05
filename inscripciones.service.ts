@@ -34,15 +34,16 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
       onChange={handleChange}
       className="w-full border p-2 rounded-lg"
     >
-      <option value="">
-        {formData.Profesor || "Selecciona una opción"}
-      </option>
+      <option value="">Selecciona una opción</option>
       {profesores.map((p) => (
         <option key={p.id_emp} value={p.id_emp}>
           {p.nombre}
         </option>
       ))}
     </select>
+    {formData.NombreProfesor && (
+      <p className="text-sm text-gray-600 mt-1">Seleccionado: {formData.NombreProfesor}</p>
+    )}
   </div>
 
   <div>
@@ -53,14 +54,15 @@ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
       onChange={handleChange}
       className="w-full border p-2 rounded-lg"
     >
-      <option value="">
-        {formData.NombreSegundoPro || "Selecciona una opción"}
-      </option>
+      <option value="">Selecciona una opción</option>
       {profesores.map((p) => (
         <option key={p.id_emp} value={p.id_emp}>
           {p.nombre}
         </option>
       ))}
     </select>
+    {formData.NombreSegundoPro && (
+      <p className="text-sm text-gray-600 mt-1">Seleccionado: {formData.NombreSegundoPro}</p>
+    )}
   </div>
 </div>
