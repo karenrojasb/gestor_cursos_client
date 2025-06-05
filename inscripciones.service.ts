@@ -8,12 +8,14 @@ useEffect(() => {
 
       const profesoresPublicos = data.filter((prof: { publico: number }) => prof.publico === 1);
 
-      const profesorCurso = profesoresPublicos.find(p => p.id_emp.toString() === formData.Profesor.toString());
-      if (!profesorCurso && formData.Profesor) {
-        const profesorEncontrado = data.find((p: any) => p.id_emp.toString() === formData.Profesor.toString());
+      const profesorId = formData.Profesor ? formData.Profesor.toString() : "";
+      const profesorCurso = profesoresPublicos.find(p => p.id_emp.toString() === profesorId);
+
+      if (!profesorCurso && profesorId) {
+        const profesorEncontrado = data.find((p: any) => p.id_emp.toString() === profesorId);
         profesoresPublicos.push({
-          id_emp: formData.Profesor,
-          nombre: profesorEncontrado ? profesorEncontrado.nombre : formData.Profesor.toString(),
+          id_emp: profesorId,
+          nombre: profesorEncontrado ? profesorEncontrado.nombre : profesorId,
         });
       }
 
