@@ -22,7 +22,7 @@ useEffect(() => {
         profesoresPublicos.push({
           id_emp: profesorId,
           nombre: profesorEncontrado ? profesorEncontrado.nombre : profesorId,
-          publico: 0, // o el valor que tenga sentido
+          publico: 0, 
         });
       }
 
