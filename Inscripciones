@@ -1,5 +1,18 @@
--- Buscar si existe el procedimiento
-SELECT * 
-FROM sys.objects 
-WHERE name LIKE '%NVERIFICANIT%' 
-AND type = 'P';
+USE [AuraquanticDev_BPMS]
+GO
+/****** Object:  StoredProcedure [dbo].[ValidaNITERP]    Script Date: 20/10/2025 10:31:20 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[ValidaNITERP]
+@IdProceso as int,
+@IdClaseProceso as int,
+@CodigoObjeto as nvarchar(255),
+@RefBase as nvarchar(255)
+AS
+begin
+declare @comando as varchar(255)
+set @comando = 'java -jar C:\Inetpub\ProgramasExternos\Valida_Proveedor_Pre_vs_ERP.jar ' + convert(varchar(100),@idProceso)
+exec xp_cmdshell @comando
+end
