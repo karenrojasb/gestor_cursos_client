@@ -1,3 +1,21 @@
+DECLARE @Tabla NVARCHAR(100) = 'productos';  -- 👈 Nombre de la tabla
+DECLARE @Buscar NVARCHAR(100) = 'SQL/hola/103240';  -- 👈 Dato que quieres buscar
+DECLARE @sql NVARCHAR(MAX) = N'';
+
+-- Construye una consulta dinámica para todas las columnas de texto
+SELECT @sql = @sql + '
+IF EXISTS (SELECT 1 FROM ' + QUOTENAME(@Tabla) + ' WHERE TRY_CAST(' + QUOTENAME(c.name) + ' AS NVARCHAR(MAX)) LIKE ''%' + @Buscar + '%'')
+PRINT ''Encontrado en columna: ' + c.name + ''';'
+FROM sys.columns c
+JOIN sys.types y ON c.user_type_id = y.user_type_id
+WHERE c.object_id = OBJECT_ID(@Tabla)
+  AND y.name IN ('char', 'varchar', 'nchar', 'nvarchar', 'text', 'ntext');
+
+-- Ejecutar el script generado
+EXEC sp_executesql @sql;
+
+
+
 DECLARE @Buscar NVARCHAR(100) = 'SQL/hola/103240';  -- 🔍 Valor que quieres buscar
 DECLARE @sql NVARCHAR(MAX) = N'';
 
