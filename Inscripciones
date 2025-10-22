@@ -1,3 +1,13 @@
+SELECT 
+    t.name AS Nombre_Tabla,
+    c.name AS Nombre_Columna
+FROM sys.columns c
+INNER JOIN sys.tables t ON c.object_id = t.object_id
+WHERE c.name LIKE '%_base reference%' -- puedes cambiar el texto si es distinto
+ORDER BY t.name;
+
+
+
 USE [AuraquanticDev_BPMS]
 GO
 /****** Object:  StoredProcedure [dbo].[ValidaNITERP]    Script Date: 20/10/2025 10:31:20 a. m. ******/
