@@ -1,3 +1,20 @@
+DECLARE @Buscar NVARCHAR(100) = 'SQL/hola/103240';  -- 🔍 Valor que quieres buscar
+DECLARE @sql NVARCHAR(MAX) = N'';
+
+-- Construir consultas para todas las columnas de texto
+SELECT @sql = @sql + '
+IF EXISTS (SELECT 1 FROM ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' WHERE TRY_CAST(' + QUOTENAME(c.name) + ' AS NVARCHAR(MAX)) LIKE ''%' + @Buscar + '%'')
+PRINT ''Encontrado en: ' + s.name + '.' + t.name + ' -> ' + c.name + ''';'
+FROM sys.schemas s
+JOIN sys.tables t ON s.schema_id = t.schema_id
+JOIN sys.columns c ON t.object_id = c.object_id
+JOIN sys.types y ON c.user_type_id = y.user_type_id
+WHERE y.name IN ('char', 'varchar', 'nchar', 'nvarchar', 'text', 'ntext');
+
+-- Ejecutar el script generado
+EXEC sp_executesql @sql;
+
+
 SELECT 
     t.name AS Nombre_Tabla,
     c.name AS Nombre_Columna
