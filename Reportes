@@ -1,34 +1,695 @@
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div>
-    <label>Profesor</label>
-    <select
-      name="Profesor"
-      value={formData.Profesor ?? ""}
-      onChange={handleChange}
-      className="w-full border p-2 rounded-lg"
-    >
-      <option value="">
-        {profesores.find(p => p.id_emp === formData.Profesor)?.nombre || "Selecciona una opción"}
-      </option>
-      {profesores.map((p) => (
-        <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-    <label>Segundo Profesor</label>
-    <select
-      name="SegundoPro"
-      value={formData.SegundoPro ?? ""}
-      onChange={handleChange}
-      className="w-full border p-2 rounded-lg"
-    >
-      <option value="">
-        {profesores.find(p => p.id_emp === formData.SegundoPro)?.nombre || "Selecciona una opción"}
-      </option>
-      {profesores.map((p) => (
-        <option key={p.id_emp} value={p.id_emp}>{p.nombre}</option>
-      ))}
-    </select>
-  </div>
-</div>
+USE [Novasoft]
+GO
+/****** Object:  StoredProcedure [dbo].[USR_sp_gen_afeinv_preciso]    Script Date: 27/10/2025 11:50:08 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/*SE AGREGA LA INSERCION DE LA ESTRUCTURA DE COSTOS DEL PRIMER REGISTRO EN CABEZA DE DOCUMENTO
+SE AGREGA LA CREACION DE PLACAS EN DESPACHOS Y FACTURAS DE COMPRA
+JSARMIENTO ABRIL/2013 SRS: 2913-0377
+SE AGREGA EL CALCULO DE RETENCION DE IVA Y RETENCION DE IVA NO GRABADO DE ACUERDO A LOS CAMPOS DE INV_INF_INV
+JSARMIENTO ABRIL/2013	SRS: 2013-0385
+SE AGREGA A LA INSERCION LOS IMPUESTOS ADICIONALES
+JSARMIENTO JUNIO/2013 SRS:2013-0462
+SE AGREGA A LA INSERCION LA ASIGNACION DEL CAMPO HORA PARA EL PROCESAMIENTO DE INFORMACION EN LA RECUPERACION
+JSARMIENTO JULIO/2013 SRS: 2013-0739
+SE CONTROLA LA ACTUALIZACION DE PAIS, DEPARTAMENTO Y CIUDAD EN NULO
+JSARMIENTO SEPTIEMBRE/2013 SRS: 2013-0997
+AGREGAMOS EL CAMPO base_iva_aiu
+SRS 2014-0088
+JCESARS		FEBRERO/2014
+SE AGREGA A LA INSERCION DE INFORMACION EL CODIGO DE RETENCION
+JSARMIENTO FEBRERO/2014 SRS: 2014-0114
+SE AGREGA A LA INSERCION DE INFORMACION EL CONTEO DE INVENTARIOS
+JSARMIENTO SEPTIEMBRE/2014 SRS: 2014-0511
+SE AGREGAN CAMPOS por_ctd,val_ctd, val_tcd, por_vol, des_vol
+GJPULIDO OCT.2014 SRS: 2014-0861
+SE AGREGAN LOS CAMPOS FALTANTES DE LA TABLA INV_INF_INV QUE NO SE INSERTAN EN CUEDOC
+JSARMIENTO NOVIEMBRE/2014 SRS: 2014-0948
+SE AGREGA A LA INSERCION DE INFORMACION EL PAIS, DEPARTAMENTO, CIUDAD Y DESCRIPCION DE DOCUMENTO
+JSARMIENTO ENERO/2015 SRS: 2014-1069
+SE AGREGA A LA INSERCION DE INFORMACION EL CODIGO DE ICA, SUCURSAL DE PROVEEDOR Y DE CLIENTE
+SE AGREGA LA VALIDACION DE BASES DE IMPUESTOS
+JSARMIENTO FEBRERO/2015 SRS: 2015-0066*/
+ALTER PROCEDURE [dbo].[USR_sp_gen_afeinv_preciso]
+	@iano_doc	CHAR(4),
+	@fano_doc	CHAR(4),
+	@iper_doc	CHAR(2),
+	@fper_doc	CHAR(2),
+	@isub_tip	CHAR(5),
+	@fsub_tip	CHAR(5),
+	@inum_doc	CHAR(14),
+	@fnum_doc	CHAR(14),
+	@ifec_doc	DATETIME,
+	@ffec_doc	DATETIME,
+	@indver		BIT  --0 procesar, 1 ver
+ 
+AS
+
+DECLARE @error		VARCHAR(100);
+DECLARE @conta1		SMALLINT;
+DECLARE @ind_blq	BIT;
+DECLARE @cCad2		VARCHAR(600);
+DECLARE @cCad8		VARCHAR(1000);
+DECLARE @numero		CHAR(14);
+
+DECLARE @nerror		SMALLINT;
+DECLARE @inderr		TINYINT; --Esta variable es la que se retorna para evaluar el mensaje al finalizar el proceso.
+
+--VARIBLES DEL DOCUMENTO
+DECLARE @ano_doc	CHAR(4);
+DECLARE @per_doc	CHAR(2);
+DECLARE @sub_tip	CHAR(5);
+DECLARE @tip_doc	CHAR(3);
+DECLARE @num_doc	CHAR(14);
+DECLARE @reg_doc	INT;
+DECLARE @fecha		DATETIME;
+DECLARE @cliente	CHAR(15);
+DECLARE @provee		CHAR(15);
+DECLARE @val_doc	MONEY;
+DECLARE @por_iva	MONEY;
+DECLARE @por_des	MONEY;
+DECLARE @por_ret	MONEY;
+DECLARE @ind_con	CHAR(3);
+DECLARE @ind_tra	CHAR(1);
+DECLARE @cod_suc	CHAR(3);
+DECLARE @cod_cco	CHAR(10);
+DECLARE @cod_cl1	CHAR(12);
+DECLARE @cod_cl2	CHAR(12);
+DECLARE @cod_cl3	CHAR(12);
+DECLARE @fec_ven	DATETIME;
+
+DECLARE @vendedor	CHAR(3);
+DECLARE @lista		CHAR(2);
+DECLARE @dia_pla	MONEY;
+DECLARE @obs_orc	VARCHAR(200);
+DECLARE @fac_pro	CHAR(14);
+DECLARE @cod_caja	CHAR(3);
+DECLARE @fec_ent	DATETIME;
+
+DECLARE @fac_con	CHAR(3);
+DECLARE @cant_uni	MONEY;
+
+DECLARE @ven_lote	DATETIME;
+DECLARE @cod_lote	CHAR(10);
+
+DECLARE @trans		CHAR(5);
+DECLARE	@asig_num	BIT;
+DECLARE @num_con	CHAR(14);
+DECLARE @numdoc		CHAR(14);
+
+DECLARE @por_riv	MONEY;
+DECLARE @por_ica	MONEY;
+DECLARE @ind_tip	CHAR(1);
+DECLARE @age_ret	SMALLINT;
+DECLARE @ind_aut	SMALLINT;
+
+DECLARE @pre_vta	MONEY;
+DECLARE @cos_uni	MONEY;
+DECLARE @item		VARCHAR(40);
+DECLARE @bodega		CHAR(3);
+DECLARE @cos_unai	MONEY;
+
+--CLIENTE
+DECLARE @riv_cli	MONEY;
+DECLARE @ica_cli	MONEY;
+
+--MULTIMONEDA
+DECLARE @ind_mp		CHAR(2);
+DECLARE @tasa		MONEY;
+DECLARE @fec_tas	DATETIME;
+
+-- VARIABLES REVISION DE VALIDACIONES NUEVAS
+DECLARE @num_ant	CHAR(20);
+DECLARE @recno		INT;
+
+DECLARE @per_cie	SMALLINT;
+DECLARE @per_blq	SMALLINT;
+DECLARE @erroc		VARCHAR(300);
+DECLARE @per_ant	CHAR(2);
+DECLARE @ind_cie	BIT;
+
+--	SRS	2012-0604
+DECLARE @cAnoIni	CHAR(4);
+DECLARE @cAnoFin	CHAR(4);
+DECLARE @cPerIni	CHAR(2);
+DECLARE @cPerFin	CHAR(2);
+DECLARE @cSubIni	CHAR(5);
+DECLARE @cSubFin	CHAR(5);
+DECLARE @cNumIni	CHAR(14);
+DECLARE @cNumFin	CHAR(14);
+DECLARE @dFecIni	DATETIME;
+DECLARE @dFecFin	DATETIME;
+
+DECLARE @conta2		SMALLINT;
+
+-- RETENCION DE IVA
+DECLARE @tar_rii	MONEY;
+DECLARE @tar_rii_ng	MONEY;
+
+-- CREACION DE PLACAS
+DECLARE @error_act	VARCHAR(100);
+
+--	SRS: 2013-0739
+DECLARE @hora	CHAR(5);
+
+-- SRS: 2014-014
+DECLARE @cod_ret	CHAR(3);
+
+-- SRS: 2014-0511
+DECLARE @conteo	CHAR(1);
+
+-- SRS: 2014-0861
+DECLARE @por_ctd MONEY;
+
+-- SRS:2014-0948
+DECLARE @cod_ter VARCHAR(15);
+
+--	SRS: 2014-1069
+DECLARE @pai_doc		CHAR(3);
+DECLARE @dep_doc		CHAR(2);
+DECLARE @ciu_doc		CHAR(5);
+
+--	SRS: 2105-0066
+DECLARE @suc_cli	VARCHAR(10);
+DECLARE @suc_prov	VARCHAR(10);
+DECLARE @pai_suc	CHAR(3);
+DECLARE @dep_suc	CHAR(2);
+DECLARE @ciu_suc	CHAR(5);
+DECLARE @asig_ica	BIT;
+
+SET NOCOUNT ON;
+
+SET @por_riv=0;
+SET @por_ica=0;
+SET @ind_tip='0';
+SET @age_ret=0;
+SET @ind_aut=0;
+SET @asig_ica=0;
+
+SET @recno=0;
+SET @per_ant='0';
+SET @per_blq=0;
+
+DELETE FROM inv_errores;
+
+SELECT @nerror=0;	-- Esta variable me indica si existe alguna inconsistencia sobre los documentos, 
+			-- si esta en 0 ok, en 1 con error.
+SELECT @inderr=2;	-- Maneja 3 valores, 0 termina ok, 1 termino y presento inconsistencias, 
+			-- 2 sin informacion. La inicializamos en 2.
+
+------
+SET @cAnoIni='0';
+SET @cAnoFin='Z';
+SET @cPerIni='0';
+SET @cPerFin='Z';
+SET @cSubIni='0';
+SET @cSubFin='Z';
+SET @cNumIni='0';
+SET @cNumFin='Z';
+SET @dFecIni='19000101';
+SET @dFecFin=GETDATE();
+
+IF @iano_doc IS NOT NULL AND @fano_doc IS NOT NULL AND @iano_doc<>'' AND @fano_doc<>'' 
+BEGIN
+	SET @cAnoIni=@iano_doc
+	SET @cAnoFin=@fano_doc
+END;
+
+IF @iper_doc IS NOT NULL AND @fper_doc IS NOT NULL AND @iper_doc<>'' AND @fper_doc<>''
+BEGIN
+	SET @cPerIni=@iper_doc
+	SET @cPerFin=@fper_doc
+END;
+
+IF @isub_tip IS NOT NULL AND @fsub_tip IS NOT NULL AND @isub_tip<>'' AND @fsub_tip<>''
+BEGIN
+	SET @cSubIni=@isub_tip
+	SET @cSubFin=@fsub_tip
+END;
+
+IF @inum_doc IS NOT NULL AND @fnum_doc IS NOT NULL AND @inum_doc<>'' AND @fnum_doc<>''
+BEGIN
+	SET @cNumIni=@inum_doc
+	SET @cNumFin=@fnum_doc
+END;
+
+IF @ifec_doc IS NOT NULL AND @ffec_doc IS NOT NULL AND @ifec_doc<>'' AND @ffec_doc<>''
+BEGIN
+	SET @dFecIni=@ifec_doc
+	SET @dFecFin=@ffec_doc
+END;
+------
+
+
+IF @indver=0
+BEGIN
+
+	DECLARE cinvdoc1 CURSOR FOR SELECT ano_doc,per_doc,sub_tip,num_doc,fecha,cliente,ind_mp,fec_tas,tasa,
+	cod_suc,provee,vendedor,lista,dia_pla,obs_orc,fac_pro,cod_caja, asig_num, conteo, por_ctd, cod_ter 
+	FROM inv_inf_inv  
+	WHERE ind_tra<>'X'
+	AND ano_doc BETWEEN @cAnoIni AND @cAnoFin
+	AND per_doc BETWEEN @cPerIni AND @cPerFin
+	AND sub_tip BETWEEN @cSubIni AND @cSubFin
+	AND num_doc BETWEEN @cNumIni AND @cNumFin
+	AND fecha BETWEEN @dFecIni AND @dFecFin 
+	GROUP BY ano_doc, per_doc, sub_tip, num_doc, fecha, cliente, ind_mp, fec_tas, tasa, 
+	cod_suc,provee,vendedor,lista,dia_pla,obs_orc,fac_pro,cod_caja,asig_num,conteo,por_ctd,cod_ter
+	ORDER BY ano_doc, per_doc, sub_tip, num_doc, fecha; 
+
+	OPEN cinvdoc1;
+
+	FETCH NEXT FROM cinvdoc1 INTO @ano_doc,@per_doc,@sub_tip,@num_doc,@fecha,@cliente,@ind_mp,@fec_tas,@tasa,
+	@cod_suc,@provee,@vendedor,@lista,@dia_pla,@obs_orc,@fac_pro,@cod_caja,@asig_num,@conteo,@por_ctd,@cod_ter;
+	
+	WHILE @@FETCH_STATUS<>-1
+	BEGIN
+
+		IF @inderr=2
+			SELECT @inderr=0;
+
+		--REVISION DE INCONSISTENCIAS
+		--PRINT 'REVISION DE PERIODOS'
+		IF @per_ant<>@per_doc
+		BEGIN
+			SELECT @per_blq=0;
+			SELECT @per_cie=0;
+
+			SELECT @ind_blq=ind_blq,@ind_cie=ind_cer FROM gen_periodos WHERE ano_per=@ano_doc AND mes_per=@per_doc;
+
+			IF @ind_blq IS NUll
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Inexistente.')
+
+				SELECT @nerror=1, @inderr = 1
+				SELECT @per_blq=1
+				SELECT @per_cie=1
+			END;
+
+			IF @ind_blq=1
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Bloqueado.')
+
+				SELECT @nerror=1, @inderr = 1
+				SELECT @per_blq=@per_blq+1
+			END;
+
+			IF @ind_cie=1
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Cerrado en Contabilidad.')
+
+				SELECT @nerror=1, @inderr = 1
+				SELECT @per_cie=@per_cie+1
+			END;
+
+			SELECT @ind_blq=ind_blq FROM gen_perapl WHERE ano_per=@ano_doc AND mes_per=@per_doc AND cod_apl='INV';
+
+			IF @ind_blq=1
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Bloqueado para Inventarios.')
+
+				SELECT @nerror=1, @inderr = 1
+				SELECT @per_blq=@per_blq+1
+			END;
+
+			SELECT @per_ant=@per_doc;
+		END
+		ELSE
+		BEGIN
+			IF @per_blq=1
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Inexistente.')
+
+				SELECT @nerror=1, @inderr = 1
+			END;
+
+			IF @per_blq=2
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Bloqueado.')
+
+				SELECT @nerror=1, @inderr = 1
+			END;
+
+			IF @per_cie=2
+			BEGIN
+				INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Periodo Cerrado en Contabilidad.')
+
+				SELECT @nerror=1, @inderr = 1
+			END;
+		END
+
+		IF (SELECT SUM(pre_vta*cantidad) FROM inv_inf_inv
+		WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@num_doc)<0
+		BEGIN
+			INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+			VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Total del Documento menor que cero.')
+
+			SELECT @nerror=1, @inderr = 1
+		END;
+
+		--REVISION DE FECHAS COHERENTES CON PERIODOS
+		IF YEAR(@fecha)<>CONVERT(SMALLINT,@ano_doc) OR MONTH(@fecha)<>CONVERT(SMALLINT,@per_doc)
+		BEGIN
+			INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+			VALUES(@ano_doc,@per_doc,@sub_tip,@num_doc,0,'Fecha no corresponde al año - periodo.')
+
+			SELECT @nerror=1, @inderr = 1
+		END;
+
+		--PRINT 'OTRAS INCONSISTENCIAS: SUC, CCO, CL1, CL2, CL3, TIPO, CLIENTE'
+
+		INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+		SELECT ano_doc, per_doc, sub_tip, num_doc, reg_doc, error 
+		FROM v_gen_incons_inv01
+		WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@num_doc;
+
+		IF @@rowcount>0
+			SELECT @nerror=1, @inderr = 1;
+
+		SELECT @tip_doc=cod_tip FROM gen_subtipodoc WHERE cod_sub=@sub_tip;
+
+		IF @tip_doc='011'
+		BEGIN
+			INSERT INTO inv_errores(ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+			SELECT a.ano_doc,a.per_doc,a.sub_tip,a.num_doc,MIN(a.reg_doc),
+			'ITEM '+RTRIM(a.item)+' SIN SALDO EN BODEGA. Suc.:'+RTRIM(a.cod_suc)+'-Bod.:'+RTRIM(a.bodega)
+			+' SALDO ACTUAL '+RTRIM(LTRIM(CONVERT(VARCHAR,CONVERT(NUMERIC(18,2),b.tot_uni))))
+			FROM inv_inf_inv a LEFT OUTER JOIN v_inv_acumen b 
+			ON a.item=b.cod_item AND a.cod_suc=b.cod_suc AND a.bodega=b.cod_bod
+			AND a.ano_doc=b.ano_acu AND a.per_doc=b.Periodo
+			WHERE a.ano_doc=@ano_doc AND a.per_doc=@per_doc AND a.sub_tip=@sub_tip AND a.num_Doc=@num_doc
+			GROUP BY a.ano_doc,a.per_doc,a.sub_tip,a.num_doc,a.item,a.cod_suc,a.bodega,b.tot_uni
+			HAVING SUM(cantidad)>b.tot_uni
+			IF @@rowcount>0
+				SELECT @nerror=1, @inderr = 1
+		END;
+
+		IF @nerror=0
+		BEGIN
+			BEGIN TRANSACTION
+
+			IF @asig_num = 1
+			BEGIN
+				EXEC sp_gen_numerador @sub_tip, @Cod_suc, @num_con OUTPUT, @nerror OUTPUT;
+		select @nerror
+				IF @nerror=0
+					SELECT @numdoc = @num_con; 
+			END
+			ELSE
+				SELECT @numdoc = @num_doc;
+
+			UPDATE inv_inf_inv SET asig_numero=@numdoc WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_doc=@num_doc;
+
+			-- Se genera transacción para cada documento, se controla inserción en cabeza y
+			-- cuerpo y actualización de la tabla de información de cartera.
+			SELECT @numero=num_doc FROM inv_cabdoc WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_doc=@numdoc;
+			IF @@rowcount>0
+			BEGIN
+				ROLLBACK TRANSACTION
+				INSERT INTO inv_errores (ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+				VALUES (@ano_doc, @per_doc, @sub_tip, @numdoc , 0, 'Documento Existente en Inventarios.');
+				SELECT @inderr = 1;
+			END
+			ELSE
+			BEGIN
+				SELECT TOP 1 @cod_cco=cod_cco,@cod_cl1=cod_cl1,@cod_cl2=cod_cl2,@cod_cl3=cod_cl3,@pai_doc=pai_doc,@dep_doc=dep_doc,@ciu_doc=ciu_doc,
+				@suc_cli=suc_cli,@suc_prov=suc_prov
+				FROM inv_inf_inv 
+				WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_doc=@num_doc;
+
+				IF @tip_doc IN ('012','005','006','001','010','302')
+				BEGIN
+					SELECT @por_riv=ret_iva,@por_ica=ret_ica,@ind_tip=tip_cli,@age_ret=age_ret
+					FROM cxc_cliente WHERE cod_cli=@cliente;
+					
+					SELECT @pai_suc=cod_pai,@dep_suc=cod_dep,@ciu_suc=cod_ciu
+					FROM cxc_succli 
+					WHERE cod_cli=@cliente AND suc_cli=@suc_cli;
+				END;
+
+				IF @tip_doc IN ('013','007','008','002','110','301')
+				BEGIN
+					SELECT @por_riv=ret_iva,@por_ica=ret_ica,@ind_tip=tip_pro,@ind_aut=autoretene
+					FROM cxp_provee WHERE provee=@provee
+
+					SELECT @pai_suc=cod_pai,@dep_suc=cod_dep,@ciu_suc=cod_ciu
+					FROM cxp_sucprov 
+					WHERE cod_pro=@provee AND suc_pro=@suc_prov;
+				END;
+
+				SELECT @hora = CASE @tip_doc WHEN '000' THEN '01'
+									 WHEN '001' THEN '90'
+									 WHEN '003' THEN '99'
+									 WHEN '005' THEN '99'
+									 WHEN '006' THEN '99'
+									 WHEN '007' THEN '01'
+									 WHEN '008' THEN '0'
+									 WHEN '010' THEN '99'
+									 WHEN '011' THEN '99'
+									 WHEN '101' THEN '99'
+									 WHEN '110' THEN '01'
+									 WHEN '111' THEN '01'
+									 WHEN '201' THEN '99'
+									 WHEN '202' THEN '01'
+									 WHEN '203' THEN '03'
+									 WHEN '204' THEN '03'
+									 WHEN '302' THEN '99'
+								END;
+
+				INSERT INTO inv_cabdoc (ano_doc,per_doc,sub_tip,tip_doc,num_doc,fecha,cliente,ind_mp,fec_tas,tasa,
+				cod_suc,cod_cco,cod_cl1,cod_cl2,cod_cl3,provee,vendedor,lista,dia_pla,obs_orc,fac_pro,cod_caja,cambio,
+				por_riv,por_ica,ind_tip,age_ret,ind_aut,hora,conteo,por_ctd,cod_ter,pai_doc,dep_doc,ciu_doc,suc_cli,suc_pro)
+				VALUES (@ano_doc,@per_doc,@sub_tip,@tip_doc,@numdoc,@fecha,@cliente,@ind_mp,@fec_tas,@tasa,@cod_suc,
+				@cod_cco,@cod_cl1,@cod_cl2,@cod_cl3,@provee,@vendedor,@lista,@dia_pla,@obs_orc,@fac_pro,@cod_caja,'0',
+				@por_riv,@por_ica,@ind_tip,@age_ret,@ind_aut,ISNULL(@hora,'0'),@conteo,@por_ctd,@cod_ter,@pai_doc,@dep_doc,@ciu_doc,@suc_cli,@suc_prov);
+				IF @@rowcount<1
+				BEGIN
+					ROLLBACK TRANSACTION
+					INSERT INTO inv_errores (ano_doc, per_doc, sub_tip, num_doc, reg_doc, error)
+					VALUES (@ano_doc, @per_doc, @sub_tip, @numdoc , 0, 'Documento Existente en Inventarios.');
+					SELECT @inderr = 1;
+				END
+				ELSE
+				BEGIN
+					-- INSERTAMOS EN AUDITORIA DE LA APLICACION
+					INSERT INTO inv_auditoria (cod_usuario, fecha, modulo, evento, descripcion) 
+					VALUES (CURRENT_USER, GETDATE(), 'DOCUM', 'C',RTRIM(@ano_doc)+'-'+RTRIM(@per_doc)+'-'+RTRIM(@sub_tip)+'-'+RTRIM(@numdoc)+'-EXP');
+
+					-- ASIGNAMOS LA TRANSACCION SEGUN EL TIPO DEL DOCUMENTO
+					SET @trans = CASE @tip_doc WHEN '000' THEN '30000'
+					WHEN '001' THEN '31004'
+					WHEN '002' THEN '32006'
+					WHEN '003' THEN '30003'
+					WHEN '005' THEN '31001'
+					WHEN '006' THEN '31002'
+					WHEN '007' THEN '32001'
+					WHEN '008' THEN '32002'
+					WHEN '009' THEN '30010'
+					WHEN '010' THEN '31003'
+					WHEN '011' THEN '30002'
+					WHEN '012' THEN '31012'
+					WHEN '013' THEN '32012'
+					WHEN '014' THEN '30014'
+					WHEN '015' THEN '30002'
+					WHEN '016' THEN '31003'
+					WHEN '020' THEN ''
+					WHEN '030' THEN ''
+					WHEN '101' THEN '33101'
+					WHEN '110' THEN '32003'
+					WHEN '111' THEN '30001'
+					WHEN '112' THEN '32003'
+					WHEN '200' THEN '30009'
+					WHEN '201' THEN '30002'
+					WHEN '202' THEN '30001'
+					WHEN '203' THEN '30011'
+					WHEN '204' THEN '30012'
+					WHEN '205' THEN '30011'
+					WHEN '206' THEN '30016'
+					WHEN '207' THEN '30015'
+					WHEN '208' THEN '30016'
+					WHEN '301' THEN '30002'
+					WHEN '302' THEN '30001'
+					WHEN '400' THEN '30400'
+					WHEN '401' THEN '30401'
+					WHEN '402' THEN '30402'
+					WHEN '403' THEN '30403'
+					WHEN '404' THEN '30404'
+					WHEN '405' THEN '30405'
+					WHEN '406' THEN '30406'
+					WHEN '407' THEN '30407'
+					WHEN '410' THEN '30410'
+					WHEN '411' THEN '30410'
+					WHEN '412' THEN '30412'
+					WHEN '501' THEN '30017'
+					WHEN '502' THEN '30018'
+					WHEN '510' THEN '31003'
+					WHEN '520' THEN '30004'
+					WHEN '530' THEN '30004'
+					WHEN '540' THEN '30004'
+					WHEN '600' THEN '32010'
+					WHEN '700' THEN '32001'
+					WHEN '720' THEN '31012'
+					WHEN '800' THEN '32011'
+					WHEN '503' THEN '30503'
+					ELSE '' END;
+
+
+					--	ASIGNACION DE CODIGO DE ICA
+					IF @pai_doc=@pai_suc AND @dep_doc=@dep_suc AND @ciu_doc=@ciu_suc
+					BEGIN
+						SET @asig_ica=1;
+					END
+					
+					IF @tip_doc<>'008'
+					BEGIN
+						INSERT INTO inv_cuedoc (ano_doc,per_doc,sub_tip,tip_doc,num_doc,reg_doc,bodega,bod_des,cant_uni,item,
+						alterno, trans,cantidad,fac_con,cos_uni,pre_vta,prv_ext,por_des,por_iva,por_iva_ng,por_ret,por_com,cos_unai,fec_ent,
+						suc_des,ven_lote,cod_lote,cod_cco,cod_cl1,cod_cl2,cod_cl3,ind_afe,tar_rii,tar_rii_ng,por_sum1,por_sum2,por_sum3,por_sum4,
+						por_res1,por_res2,por_res3,por_res4,
+						tar_ica,
+						pre_tot,cos_tot,mon_iva_ng,base_iva_aiu,cod_ret,val_ctd,val_tcd,por_vol, des_vol,
+						cod_conv,conv_suc,conv_cco,conv_cl1,conv_cl2,conv_cl3,conv_cl4,conv_cl5,conv_cl6,conv_cl7,conv_cl8,ind_refac,mon_adm,mon_imp,mon_uti,
+						num_fact,ord_fact,por_adm,por_imp,por_uti,descrip_cue,cod_ica)
+						SELECT  a.ano_doc,a.per_doc,a.sub_tip,a.tip_doc,@numdoc,a.reg_doc,a.bodega,a.bod_des,a.cant_uni,a.item,a.alterno,@trans,a.cantidad,a.fac_con,
+						a.cos_uni,
+						CASE @ind_mp WHEN '00' THEN a.pre_vta ELSE 0 END,
+						CASE WHEN @ind_mp<>'00' THEN a.pre_vta ELSE 0 END,
+						a.por_des,a.por_iva,a.por_iva_ng,ISNULL(b.por_ret,0),a.por_com,a.cos_unai,a.fec_ent,a.suc_des,a.ven_lote,a.cod_lote,a.cod_cco,a.cod_cl1,a.cod_cl2,a.cod_cl3,a.ind_afe,
+						a.tar_rii,a.tar_rii_ng,a.por_sum1,a.por_sum2,a.por_sum3,a.por_sum4,a.por_res1,a.por_res2,a.por_res3,a.por_res4,
+						CASE WHEN a.sub_tip IN ('01080','01085') THEN @por_ica ELSE CASE WHEN @asig_ica=1 THEN  ISNULL(ica.trf_act,0) ELSE 0 END END,
+						a.cantidad*a.pre_vta,a.cantidad*a.cos_uni,
+						((a.cantidad*a.pre_vta)-CASE a.por_des WHEN 0 THEN 0 ELSE (a.cantidad*a.pre_vta)*a.por_des/100 END)*a.por_iva_ng/100,a.base_iva_aiu,
+						a.cod_ret,a.cos_uni,a.cantidad*a.cos_uni,a.por_vol,a.des_vol,a.cod_conv,a.conv_suc,a.conv_cco,a.conv_cl1,a.conv_cl2,a.conv_cl3,a.conv_cl4,a.conv_cl5,a.conv_cl6,
+						a.conv_cl7,a.conv_cl8,a.ind_refac,a.mon_adm,a.mon_imp,a.mon_uti,a.num_fact,a.ord_fact,a.por_adm,a.por_imp,a.por_uti,a.descrip_cue,a.cod_ica
+						FROM inv_inf_inv AS a
+						INNER JOIN gen_retencion AS b ON a.cod_ret=b.cod_ret
+						LEFT JOIN gen_actividad AS ica ON ica.cod_pai=@pai_doc AND ica.cod_dep=@dep_doc AND ica.cod_ciu=@ciu_doc AND a.cod_ica=ica.cod_act
+						WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@num_doc;
+					END
+					ELSE
+						BEGIN
+
+						--cos_unai=pre_vta,cos_toa=pre_tot,val_ctd=a.pre_vta,val_tcd=pre_tot
+							INSERT INTO inv_cuedoc (ano_doc,per_doc,sub_tip,tip_doc,num_doc,reg_doc,bodega,bod_des,cant_uni,item,
+							alterno, trans,cantidad,fac_con,cos_uni,pre_vta,prv_ext,por_des,por_iva,por_iva_ng,por_ret,por_com,cos_unai,fec_ent,
+							suc_des,ven_lote,cod_lote,cod_cco,cod_cl1,cod_cl2,cod_cl3,ind_afe,tar_rii,tar_rii_ng,por_sum1,por_sum2,por_sum3,por_sum4,---38
+							por_res1,por_res2,por_res3,por_res4,--42
+							tar_ica,--43
+							pre_tot,cos_tot,mon_iva_ng,base_iva_aiu,cod_ret,val_ctd,val_tcd,por_vol, des_vol,
+							cod_conv,conv_suc,conv_cco,conv_cl1,conv_cl2,conv_cl3,conv_cl4,conv_cl5,conv_cl6,conv_cl7,conv_cl8,ind_refac,mon_adm,mon_imp,mon_uti,
+							num_fact,ord_fact,por_adm,por_imp,por_uti,descrip_cue,cod_ica)
+							SELECT  a.ano_doc,a.per_doc,a.sub_tip,a.tip_doc,@numdoc,a.reg_doc,a.bodega,a.bod_des,a.cant_uni,a.item,a.alterno,@trans,a.cantidad,a.fac_con,
+							a.cos_uni,
+							CASE @ind_mp WHEN '00' THEN a.pre_vta ELSE 0 END,
+							CASE WHEN @ind_mp<>'00' THEN a.pre_vta ELSE 0 END,
+							a.por_des,a.por_iva,a.por_iva_ng,ISNULL(b.por_ret,0),a.por_com,a.pre_vta,a.fec_ent,a.suc_des,a.ven_lote,a.cod_lote,a.cod_cco,a.cod_cl1,a.cod_cl2,a.cod_cl3,a.ind_afe,
+							a.tar_rii,a.tar_rii_ng,a.por_sum1,a.por_sum2,a.por_sum3,a.por_sum4,a.por_res1,a.por_res2,a.por_res3,a.por_res4,
+							CASE WHEN a.sub_tip IN ('01080','01085') THEN @por_ica ELSE CASE WHEN @asig_ica=1 THEN  ica.trf_act ELSE 0 END END,
+							a.cantidad*a.pre_vta,a.cantidad*a.cos_uni,
+							((a.cantidad*a.pre_vta)-CASE a.por_des WHEN 0 THEN 0 ELSE (a.cantidad*a.pre_vta)*a.por_des/100 END)*a.por_iva_ng/100,a.base_iva_aiu,
+							a.cod_ret,a.pre_vta,a.cantidad*a.pre_vta,a.por_vol,a.des_vol,a.cod_conv,a.conv_suc,a.conv_cco,a.conv_cl1,a.conv_cl2,a.conv_cl3,a.conv_cl4,a.conv_cl5,a.conv_cl6,
+							a.conv_cl7,a.conv_cl8,a.ind_refac,a.mon_adm,a.mon_imp,a.mon_uti,a.num_fact,a.ord_fact,a.por_adm,a.por_imp,a.por_uti,a.descrip_cue,a.cod_ica
+							FROM inv_inf_inv AS a
+							INNER JOIN gen_retencion AS b ON a.cod_ret=b.cod_ret
+							LEFT JOIN gen_actividad AS ica ON ica.cod_pai=@pai_doc AND ica.cod_dep=@dep_doc AND ica.cod_ciu=@ciu_doc AND a.cod_ica=ica.cod_act
+							WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@num_doc;
+						END
+
+					-- ACTUALIZAMOS VALORES DEL CUERPO POR CADA REGISTRO DEL DOCUMENTO
+					DECLARE cinvdoc2 CURSOR FOR 
+					SELECT reg_doc,pre_vta,cos_uni,item,bodega,por_iva,por_ret,por_des,cos_unai
+					FROM inv_cuedoc 
+					WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@numdoc
+					ORDER BY 1;
+
+					OPEN cinvdoc2;
+
+					FETCH NEXT FROM cinvdoc2 INTO @reg_doc,@pre_vta,@cos_uni,@item,@bodega,@por_iva,@por_ret,@por_des,@cos_unai;
+
+					WHILE @@FETCH_STATUS<>-1
+					BEGIN
+
+						EXEC sp_inv_trn700 @ano_doc,@per_doc,@sub_tip,@tip_doc,@numdoc,@reg_doc,@pre_vta,@cos_uni,
+						@cod_suc,@item,@bodega,@por_iva,@por_ret,@por_des,@cliente,@provee,@cos_unai;
+
+						FETCH NEXT FROM cinvdoc2 INTO @reg_doc,@pre_vta,@cos_uni,@item,@bodega,@por_iva,@por_ret,@por_des,@cos_unai;
+					END
+					CLOSE cinvdoc2;
+					DEALLOCATE cinvdoc2;
+
+					UPDATE inv_inf_inv SET ind_tra='X'
+					WHERE ano_doc=@ano_doc AND per_doc=@per_doc AND sub_tip=@sub_tip AND num_Doc=@num_doc;
+
+					COMMIT TRANSACTION
+
+				END
+			END
+		END
+
+		IF @tip_doc IN ('008','110')
+			EXEC sp_inv_crea_activos_proc @ano_doc,@per_doc,@sub_tip,@numdoc,@error_act OUTPUT;
+
+		EXEC sp_inv_validabases_fac @ano_doc,@per_doc,@sub_tip,@numdoc
+
+		FETCH NEXT FROM cinvdoc1 INTO @ano_doc,@per_doc,@sub_tip,@num_doc,@fecha,@cliente,@ind_mp,@fec_tas,@tasa,@cod_suc,
+		@provee,@vendedor,@lista,@dia_pla,@obs_orc,@fac_pro,@cod_caja,@asig_num,@conteo,@por_ctd,@cod_ter;
+	END
+	CLOSE cinvdoc1;
+	DEALLOCATE cinvdoc1;
+
+	--SELECT 'inderr'=@inderr
+
+	IF @inderr=1
+	BEGIN
+		SELECT * FROM inv_errores;
+	END
+	ELSE
+	BEGIN
+		SELECT 'Mensaje'=
+		CASE @inderr
+			WHEN 0 THEN '0 termina ok,' 
+			WHEN 2 THEN 'Sin informacion'
+		END;
+	END
+END
+ELSE
+BEGIN
+	SELECT @conta2=COUNT(1)	FROM inv_inf_inv A 
+	WHERE ind_tra<>'X' AND ano_doc BETWEEN @iano_doc AND @fano_doc
+	AND per_doc BETWEEN @iper_doc AND @fper_doc
+	AND sub_tip BETWEEN @isub_tip AND @fsub_tip
+	AND num_doc BETWEEN @inum_doc AND @fnum_doc
+	AND fecha BETWEEN @ifec_doc AND @ffec_doc;
+
+	SELECT @conta2=ISNULL(@conta2,0);
+	
+	IF  @conta2>0
+		SELECT ano_doc AS Año,per_doc AS Mes,sub_tip AS SubTipo,num_doc AS Numero,Fecha,Cliente,
+		ind_mp AS Moneda,fec_tas AS Fecha_tasa,Tasa,
+		cod_suc AS Sucursal,cod_cco AS C_Costo,cod_cl1 AS Clasifica1,cod_cl2  AS Clasifica2,
+		cod_cl3 AS Clasifica3,provee AS Proveedor,Vendedor,Lista,
+		dia_pla AS Plazo,obs_orc AS Observaciones,fac_pro AS Factura,cod_caja AS Caj
+		FROM inv_inf_inv 
+		WHERE ind_tra<>'X' AND ano_doc BETWEEN @iano_doc AND @fano_doc
+		AND per_doc BETWEEN @iper_doc AND @fper_doc
+		AND sub_tip BETWEEN @isub_tip AND @fsub_tip
+		AND num_doc BETWEEN @inum_doc AND @fnum_doc
+		AND fecha BETWEEN @ifec_doc AND @ffec_doc
+		GROUP BY ano_doc, per_doc, sub_tip, num_doc, fecha, cliente, ind_mp, fec_tas, tasa, 
+		cod_suc,cod_cco,cod_cl1,cod_cl2,cod_cl3,provee,vendedor,lista,dia_pla,obs_orc,
+		fac_pro,cod_caja
+		ORDER BY ano_doc, per_doc, sub_tip, num_doc, fecha ;
+	ELSE
+		SELECT 'MENSAJE'='RANGO SIN INFORMACION PARA PROCESAR';
+
+END
