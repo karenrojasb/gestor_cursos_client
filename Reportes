@@ -12,19 +12,19 @@ export class generarOrdenService{
         ) { }
 
    async GenerarOrden(data: GenerarOrdenDto){
-    const { NIT, item, num_cdp, provee} = data;
+    const {  item, num_cdp, provee} = data;
 
 //Validar que el NIT exista
     const proveedor = await this.prismaService.$queryRawUnsafe<any[]>(`
         SELECT provee, ret_iva, ret_iva_ng, ret_iva_ng 
         from cxp_provee 
-        WHERE provee = '${NIT}'`);
+        WHERE provee = '${provee}'`);
 
     if (proveedor.length === 0){
-        throw new BadRequestException(`El NIT ${NIT} no existe`);
+        throw new BadRequestException(`El NIT ${provee} no existe`);
     }
 
-//Obtener datos del proveedor
+
     const datosProveedor = proveedor [0];
 
 //Obtener el consecutivo
