@@ -1,35 +1,150 @@
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div>
-    <label>Profesor</label>
-    <select
-      name="Profesor"
-      value={formData.Profesor ?? ""}
-      onChange={handleChange}
-      className="w-full border p-2 rounded-lg"
-    >
-      <option value="">Selecciona una opción</option>
-      {profesores.map((p) => (
-        <option key={p.id_emp} value={p.id_emp}>
-          {p.nombre}
-        </option>
-      ))}
-    </select>
-  </div>
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { AsignaCdpDto } from './dto/asignacdp.dto';
+import { DisponibilidadService } from 'src/disponibilidad/disponibilidad.service';
+import { formatDateToYMD, getNowDate } from 'src/utils/date.util';
+import { ReasignacdpDto } from './dto/reasignacdp.dto';
 
-  <div>
-    <label>Segundo Profesor</label>
-    <select
-      name="SegundoPro"
-      value={formData.SegundoPro ?? ""}
-      onChange={handleChange}
-      className="w-full border p-2 rounded-lg"
-    >
-      <option value="">Selecciona una opción</option>
-      {profesores.map((p) => (
-        <option key={p.id_emp} value={p.id_emp}>
-          {p.nombre}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+interface ProcedureResultSaldo {
+    cod_rub: string,
+    Padre: string,
+    saldo: number,
+    estado: number
+}
+
+@Injectable()
+export class AsignacdpService {
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly disponibilidadService: DisponibilidadService
+    ) { }
+
+    /**
+     * Asigna un CDP
+     * @param asignacdpDto - The AsignacdpDto object containing the CDP description, rubro code, operating center, SNIES code, value, requester, and process reference
+     * @returns An object containing the response code and message
+     */
+    async createAsignacdp(asignacdpDto: AsignaCdpDto) {
+        const { descripcion, Codigorubro, CentroOperativo, CodigoSNIES, valorcdp, solicitante, Referenciaproc } = asignacdpDto;
+
+        const newDescripcion = descripcion.slice(0, 250);
+
+        const codSuc: any = await this.disponibilidadService.getCodigoSucursal(Number(CentroOperativo));
+
+        const procedure_result_saldo: ProcedureResultSaldo = await this.disponibilidadService.executeProcedure(Codigorubro, codSuc, CodigoSNIES, Number(CentroOperativo), Number(valorcdp));
+
+        let procedure_result_asignar_cdp: any[];
+
+        try {
+            procedure_result_asignar_cdp = await this.prismaService.$queryRaw`
+            EXEC usr_sp_pre_crea_cdp  ${formatDateToYMD()}, ${Codigorubro}, ${codSuc.usr_sucursal}, ${CodigoSNIES}, 
+            ${CentroOperativo}, '0', '0', ${procedure_result_saldo.Padre}, ${solicitante}, 
+            ${valorcdp}, ${procedure_result_saldo.estado}, ${newDescripcion}, ${Referenciaproc}
+        `;
+        } catch (error) {
+            console.log('Error al asignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        let codigos_respuesta: any[];
+
+        try {
+            codigos_respuesta = await this.prismaService.$queryRaw`
+            select estado_cdp, num_doc from PRE_cuedoc where ano_doc = ${getNowDate().getFullYear()}
+            and cod_rubro = ${Codigorubro} and num_doc = ${procedure_result_asignar_cdp[0].num_doc}
+            and cod_cl1 = ${CentroOperativo} and cod_ter = ${solicitante}
+        `;
+        } catch (error) {
+            console.log('Error al obtener los codigos de respuestas', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        /**
+         * 1 - Disponible
+         * 0 - No disponible
+         */
+        const descripcion_estado = codigos_respuesta[0].estado_cdp == 1 ? "Disponible" : "No disponible";
+
+        return {
+            Codigo: "200",
+            Mensaje: "Consulta realizada Con éxito",
+            numerocdp: codigos_respuesta[0].num_doc.toString().trim().replace(/^0+/, ''),
+            estadoasig: codigos_respuesta[0].estado_cdp,
+            DescripcionEstado: descripcion_estado,
+            valorcdp: valorcdp
+        }
+    }
+
+    /**
+     * Reasigna un CDP
+     * @param reasignacdpDto - The ReasignacdpDto object containing the CDP number, value, and status
+     * @returns An object containing the response code and message
+     */
+    async reasignacdp(reasignacdpDto: ReasignacdpDto) {
+        const { numerocdp, valorcdp, estadoasig, CentroOperativo, Codigorubro, solicitante } = reasignacdpDto;
+
+        let executeProcedureReasignaCdp: any[];
+
+        const newEstadoCdp = this.validateEstadoCdp(estadoasig);
+
+        const num_cdp_result = await this.numDocResult(Codigorubro, CentroOperativo, solicitante, numerocdp);
+
+        try {
+            executeProcedureReasignaCdp = await this.prismaService.$queryRaw`
+                EXEC usr_sp_pre_modifica_cdp ${getNowDate().getFullYear()}, ${num_cdp_result}, ${valorcdp}, ${newEstadoCdp}
+            `;
+        } catch (error) {
+            console.log('Error al reasignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        if (executeProcedureReasignaCdp[0].respuesta == 'CDP NO EXISTE')
+            throw new NotFoundException('El cdp no existe');
+
+        return {
+            Codigo: "200",
+            Mensaje: "Consulta realizada Con éxito"
+        }
+    }
+
+    /**
+     * Obtener número de documento
+     * @param Codigorubro 
+     * @param CentroOperativo 
+     * @param solicitante 
+     * @param numerocdp 
+     * @returns 
+     */
+    private async numDocResult(Codigorubro: string, CentroOperativo: string, solicitante: string, numerocdp: string) {
+        let num_doc_result: any[];
+
+        try {
+            num_doc_result = await this.prismaService.$queryRaw`
+                select num_doc from PRE_cuedoc
+                where ano_doc = ${getNowDate().getFullYear()} and cod_rubro = ${Codigorubro} 
+                and cod_cl1 = ${CentroOperativo} and cod_ter = ${solicitante}
+                AND num_doc LIKE CONCAT('%', ${numerocdp}, '%')
+        `;
+        } catch (error) {
+            console.log('Error al reasignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        if (num_doc_result.length === 0) throw new NotFoundException('El cdp no existe');
+
+        return num_doc_result[0].num_doc;
+    }
+
+    /**
+     * Validar estado CDP
+     * @param estadocdp 
+     * @returns 
+     */
+    private validateEstadoCdp(estadocdp: string) {
+        const newEstadoCdp = Number(estadocdp);
+
+        if (isNaN(newEstadoCdp)) throw new BadRequestException('El campo estadocdp no es un número');
+        if (newEstadoCdp !== 0 && newEstadoCdp !== 1) throw new BadRequestException('El campo estadocdp debe ser 0 o 1');
+        return newEstadoCdp;
+    }
+}
