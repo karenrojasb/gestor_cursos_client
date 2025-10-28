@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { DisponibilidadService } from 'src/disponibilidad/disponibilidad.service';
 import { GenerarOrdenDto } from "./dto/generarorden.dto";
@@ -14,29 +14,37 @@ export class generarOrdenService{
    async GenerarOrden(data: GenerarOrdenDto){
     const {  item, num_cdp, provee} = data;
 
+
 //Validar que el NIT exista
     const proveedor = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, ret_iva_ng 
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, cod_ciu 
         from cxp_provee 
         WHERE provee = '${provee}'`);
 
     if (proveedor.length === 0){
-        throw new BadRequestException(`El NIT ${provee} no existe`);
+        throw new HttpException(
+
+            {
+                Codigo: `400`,
+                Mensaje:`El NIT ${provee}, no existe`
+            },  HttpStatus.NOT_FOUND
+        );
     }
+  
 
 
     const datosProveedor = proveedor [0];
 
 //Obtener el consecutivo
     const consecutivo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT ISNULL(MAX(CONVERT(NIT, num_doc)), 0) + 1 AS num_doc
+        SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS num_doc
         FROM inv_inf_inv
         `);
 
         const num_doc = consecutivo[0].num_doc;
 
     const itemInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng, 
+        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
         FROM inv_items
         WHERE cod_item = '${item}'
         `);
@@ -58,7 +66,7 @@ export class generarOrdenService{
         await this.prismaService.$queryRawUnsafe<any[]>(`
             INSERT INTO inv_inf_inv (
             ano_doc, per_doc, sub_tip, tip_doc, reg_doc, fecha,
-            vendedor, cod_suc, cod_cco, cod_cl1, cod_cli2, cod_cli3
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3
             cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
             bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
             trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
@@ -85,8 +93,26 @@ export class generarOrdenService{
             )
             `);
 
+            return {
+                Codigo: `200`,
+                Mensaje: `Consulta realiza con éxito`,
+                num_doc,
+                proveedor: provee
+            };
+            
 
-    
+    } catch (error){
+        console.error("Error al generar la orden:", error.mensaje);
+        if (error instanceof HttpException) throw error;
 
+        throw new HttpException (
+            {
+                Codigo: `500`, 
+                Mensaje: `Error al generar la orden`,
+                detalle: error.message 
+            },
+                HttpStatus.INTERNAL_SERVER_ERROR
+            
+        );
     }
 }
