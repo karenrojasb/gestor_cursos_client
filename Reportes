@@ -17,3 +17,4 @@ export class generarOrdenController{
 
 POST http://localhost:3000/generarorden
 
+https://apiauraquantic-ts.escuelaing.edu.co/auraquantic/generarorden
