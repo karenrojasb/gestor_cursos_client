@@ -25,7 +25,7 @@ export class generarOrdenService{
         throw new HttpException(
 
             {
-                Codigo: `400`,
+                Codigo: `404`,
                 Mensaje:`El NIT ${provee}, no existe`
             },  HttpStatus.NOT_FOUND
         );
@@ -66,7 +66,7 @@ export class generarOrdenService{
         await this.prismaService.$queryRawUnsafe<any[]>(`
             INSERT INTO inv_inf_inv (
             ano_doc, per_doc, sub_tip, tip_doc, reg_doc, fecha,
-            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
             cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
             bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
             trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
