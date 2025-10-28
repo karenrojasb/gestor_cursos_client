@@ -14,6 +14,13 @@ export class generarOrdenService{
    async GenerarOrden(data: GenerarOrdenDto){
     const {  item, num_cdp, provee} = data;
 
+    //Obtener la fecha actual
+    const hoy = new Date();
+    const ano_doc = hoy.getFullYear();
+    const per_doc = hoy.getMonth() + 1;
+    const fecha = hoy.toISOString().split('T')[0];
+    const fec_tas = fecha;
+
 
 //Validar que el NIT exista
     const proveedor = await this.prismaService.$queryRawUnsafe<any[]>(`
@@ -79,9 +86,9 @@ export class generarOrdenService{
             usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
 
             VALUES (
-            '${data.ano_doc}', '${data.per_doc}', '${data.sub_tip}', '${data.reg_doc}', '${data.fecha}',
+            '${ano_doc}', '${per_doc}', '${data.sub_tip}', '${data.reg_doc}', '${fecha}',
             '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
-            '${data.cliente}', '${data.provee}' '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${data.fec_tas}', '${data.tasa}', '${data.obs_orc}',
+            '${data.cliente}', '${data.provee}' '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${fec_tas}', '${data.tasa}', '${data.obs_orc}',
             '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
             '${data.trans}', '${data.cantidad}', '${data.fac_con}', '${data.cos_uni}', '${data.pre_vta}', '${data.por_des}', '${data.por_iva}',
             '${data.por_iva_ng}','${data.cod_ret}', '${data.por_ret}', '${data.por_com}', '${data.cos_unai}', '${data.fec_ent}',
