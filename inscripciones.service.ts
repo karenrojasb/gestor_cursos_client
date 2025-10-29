@@ -15,6 +15,15 @@ export class generarOrdenService{
    async GenerarOrden(data: GenerarOrdenDto){
     const {  item, num_cdp, provee, Articulos} = data;
 
+    const asig_num = 1;
+    const ind_refac = 0;
+    const conv_cco = 0;
+    const conv_cl2 = 0;
+    const conv_cl3 = 0;
+    const por_adm = 0;
+    const por_imp = 0;
+    
+
 
 //Validar que el NIT exista
     const NIT = await this.prismaService.$queryRawUnsafe<any[]>(`
@@ -112,8 +121,9 @@ for (const articulo of Articulos) {
             '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
             '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
             '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
-            '${data.conv_cco}', '${data.conv_cl1}', '${data.conv_cl2}', '${data.conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
-            '${data.por_adm}', '${data.por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
+             '${data.suc_des}', '${data.ind_tra}', '${asig_num}', '${ind_refac}', '${data.cod_conv}', '${data.conv_suc}',
+            '${conv_cco}', '${data.conv_cl1}', '${conv_cl2}', '${conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
+            '${por_adm}', '${por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
             '${data.usr_ano_ped}', '${data.usr_per_ped}', '${data.usr_sub_ped}', '${data.usr_pedido}', '${data.usr_reg_ped}',
             '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', '${data.sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
             '${data.usr_descrip_cue}', '${data.tar_rii}', '${data.tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', '${data.ciu_doc}'
