@@ -1,3 +1,55 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { CustomValidationFilter } from './general/exception-filters/CustomValidationFilter';
+import { CustomNotFoundFilter } from './general/exception-filters/CustomNotFoundFilter';
+import { CustomInternalFilter } from './general/exception-filters/CustomInternalFilter';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+(BigInt.prototype as any).toJSON = function () {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+  return this.toString();
+};
+
+async function bootstrap() {
+  const logger = new Logger('AuraQuantic');
+
+  const app = await NestFactory.create(AppModule, {
+    logger: [
+      'error',
+      'warn',
+      'fatal'
+    ]
+  });
+
+  app.enableCors();
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
+
+  app.useGlobalFilters(
+    new CustomValidationFilter(),
+    new CustomNotFoundFilter(),
+    new CustomInternalFilter()
+  );
+
+  app.setGlobalPrefix('auraquantic');
+
+  const configService = app.get(ConfigService);
+
+  const port = configService.get<number>('PORT') ?? 3000;
+
+  logger.warn(`App running in port ${port}`);
+
+  await app.listen(port);
+}
+bootstrap();
+
+
 import { Transform } from 'class-transformer';
 import { IsNumber, IsNotEmpty } from 'class-validator';
 
