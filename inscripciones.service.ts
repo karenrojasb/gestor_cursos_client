@@ -2,7 +2,7 @@ import { BadRequestException, HttpException, InternalServerErrorException, Injec
 import { PrismaService } from "src/prisma/prisma.service";
 import { GenerarOrdenDto } from "./dto/generarorden.dto";
 import { formatDateToYMD, getNowDate } from 'src/utils/date.util';
-import { ArticuloDto } from "./dto/articulo.dto";
+
 
 
 @Injectable()
@@ -23,12 +23,13 @@ export class generarOrdenService{
     const conv_cl3 = 0;
     const por_adm = 0;
     const por_imp = 0;
+    
 
 
 
 //Validar que el NIT exista
     const proveedorInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu_doc
         from cxp_provee 
         WHERE provee = '${provee}'`);
 
