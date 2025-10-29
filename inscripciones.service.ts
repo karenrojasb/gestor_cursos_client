@@ -68,6 +68,12 @@ for (const articulo of Articulos) {
       WHERE cod_item = '${item}'
     `);
 
+    if(itemInfo.length == 0){
+        throw new BadRequestException(`El item ${item},  no existe`)
+    }
+
+    const { cod_ret_com, por_ret, por_iva, por_iva_ng} = itemInfo[0];
+
     const infoItem = itemInfo[0] || {};
     
 
@@ -104,8 +110,8 @@ for (const articulo of Articulos) {
             '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
             '${data.cliente}', '${data.provee}', '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
             '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
-            '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${data.por_iva}',
-            '${data.por_iva_ng}','${data.cod_ret}', '${data.por_ret}', '${data.por_com}', '${data.cos_unai}', '${data.fec_ent}',
+            '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
+            '${data.por_iva_ng}','${data.cod_ret}', '${data.por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
             '${data.conv_cco}', '${data.conv_cl1}', '${data.conv_cl2}', '${data.conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
             '${data.por_adm}', '${data.por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
             '${data.usr_ano_ped}', '${data.usr_per_ped}', '${data.usr_sub_ped}', '${data.usr_pedido}', '${data.usr_reg_ped}',
