@@ -23,13 +23,12 @@ export class generarOrdenService{
     const conv_cl3 = 0;
     const por_adm = 0;
     const por_imp = 0;
-    const tar_rii = `${ data.cliente} (Con el NIT ${provee}) Valor campo ret_iva: ${ret_iva}`;
-const tar_rii_ng = `${data.cliente} (Con el NIT ${provee}) Valor campo ret_iva_ng: ${ret_iva_ng}`;
+
 
 
 //Validar que el NIT exista
     const proveedorInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, cod_ciu 
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep
         from cxp_provee 
         WHERE provee = '${provee}'`);
 
@@ -39,6 +38,8 @@ const tar_rii_ng = `${data.cliente} (Con el NIT ${provee}) Valor campo ret_iva_n
     }
   
     const { ret_iva, ret_iva_ng, cod_pai,  cod_dep, ciu_doc} = proveedorInfo[0];
+    const tar_rii = `${ data.cliente} (Con el NIT ${provee}) Valor campo ret_iva: ${ret_iva}`;
+    const tar_rii_ng = `${data.cliente} (Con el NIT ${provee}) Valor campo ret_iva_ng: ${ret_iva_ng}`;
 
 
 // Obtener el consecutivo num_doc
@@ -128,7 +129,7 @@ for (const articulo of Articulos) {
             '${por_adm}', '${por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
             '${data.usr_ano_ped}', '${data.usr_per_ped}', '${data.usr_sub_ped}', '${data.usr_pedido}', '${data.usr_reg_ped}',
             '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', '${data.sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
-            '${data.usr_descrip_cue}', '${data.tar_rii}', '${data.tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', ${ciu_doc}
+            '${data.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', ${ciu_doc}
             )
             `);    }
 
