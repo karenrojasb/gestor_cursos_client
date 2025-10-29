@@ -1,48 +1,37 @@
-{
-	
-  
-	"sub_tip": "C007",
-	"cod_cco": "10",
-	"cod_cl1": "1105005000",
-	"provee": "1116546075",
-	"num_cdp": "229585",
-	"obs_orc": "SCM-38.3_19115_229585_Útiles y Papelería",
-	"usr_tercero": "1116546075",
-	"cod_rubro": "2020",
-	
-	"Articulos": [
-		{
-			"item": "UP101",
-			"cantidad": "1",
-			"cos_uni": "1",
-			"pre_vta": "1",
-			"cos_unai": "1",
-			"por_des": "1",
-			"usr_descrip_cue": "jhjh",
-			"bodega": "C01",
-			"dia_pla": "1"
-		},
-		
-		{
-			"item": "UP101",
-			"cantidad": "1",
-			"cos_uni": "1",
-			"pre_vta": "1",
-			"cos_unai": "1",
-			"por_des": "1"
-		}
-	],
-	"commonMessages": {
-		"text": "TEXT viable at Frond End as a message"
-	}
-	
+import { IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
+export class ArticuloDto {
+  @IsString()
+  @Length(1, 40)
+  item: string;
 
-	
-}
+  @IsNumber({ maxDecimalPlaces: 4 })
+  cantidad: number;
 
+  @IsNumber({ maxDecimalPlaces: 4 })
+  cos_uni: number;
 
-{
-	"Codigo": "400",
-	"Mensaje": "Articulos.0.property cos_unai should not exist"
+  @IsNumber({ maxDecimalPlaces: 4 })
+  pre_vta: number;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 4 })
+  cos_unai?: number;
+
+  @IsNumber({ maxDecimalPlaces: 4 })
+  por_des: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  usr_descrip_cue?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 3)
+  bodega?: string;
+
+  @IsOptional()
+  @IsNumber()
+  dia_pla?: number;
 }
