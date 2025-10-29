@@ -29,9 +29,10 @@ export class generarOrdenService{
 
 //Validar que el NIT exista
     const proveedorInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu_doc
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu
         from cxp_provee 
         WHERE provee = '${provee}'`);
+
 
     if (proveedorInfo.length === 0){
         throw new BadRequestException(`El NIT ${provee}, no existe`)
@@ -96,10 +97,40 @@ for (const articulo of Articulos) {
         FROM PRE_cuedoc
         WHERE num_cdp = '${num_cdp}'
         `);
+console.log(data.vendedor)
 
         const infoCdp = cdpInfo[0] || {};
 
+console.log(`
+            INSERT INTO inv_inf_inv (
+            ano_doc, per_doc, sub_tip, num_doc, tip_doc, reg_doc, fecha,
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
+            cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
+            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
+            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
+            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
+            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
+            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
+            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
+            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
+            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
+            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
 
+            VALUES (
+            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
+            '0', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '0', '0', 
+            '0', '${data.provee}', '0', '${dia_pla}', '00', '${formatDateToYMD()}', '0', '${data.obs_orc}',
+            '0', '0', '0', '0', '0', '${item}', '0',
+            '0', '${cantidad}', '0', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
+            '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
+             '0', ' ', '${asig_num}', '${ind_refac}', '0', '0',
+            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', 'NULL', 'NULL',
+            '${por_adm}', '${por_imp}', '0', '0', '0', '0',
+            '0', '0', '0', '0', '0',
+            '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', 'U726', '${data.num_cdp}','${data.cod_rubro}',
+            '${data.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', ${ciu_doc}
+            )
+            `)
 
 
 //Insertar la orden
@@ -120,9 +151,9 @@ for (const articulo of Articulos) {
 
             VALUES (
             '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
-            '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
-            '${data.cliente}', '${data.provee}', '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
-            '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
+            '${data.vendedor}', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
+            '${data.cliente}', '${data.provee}', '${data.lista}', '${dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
+            '0', '0', '0', '0', '0', '${item}', '0',
             '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
             '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
              '${data.suc_des}', '${data.ind_tra}', '${asig_num}', '${ind_refac}', '${data.cod_conv}', '${data.conv_suc}',
@@ -150,5 +181,12 @@ for (const articulo of Articulos) {
                    throw new InternalServerErrorException('Error al generar la consulta')
             
 
-    }
+    } 
+    
+    private async findCodSuc(){
+    const cod_suc = await this.prismaService.$queryRawUnsafe<any[]>(`
+   SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = 'XXXX' 
+    `);
+    return cod_suc[0].cod_suc;
+    }   
 }
