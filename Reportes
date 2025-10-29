@@ -1,3 +1,43 @@
+{
+	
+  "ano_doc": "",
+	"per_doc": "",
+	"sub_tip": "",
+	"cod_cco": "",
+	"cod_cl1": "",
+	"provee": "",
+	"num_cdp": "",
+	"obs_orc": "",
+	"usr_tercero": "",
+	"cod_rubro": "",
+	
+	"Articulos": [
+		{
+			"cantidad": "",
+			"cos_uni": "",
+			"pre_vta": "",
+			"cos_unai": "",
+			"por_des": "",
+			"usr_descrip_cue": "",
+			"bodega": "",
+			"dia_pla": ""
+		},
+		
+		{
+			"cantidad": "",
+			"cos_uni": "",
+			"pre_vta": "",
+			"cos_unai": "",
+			"por_des": ""
+		}
+	],
+	"commonMessages": {
+		"text": "TEXT viable at Frond End as a message"
+	}
+	
+	
+	
+}
 import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { GenerarOrdenDto } from "./dto/generarorden.dto";
