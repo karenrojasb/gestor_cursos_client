@@ -29,13 +29,13 @@ export class generarOrdenService{
     const datosProveedor = NIT [0];
 
 
-//Obtener el consecutivo
-    const consecutivo = await this.prismaService.$queryRawUnsafe<any[]>(`
+//Obtener el consecutivo num_doc
+    const consecutivonum_doc = await this.prismaService.$queryRawUnsafe<any[]>(`
         SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS num_doc
         FROM inv_inf_inv
         `);
 
-        const num_doc = consecutivo[0].num_doc;
+        const num_doc = consecutivonum_doc[0].num_doc;
 
 
 //Obtener la información del item
@@ -58,10 +58,12 @@ export class generarOrdenService{
         const infoCdp = cdpInfo[0] || {};
 
 
+
+
 //Insertar la orden
         await this.prismaService.$queryRawUnsafe<any[]>(`
             INSERT INTO inv_inf_inv (
-            ano_doc, per_doc, sub_tip, tip_doc, reg_doc, fecha,
+            ano_doc, per_doc, sub_tip, num_doc, tip_doc, reg_doc, fecha,
             vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
             cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
             bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
@@ -75,7 +77,7 @@ export class generarOrdenService{
             usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
 
             VALUES (
-            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}', '${data.reg_doc}', '${formatDateToYMD()}',
+            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${data.reg_doc}', '${formatDateToYMD()}',
             '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
             '${data.cliente}', '${data.provee}', '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
             '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
@@ -107,12 +109,3 @@ export class generarOrdenService{
 
     }
 }
-
-
-
-const consecutivo = await this.prismaService.$queryRawUnsafe<any[]>(`
-  SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
-  FROM inv_inf_inv
-`);
-
-const num_doc = consecutivo[0].numDoc;
