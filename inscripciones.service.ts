@@ -81,7 +81,7 @@ for (const articulo of Articulos) {
         const infoCdp = cdpInfo[0] || {};
 
 
-    }
+
 
 //Insertar la orden
         await this.prismaService.$queryRawUnsafe<any[]>(`
@@ -104,7 +104,7 @@ for (const articulo of Articulos) {
             '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
             '${data.cliente}', '${data.provee}', '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
             '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
-            '${data.trans}', '${cantidad}', '${data.fac_con}', '${data.cos_uni}', '${data.pre_vta}', '${data.por_des}', '${data.por_iva}',
+            '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${data.por_iva}',
             '${data.por_iva_ng}','${data.cod_ret}', '${data.por_ret}', '${data.por_com}', '${data.cos_unai}', '${data.fec_ent}',
             '${data.conv_cco}', '${data.conv_cl1}', '${data.conv_cl2}', '${data.conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
             '${data.por_adm}', '${data.por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
@@ -112,7 +112,7 @@ for (const articulo of Articulos) {
             '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', '${data.sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
             '${data.usr_descrip_cue}', '${data.tar_rii}', '${data.tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', '${data.ciu_doc}'
             )
-            `);
+            `);    }
 
             return {
                 Codigo: `200`,
