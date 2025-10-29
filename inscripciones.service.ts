@@ -1,3 +1,42 @@
+{
+	
+  
+	"sub_tip": "C007",
+	"cod_cco": "10",
+	"cod_cl1": "1105005000",
+	"provee": "1116546075",
+	"num_cdp": "229585",
+	"obs_orc": "SCM-38.3_19115_229585_Útiles y Papelería",
+	"usr_tercero": "1116546075",
+	"cod_rubro": "2020",
+	
+	"Articulos": [
+		{
+			"item": "UP101",
+			"cantidad": 1.00,
+			"cos_uni": 1.10,
+		 	"pre_vta": 1,
+		  "cos_unai": 1,
+			"por_des": 1,
+			"usr_descrip_cue": "jhjh",
+			"bodega": "C01",
+			"dia_pla": 1
+		},
+		
+		{
+			"item": "UP101",
+			"cantidad": 1.00,
+			"cos_uni": 10,
+			"pre_vta": 1,
+			"cos_unai": 1,
+			"por_des": 1
+		}
+		]
+	
+	
+	
+}
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
