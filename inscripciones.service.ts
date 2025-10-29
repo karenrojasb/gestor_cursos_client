@@ -39,9 +39,12 @@ export class generarOrdenService{
         ;
     }
   
-    const { ret_iva, ret_iva_ng, cod_pai,  cod_dep, ciu_doc} = proveedorInfo[0];
-    const tar_rii = `${ data.cliente} (Con el NIT ${provee}) Valor campo ret_iva: ${ret_iva}`;
-    const tar_rii_ng = `${data.cliente} (Con el NIT ${provee}) Valor campo ret_iva_ng: ${ret_iva_ng}`;
+    const { ret_iva, ret_iva_ng, cod_pai,  cod_dep, ciu} = proveedorInfo[0];
+    const pai_doc = `(Con el NIT ${provee} Valor campo pai_doc: ${cod_pai})`;
+    const dep_doc = ` (Con el NIT ${provee} Valor campo dep_doc: ${cod_dep})`;
+    const ciu_doc = `(Cone el NIT ${provee}) Valor campo ciu: ${ciu}`;
+    const tar_rii = ` (Con el NIT ${provee}) Valor campo ret_iva: ${ret_iva}`;
+    const tar_rii_ng = `(Con el NIT ${provee}) Valor campo ret_iva_ng: ${ret_iva_ng}`;
 
 
 // Obtener el consecutivo num_doc
@@ -97,9 +100,16 @@ for (const articulo of Articulos) {
         FROM PRE_cuedoc
         WHERE num_cdp = '${num_cdp}'
         `);
+
+        if (cdpInfo.length === 0)
+        {
+            throw new BadRequestException(`El CDP ${num_cdp}, no existe`)
+        }
+        const {ano_doc, per_cdp }= cdpInfo[0] || {};
+        const per_cdp_msg = `Novasoft consultar con el numero de CDP que viene de AuraQuantic: ${per_cdp}`;
 console.log(data.vendedor)
 
-        const infoCdp = cdpInfo[0] || {};
+        
 
 console.log(`
             INSERT INTO inv_inf_inv (
@@ -127,8 +137,8 @@ console.log(`
             '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', 'NULL', 'NULL',
             '${por_adm}', '${por_imp}', '0', '0', '0', '0',
             '0', '0', '0', '0', '0',
-            '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', 'U726', '${data.num_cdp}','${data.cod_rubro}',
-            '${data.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', ${ciu_doc}
+            '${data.usr_tercero}', '${data.ano_cdp}', '${per_cdp_msg}', 'U726', '${data.num_cdp}','${data.cod_rubro}',
+            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', ${ciu_doc}
             )
             `)
 
@@ -151,17 +161,17 @@ console.log(`
 
             VALUES (
             '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
-            '${data.vendedor}', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
-            '${data.cliente}', '${data.provee}', '${data.lista}', '${dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
+            '0', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '0', '0', 
+            '0', '${data.provee}', '0', '${dia_pla}', '00', '${formatDateToYMD()}', '0', '${data.obs_orc}',
             '0', '0', '0', '0', '0', '${item}', '0',
-            '${data.trans}', '${cantidad}', '${data.fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
+            '0', '${cantidad}', '0', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
             '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
-             '${data.suc_des}', '${data.ind_tra}', '${asig_num}', '${ind_refac}', '${data.cod_conv}', '${data.conv_suc}',
-            '${conv_cco}', '${data.conv_cl1}', '${conv_cl2}', '${conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
-            '${por_adm}', '${por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
-            '${data.usr_ano_ped}', '${data.usr_per_ped}', '${data.usr_sub_ped}', '${data.usr_pedido}', '${data.usr_reg_ped}',
-            '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', '${data.sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
-            '${data.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', ${ciu_doc}
+             '0', ' ', '${asig_num}', '${ind_refac}', '0', '0',
+            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', 'NULL', 'NULL',
+            '${por_adm}', '${por_imp}', '0', '0', '0', '0',
+            '0', '0', '0', '0', '0',
+            '${data.usr_tercero}', '${data.ano_cdp}', '${per_cdp}', 'U726', '${data.num_cdp}','${data.cod_rubro}',
+            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', ${ciu_doc}
             )
             `);    }
 
