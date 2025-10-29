@@ -36,10 +36,13 @@
 		"text": "TEXT viable at Frond End as a message"
 	}
 	
-{
-	"Codigo": "400",
-	"Mensaje": "property commonMessages should not exist"
-}
+
 
 	
+}
+
+
+{
+	"Codigo": "400",
+	"Mensaje": "Articulos.0.property cos_unai should not exist"
 }
