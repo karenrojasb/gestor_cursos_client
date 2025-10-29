@@ -1,4 +1,7 @@
-  @Transform(({ value}) => parseFloat(value))
+@IsNumber({ maxDecimalPlaces: 4 })
+  cantidad: number;
+
+@Transform(({ value}) => parseFloat(value))
     @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La cantidad debe tener máximo 4 decimales' })
     cantidad: number;
 
