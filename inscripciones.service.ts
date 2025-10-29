@@ -1,6 +1,7 @@
-// Obtener el consecutivo
-const consecutivo = await this.prismaService.$queryRawUnsafe<any[]>(`
-  SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
+// Obtener el consecutivo de reg_doc (inicia en 1 para cada num_doc)
+const consecutivoReg = await this.prismaService.$queryRawUnsafe<any[]>(`
+  SELECT ISNULL(MAX(CONVERT(INT, reg_doc)), 0) + 1 AS regDoc
   FROM inv_inf_inv
+  WHERE num_doc = '${num_doc}'
 `);
-const num_doc = consecutivo[0].numDoc;
+const reg_doc = consecutivoReg[0].regDoc;
