@@ -1,22 +1,15 @@
 import { Transform } from 'class-transformer';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsNotEmpty } from 'class-validator';
 
-export class ArticuloDto {
-  @Transform(({ value }) => {
-    if (typeof value === 'string') {
-      value = value.trim().replace(',', '.');
-    }
-    const num = parseFloat(value);
-    if (isNaN(num)) {
-      throw new Error('La cantidad debe ser un número válido');
-    }
-    // Redondea a 4 decimales por compatibilidad con tipo MONEY
-    return Number(num.toFixed(4));
-  })
-  @IsNumber({}, { message: 'La cantidad debe ser un número válido' })
+export class GenerarOrdenDto {
+  @Transform(({ value }) => parseFloat(value))
+  @IsNumber(
+    { maxDecimalPlaces: 4 },
+    { message: 'La cantidad debe tener máximo 4 decimales' },
+  )
+  @IsNotEmpty({ message: 'La cantidad es obligatoria' })
   cantidad: number;
 }
-
 
 @IsNumber({ maxDecimalPlaces: 4 })
   cantidad: number;
