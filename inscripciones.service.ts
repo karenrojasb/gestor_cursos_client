@@ -1,130 +1,370 @@
-import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
-import { GenerarOrdenDto } from "./dto/generarorden.dto";
-import { formatDateToYMD, getNowDate } from 'src/utils/date.util';
+import { IsNumber, IsString, Length, Min, Max, IsOptional, IsDateString,  IsBoolean, IsNotEmpty, ValidateNested } from "class-validator";
+
+import { Transform, Type } from "class-transformer";
+
+export class ArticuloDto {
+  @IsString()
+  @Length(1, 40)
+  item: string;
+
+  @Transform(({ value}) => parseFloat(value))
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La cantidad debe tener máximo 4 decimales' })
+    cantidad: number;
 
 
-@Injectable()
-export class generarOrdenService{ 
-    constructor( 
-            private readonly prismaService: PrismaService,
-            
-        ) { }
+  @Transform(({ value}) => parseFloat(value))
+  @IsNumber({ maxDecimalPlaces: 4 }, { message: 'El cos_uni debe tener máximo 4 decimales' })
+  cos_uni: number;
 
-   async GenerarOrden(data: GenerarOrdenDto){
-    const {  item, num_cdp, provee, Articulos} = data;
+  @IsNumber({ maxDecimalPlaces: 4 })
+  pre_vta: number;
 
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 4 })
+  cos_unai?: number;
 
-//Validar que el NIT exista
-    const NIT = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, cod_ciu 
-        from cxp_provee 
-        WHERE provee = '${provee}'`);
+  @IsNumber({ maxDecimalPlaces: 4 })
+  por_des: number;
 
-    if (NIT.length === 0){
-        throw new BadRequestException(`El NIT ${provee}, no existe`)
-        ;
-    }
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  usr_descrip_cue?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 3)
+  bodega?: string;
+
+  @IsOptional()
+  @IsNumber()
+  dia_pla?: number;
+}
+
+export class GenerarOrdenDto {
+
   
-    const datosProveedor = NIT [0];
+
+    @IsString({ message: 'El campo sub_tip debe ser una cadena de texto' })
+    @Length(1, 5, { message: 'El campo sub_tip debe tener entre 1 y 5 caracteres' })
+    sub_tip: string;
+    @ValidateNested({ each: true})
+    @Type(() => ArticuloDto)
+    Articulos: ArticuloDto[];
 
 
-// Obtener el consecutivo num_doc
-    const consecutivo = await this.prismaService.$queryRawUnsafe<any[]>(`
-    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
-    FROM inv_inf_inv
-     `);
-    const num_doc = consecutivo[0].numDoc;
+    @IsOptional()
+    @IsString({ message: 'El campo tipo doc debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo tipo doc debe tener entre 1 y 3 caracteres' })
+    tip_doc?: string;
 
 
-// Obtener el consecutivo de reg_doc (inicia en 1 para cada num_doc)
-const consecutivoReg = await this.prismaService.$queryRawUnsafe<any[]>(`
-  SELECT ISNULL(MAX(CONVERT(INT, reg_doc)), 0) + 1 AS regDoc
-  FROM inv_inf_inv
-  WHERE num_doc = '${num_doc}'
-`);
-const reg_doc = consecutivoReg[0].regDoc;
+    @IsOptional()
+    @IsString({ message: 'El campo vendedor debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo vendedor debe tener entre 1 y 3 caracteres' })
+    vendedor?: string; 
 
+    @IsOptional()
+    @IsString({ message: 'El campo cod_suc debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo cod_suc debe tener entre 1 y 3 caracteres' })
+    cod_suc?: string; 
 
-//Obtener la información del item
-    const itemInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
-        FROM inv_items
-        WHERE cod_item = '${item}'
-        `);
+    @IsOptional()
+    @IsString({ message: 'El campo cod_cco debe ser una cadena de texto' })
+    @Length(1, 10, { message: 'El campo cod_cco debe tener entre 1 y 10 caracteres' })
+    cod_cco?: string; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_cl1 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo cod_cl1 debe tener entre 1 y 12 caracteres' })
+    cod_cl1?: string; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_cl2 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo cod_cl2 debe tener entre 1 y 12 caracteres' })
+    cod_cl2?: string; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_cl3 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo cod_cl3 debe tener entre 1 y 12 caracteres' })
+    cod_cl3?: string;
     
-        const infoItem = itemInfo[0] || {};
+    @IsOptional()
+    @IsString({ message: 'El campo cliente debe ser una cadena de texto' })
+    @Length(1, 15, { message: 'El campo cliente debe tener entre 1 y 15 caracteres' })
+    cliente?: string; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo provee debe ser una cadena de texto' })
+    @Length(1, 15, { message: 'El campo provee debe tener entre 1 y 15 caracteres' })
+    provee?: string; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo lista debe ser una cadena de texto' })
+    @Length(1, 2, { message: 'El campo lista debe tener entre 1 y 2 caracteres' })
+    lista?: string; 
+
+    @IsOptional()
+    @IsNumber({ allowNaN: false, allowInfinity: false},{ message: 'El campo dia_pla debe ser un número válido'})
+    @Length(1, 9)
+    @Min(9)
+    @Max(18)
+    dia_pla?: number; 
+
+    @IsOptional()
+    @IsString({ message: 'El campo ind_mp debe ser una cadena de texto' })
+    @Length(1, 2, { message: 'El campo ind_mp debe tener entre 1 y 2 caracteres' })
+    ind_mp?: string; 
 
 
- for (const articulo of Articulos) {
-        const { item, cantidad, cos_uni, pre_vta, cos_unai, por_des, usr_descrip_cue, bodega, dia_pla } = articulo;
+    @IsOptional()
+    @IsNumber({ maxDecimalPlaces : 4 }, { message: 'La tasa debe tener máximo 4 decimales' })
+    @Length(1, 8)
+    @Min(0)
+    @Max(19)
+    tasa?: number;
+                 
+    @IsOptional()
+    @IsString({ message: 'El campo obs_orc debe ser una cadena de texto' })
+    @Length(1, 200, { message: 'El campo obs_ors debe tener entre 1 y 200 caracteres' })
+    obs_orc?: string; 
 
-        // Obtener info del ítem
-        const itemInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-          SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
-          FROM inv_items
-          WHERE cod_item = '${item}'
-        `);
-        const infoItem = itemInfo[0] || {};}
+    @IsOptional()
+    @IsString({ message: 'El campo bodega debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo bodega debe tener entre 1 y 3 caracteres' })
+    bodega?: string;
 
-//Obtener la información de CDP 
-    const cdpInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
-        SELECT ano_doc AS ano_cdp, per_doc AS per_cdp
-        FROM PRE_cuedoc
-        WHERE num_cdp = '${num_cdp}'
-        `);
+    @IsOptional()
+    @IsString({ message: 'El campo bos_des debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo bod_des debe tener entre 1 y 3 caracteres' })
+    bod_des?: string;
 
-        const infoCdp = cdpInfo[0] || {};
+    @IsOptional()
+    @IsString({ message: 'El campo fac_pro debe ser una cadena de texto' })
+    @Length(1, 14, { message: 'El campo fac_pro debe tener entre 1 y 14 caracteres' })
+    fac_pro?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_caja debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo cod_caja debe tener entre 1 y 3 caracteres' })
+    cod_caja?: string;
+
+    @IsOptional()
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'La cant_uni debe tener máximo 4 decimales'} )
+    cant_uni?: number;
+
+    @IsOptional()
+    @IsString({ message: 'El campo item debe ser una cadena de texto' })
+    @Length(1, 40, { message: 'El campo item debe tener entre 1 y 40 caracteres' })
+    item?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo alterno debe ser una cadena de texto' })
+    @Length(1, 15, { message: 'El campo alterno debe tener entre 1 y 15 caracteres' })
+    alterno?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo trans debe ser una cadena de texto' })
+    @Length(1, 5, { message: 'El campo trans debe tener entre 1 y 5 caracteres' })
+    trans?: string;
+
+    @Transform(({ value}) => parseFloat(value))
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La cantidad debe tener máximo 4 decimales' })
+    cantidad: number;
+
+    @IsOptional()
+    @IsString({ message: 'El campo fac_con debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo fac_con debe tener entre 1 y 3 caracteres' })
+    fac_con?: string;
+
+    @Transform(({ value}) => parseFloat(value))
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'El cos_uni debe tener máximo 4 decimales' })
+    cos_uni: number;
+
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'El pre_vta debe tener máximo 4 decimales'})
+    pre_vta: number;
+
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La por_des debe tener máximo 4 decimales'})
+    por_des: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'La por_iva debe tener máximo 4 decimales'})
+    por_iva: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'La por_iva_ng debe tener máximo 4 decimales'})
+    por_iva_ng: number;
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_ret debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo cod_ret debe tener entre 1 y 3 caracteres' })
+    cod_ret?: string;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'la por_ret debe tener máximo 4 decimales'})
+    por_ret: number;
+
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La por_com debe tener máximo 4 decimales' })
+    por_com: number;
+
+    @IsOptional()
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'La cos_unai debe tener máximo 4 decimales' })
+    cos_unai?: number;
+
+    @IsOptional()
+    @IsDateString()
+    fec_ent?: string;
+    
+    @IsOptional()
+    @IsString({ message: 'El campo suc_des debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo suc_des debe tener entre 1 y 3 caracteres' })
+    suc_des?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo obs_orc debe ser una cadena de texto' })
+    @Length(1, 1, { message: 'El campo obs_ors debe tener entre 1 y 1 caracteres' })
+    ind_tra?: string;
+
+    @IsBoolean()
+    asing_num: boolean;;
+
+    @IsBoolean()
+    ind_refact: boolean;
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_conv debe ser una cadena de texto' })
+    @Length(1, 15, { message: 'El campo cod_conv debe tener entre 1 y 15 caracteres' })
+    cod_conv?: string;
+
+    @IsString({ message: 'El campo conv_suc debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo conv_suc debe tener entre 1 y 200 caracteres' })
+    conv_suc: string;
+
+    @IsString({ message: 'El campo conv_cco debe ser una cadena de texto' })
+    @Length(1, 10, { message: 'El campo conv_cco debe tener entre 1 y 10 caracteres' })
+    conv_cco: string;
+
+    @IsString({ message: 'El campo conv_cl1 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo conv_cl1 debe tener entre 1 y 12 caracteres' })
+    conv_cl1: string;
+
+    @IsString({ message: 'El campo conv_cl2 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo conv_cl2 debe tener entre 1 y 12 caracteres' })
+    conv_cl2: string;
+
+    @IsString({ message: 'El campo conv_cl3 debe ser una cadena de texto' })
+    @Length(1, 12, { message: 'El campo conv_cl3 debe tener entre 1 y 12 caracteres' })
+    conv_cl3: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo num_fact debe ser una cadena de texto' })
+    @Length(1, 14, { message: 'El campo num_fact debe tener entre 1 y 14 caracteres' })
+    num_fact?: string;
+
+    @IsOptional()
+    @IsNumber({ allowNaN: false, allowInfinity: false}, { message: 'El valor ord_fact debe ser un número válido'})
+    @Length(1, 8)
+    @Min(0, { message: 'El ord_fact debe ser mayor o igual a 0'})
+    @Max(10, { message: 'El ord_fact debe ser menor o igual a 10'})
+    ord_fact?: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El por_adm debe tener máximo 4 decimales' })
+    por_adm: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El por_imp debe tener máximo 4 decimales'})
+    por_imp: number;
+
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'El por_uti debe tener máximo 4 decimales' })
+    por_uti: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El mon_adm debe tener máximo 4 decimales' })
+    mon_adm: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El mon_imp debe tener máximo 4 decimales' })
+    mon_imp: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El mon_util debe tener máximo 4 decimales'})
+    mon_uti: number;
+
+    @IsOptional()
+    @IsString({ message: 'El campo usr_ano_ped debe ser una cadena de texto' })
+    @Length(1, 4, { message: 'El campo usr_ano_ped debe tener entre 1 y 4 caracteres' })
+    usr_ano_ped?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo usr_per_ped debe ser una cadena de texto' })
+    @Length(1, 2, { message: 'El campo usr_per_ped debe tener entre 1 y 2 caracteres' })
+    usr_per_ped?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo usr_sub_ped debe ser una cadena de texto' })
+    @Length(1, 5, { message: 'El campo usr_sub_ped debe tener entre 1 y 5 caracteres' })
+    usr_sub_ped?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo usr_pedido debe ser una cadena de texto' })
+    @Length(1, 14, { message: 'El campo usr_pedido debe tener entre 1 y 14 caracteres' })
+    usr_pedido: string;
+
+    @IsOptional()
+    @IsNumber({ allowNaN: false, allowInfinity: false }, { message: 'El campo valor cdp debe ser un número válido' })
+    @Length(1, 4, { message: 'El campo usr_reg_ped debe tener entre 1 y 4 caracteres' })
+    @Min(0, { message: 'El usr_reg_ped debe ser mayor o igual a 0' })
+    @Max(10, { message: 'El urs_reg_ped debe ser menor o igual a 10' })
+    usr_reg_ped?: number;
+
+    @IsOptional()
+    @IsString({ message: 'El campo tercero debe ser una cadena de texto' })
+    @Length(1, 15, { message: 'El campo tercero debe tener entre 1 y 5 caracteres' })
+    usr_tercero?: string;
+
+
+    @IsOptional()
+    @IsString({ message: 'El campo ano_cdp debe ser una cadena de texto' })
+    @Length(1, 4, { message: 'El campo ano_cdp debe tener entre 1 y 4 caracteres' })
+    ano_cdp?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo per_cdp debe ser una cadena de texto' })
+    @Length(1, 2, { message: 'El campo per_cdp debe tener entre 1 y 2 caracteres' })
+    per_cdp?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo sub_cdp debe ser una cadena de texto' })
+    @Length(1, 5, { message: 'El campo sub_cdp debe tener entre 1 y 5 caracteres' })
+    sub_cdp?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo num_cdp debe ser una cadena de texto' })
+    @Length(1, 14, { message: 'El campo num_cdp debe tener entre 1 y 14 caracteres' })
+    num_cdp?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo cod_rubro debe ser una cadena de texto' })
+    @Length(1, 17, { message: 'El campo cod_rubro debe tener entre 1 y 17 caracteres' })
+    cod_rubro?: string;
+
+    @IsOptional()
+    @IsString({ message: 'El campo usr_descrip_cue debe ser una cadena de texto' })
+    @Length(1, 200, { message: 'El campo usr_descrip_cue debe tener entre 1 y 200 caracteres' })
+    usr_descrip_cue?: string;
+
+    @IsNumber({ maxDecimalPlaces: 4 }, { message: 'El tar_rii debe tener máximo 4 decimales' } )
+    tar_rii: number;
+
+    @IsNumber({ maxDecimalPlaces: 4}, { message: 'El tar_rii_ng debe tener máximo 4 decimales'})
+    tar_rii_ng: number;
+    
+    @IsString({ message: 'El campo pai_doc debe ser una cadena de texto' })
+    @Length(1, 3, { message: 'El campo pai_doc debe tener entre 1 y 3 caracteres' })
+    pai_doc: string;
+
+    @IsString({ message: 'El campo dep_doc debe ser una cadena de texto' })
+    @Length(1, 2, { message: 'El campo dep_doc debe tener entre 1 y 2 caracteres' })
+    dep_doc: string;
+
+    @IsString({ message: 'El campo ciu_doc debe ser una cadena de texto' })
+    @Length(1, 5, { message: 'El campo ciu_doc debe tener entre 1 y 5 caracteres' })
+    ciu_doc: string;
 
 
 
 
-//Insertar la orden
-        await this.prismaService.$queryRawUnsafe<any[]>(`
-            INSERT INTO inv_inf_inv (
-            ano_doc, per_doc, sub_tip, num_doc, tip_doc, reg_doc, fecha,
-            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
-            cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
-            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
-            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
-            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
-            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
-            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
-            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
-            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
-            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
-            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
-
-            VALUES (
-            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
-            '${data.vendedor}', '${data.cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${data.cod_cl2}', '${data.cod_cl3}', 
-            '${data.cliente}', '${data.provee}', '${data.lista}', '${data.dia_pla}', '${data.ind_mp}', '${formatDateToYMD()}', '${data.tasa}', '${data.obs_orc}',
-            '${data.bodega}', '${data.bod_des}', '${data.fac_pro}', '${data.cod_caja}', '${data.cant_uni}', '${data.item}', '${data.alterno}',
-            '${data.trans}', '${data.cantidad}', '${data.fac_con}', '${data.cos_uni}', '${data.pre_vta}', '${data.por_des}', '${data.por_iva}',
-            '${data.por_iva_ng}','${data.cod_ret}', '${data.por_ret}', '${data.por_com}', '${data.cos_unai}', '${data.fec_ent}',
-            '${data.conv_cco}', '${data.conv_cl1}', '${data.conv_cl2}', '${data.conv_cl3}', '${data.num_fact}', '${data.ord_fact}',
-            '${data.por_adm}', '${data.por_imp}', '${data.por_uti}', '${data.mon_adm}', '${data.mon_imp}', '${data.mon_uti}',
-            '${data.usr_ano_ped}', '${data.usr_per_ped}', '${data.usr_sub_ped}', '${data.usr_pedido}', '${data.usr_reg_ped}',
-            '${data.usr_tercero}', '${data.ano_cdp}', '${data.per_cdp}', '${data.sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
-            '${data.usr_descrip_cue}', '${data.tar_rii}', '${data.tar_rii_ng}', '${data.pai_doc}', '${data.dep_doc}', '${data.ciu_doc}'
-            )
-            `);
-
-            return {
-                Codigo: `200`,
-                Mensaje: `Consulta realiza con éxito`,
-                num_doc,
-                proveedor: provee
-            };
-            
-
-    } catch (error){
-        console.error("Error al generar la orden:", error.mensaje);
-        if (error instanceof HttpException) throw error;
-
-       console.log('Error al reasignar el cdp', error);
-                   throw new InternalServerErrorException('Error al generar la consulta')
-            
-
-    }
 }
