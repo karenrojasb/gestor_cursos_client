@@ -40,11 +40,11 @@ export class generarOrdenService{
     }
   
     const { ret_iva, ret_iva_ng, cod_pai,  cod_dep, ciu} = proveedorInfo[0];
-    const pai_doc = `(Con el NIT ${provee} Valor campo pai_doc: ${cod_pai})`;
-    const dep_doc = ` (Con el NIT ${provee} Valor campo dep_doc: ${cod_dep})`;
-    const ciu_doc = `(Cone el NIT ${provee}) Valor campo ciu: ${ciu}`;
-    const tar_rii = ` (Con el NIT ${provee}) Valor campo ret_iva: ${ret_iva}`;
-    const tar_rii_ng = `(Con el NIT ${provee}) Valor campo ret_iva_ng: ${ret_iva_ng}`;
+    const pai_doc = `${cod_pai}`;
+    const dep_doc = `${cod_dep}`;
+    const ciu_doc = `${ciu}`;
+    const tar_rii = `${ret_iva}`;
+    const tar_rii_ng = `${ret_iva_ng}`;
 
 
 // Obtener el consecutivo num_doc
@@ -53,6 +53,7 @@ export class generarOrdenService{
     FROM inv_inf_inv
      `);
     const num_doc = consecutivo[0].numDoc;
+    
 
 
 // Obtener el consecutivo de reg_doc (inicia en 1 para cada num_doc)
@@ -90,6 +91,7 @@ for (const articulo of Articulos) {
     }
 
     const { cod_ret_com, por_ret, por_iva, por_iva_ng} = itemInfo[0];
+    const cod_ret = `${cod_ret_com}`;
 
     const infoItem = itemInfo[0] || {};
     
@@ -109,7 +111,7 @@ console.log(data.vendedor)
 
 console.log(`
             INSERT INTO inv_inf_inv (
-            ano_doc, per_doc, sub_tip, num_doc, tip_doc, reg_doc, fecha,
+            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
             vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
             cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
             bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
@@ -123,18 +125,18 @@ console.log(`
             usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
 
             VALUES (
-            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
+            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}', '007',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
             '0', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '0', '0', 
             '0', '${data.provee}', '0', '${dia_pla}', '00', '${formatDateToYMD()}', '0', '${data.obs_orc}',
             '0', '0', '0', '0', '0', '${item}', '0',
             '0', '${cantidad}', '0', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
-            '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
-             '0', ' ', '${asig_num}', '${ind_refac}', '0', '0',
-            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', 'NULL', 'NULL',
+            '${por_iva_ng}','${cod_ret}', '${por_ret}', '0', '${cos_unai}', '01/01/1900',
+             '0', 'NULL', '${asig_num}', '${ind_refac}', '0', '0',
+            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
             '${por_adm}', '${por_imp}', '0', '0', '0', '0',
             '0', '0', '0', '0', '0',
             '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', 'U726', '${num_cdp}','${data.cod_rubro}',
-            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', ${ciu_doc}
+            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}'
             )
             `)
 
@@ -142,7 +144,7 @@ console.log(`
 //Insertar la orden
         await this.prismaService.$queryRawUnsafe<any[]>(`
             INSERT INTO inv_inf_inv (
-            ano_doc, per_doc, sub_tip, num_doc, tip_doc, reg_doc, fecha,
+            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
             vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
             cliente, provee, lista, dia_pla, ind_mp, fec_tas, tasa, obs_orc,
             bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
@@ -156,18 +158,18 @@ console.log(`
             usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc)
 
             VALUES (
-            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
+            '${getNowDate().getFullYear()}', '${getNowDate().getMonth()}', '${data.sub_tip}', '007',${num_doc}, '${reg_doc}', '${formatDateToYMD()}',
             '0', '${data.centro_costo}', '${data.cod_cco}', '${data.cod_cl1}', '0', '0', 
             '0', '${data.provee}', '0', '${dia_pla}', '00', '${formatDateToYMD()}', '0', '${data.obs_orc}',
             '0', '0', '0', '0', '0', '${item}', '0',
             '0', '${cantidad}', '0', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
-            '${por_iva_ng}','${data.cod_ret}', '${por_ret}', '${data.por_com}', '${cos_unai}', '${data.fec_ent}',
-             '0', ' ', '${asig_num}', '${ind_refac}', '0', '0',
-            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', 'NULL', 'NULL',
+            '${por_iva_ng}','${cod_ret}', '${por_ret}', '0', '${cos_unai}', '01/01/1900',
+             '0', 'NULL', '${asig_num}', '${ind_refac}', '0', '0',
+            '${conv_cco}', '0', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
             '${por_adm}', '${por_imp}', '0', '0', '0', '0',
             '0', '0', '0', '0', '0',
-            '${data.usr_tercero}', '${data.ano_cdp}', '${per_cdp}', 'U726', '${data.num_cdp}','${data.cod_rubro}',
-            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', ${ciu_doc}
+            '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', 'U726', '${num_cdp}','${data.cod_rubro}',
+            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}'
             )
             `);    }
 
