@@ -1,20 +1,16 @@
-private async findCodSuc(cod_suc: string) {
-    if (!cod_suc) {
-        throw new BadRequestException('El código de sucursal es obligatorio');
-    }
-
-    const result = await this.prismaService.$queryRaw<any[]>(
-        `SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = $1`,
-        cod_suc
-    );
-
-    if (!result.length) {
-        throw new BadRequestException(`No se encontró cod_suc para el código ${cod_suc}`);
-    }
-
-    return result[0].usr_sucursal;
+private async findCodSuc(centro_costo: string){
+      const cod_suc = await this.prismaService.$queryRaw<any[]>(
+          `SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = ?`,
+          centro_costo
+      );
+      if (!cod_suc.length) {
+          throw new BadRequestException(`No se encontró cod_suc para el centro de costo ${centro_costo}`);
+      }
+      return cod_suc[0].usr_sucursal;
+  }
 }
 
 
 
-const sucursal = await this.findCodSuc(data.cod_suc);
+
+const cod_suc = await this.findCodSuc(data.centro_costo);
