@@ -12,7 +12,7 @@ if (sucursalInfo.length === 0) {
 const cod_suc = sucursalInfo[0].usr_sucursal; // ✅ Este es el valor real que se sube al insert
 
 
-
+const cod_suc = await this.findCodSuc(data.cod_suc);
 
 
 
