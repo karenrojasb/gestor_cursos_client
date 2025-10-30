@@ -1,2 +1,3 @@
-// Obtener la sucursal a partir del centro de costo
-const cod_suc = await this.findCodSuc(data.centro_costo);
+Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.ts(2345)
+(property) GenerarOrdenDto.centro_costo?: string | undefined
