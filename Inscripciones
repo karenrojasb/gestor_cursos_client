@@ -1,6 +1,12 @@
-   private async findCodSuc(){
-    const cod_suc = await this.prismaService.$queryRawUnsafe<any[]>(`
-   SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = 'XXXX' 
-    `);
-    return cod_suc[0].cod_suc;
+  private async findCodSuc(codigo: string): Promise<string> {
+    const result = await this.prismaService.$queryRaw<any[]>(
+        `SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = ?`,
+        codigo
+    );
+
+    if (!result || result.length === 0) {
+        throw new BadRequestException(`El centro de costo ${codigo} no tiene un código de sucursal asociado.`);
     }
+
+    return result[0].usr_sucursal;
+}
