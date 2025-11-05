@@ -57,6 +57,9 @@ export class generarOrdenService {
         const sub_cdp = 'U726';
 
 
+        
+
+
         // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
         const sucursalInfo = await this.prismaService.$queryRawUnsafe<any[]>(`
     SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = '${data.cod_cl1}'
@@ -114,7 +117,7 @@ export class generarOrdenService {
             //Validar que el item exista
 
             console.log(Articulos[i].bodega)
-            const { item, cantidad, cos_uni, pre_vta, cos_unai, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+            const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
 
 
             // Validar info del item si es necesario
@@ -147,7 +150,14 @@ export class generarOrdenService {
 
             const reg_doc = i +1
 
+ 
+            const cos_unai = cos_uni;
+            const pre_vta = cos_uni
 
+
+          
+            
+       
 
             console.log(`
             INSERT INTO inv_inf_inv (
@@ -215,10 +225,27 @@ export class generarOrdenService {
                 ;
         }
 
+        //Obtener el asig_numero
+        const asigNumeroResult = await this.prismaService.$queryRawUnsafe<any[]>(`
+            SELECT DISTINCT asig_numero
+            FROM inv_inf_inv
+            WHERE ind_tra = 'X'
+              AND ano_doc = ${getNowDate().getFullYear()}
+              AND per_doc = '${getCurrentMonth()}'
+              AND sub_tip = '${data.sub_tip}'
+              AND tip_doc = '${tip_doc}'
+              AND num_doc = ${num_doc}
+        `);
+        
+        // Si no encuentra nada, dejar en blanco
+        const asig_numero = asigNumeroResult.length > 0
+            ? asigNumeroResult[0].asig_numero
+            : '';
+
         return {
             Codigo: `200`,
             Mensaje: `Consulta realiza con éxito`,
-            num_doc   
+            asig_numero
         };
 
 
