@@ -1,21 +1,15 @@
-USE [Novasoft]
-GO
-
-DECLARE	@return_value int
-
-EXEC	@return_value = [dbo].[USR_sp_gen_afeinv_preciso]
-		@iano_doc = N'2025',
-		@fano_doc = N'2025',
-		@iper_doc = N'11',
-		@fper_doc = N'11',
-		@isub_tip = N'C007',
-		@fsub_tip = N'C007',
-		@inum_doc = N'55946',
-		@fnum_doc = N'55946',
-		@ifec_doc = N'2025-11-04',
-		@ffec_doc = N'2025-11-04',
-		@indver = false
-
-SELECT	'Return Value' = @return_value
-
-GO
+// Ejecutar el procedimiento almacenado de Novasoft con todos los parámetros requeridos
+await this.prismaService.$queryRawUnsafe<any[]>(`
+    EXEC dbo.USR_sp_gen_afeinv_preciso 
+        @iano_doc = '${getNowDate().getFullYear()}',
+        @fano_doc = '${getNowDate().getFullYear()}',
+        @iper_doc = '${getCurrentMonth()}',
+        @fper_doc = '${getCurrentMonth()}',
+        @isub_tip = '${data.sub_tip}',
+        @fsub_tip = '${data.sub_tip}',
+        @inum_doc = '${num_doc}',
+        @fnum_doc = '${num_doc}',
+        @ifec_doc = '${formatoDateToDDMMYYYY()}',
+        @ffec_doc = '${formatoDateToDDMMYYYY()}',
+        @indver = 0
+`);
