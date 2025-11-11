@@ -1,14 +1,17 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { PrismaService } from "src/prisma/prisma.service";
+import { generarIngresoDto } from "./dto/generaringreso.dto";
 
 @Injectable()
-export class IngresoService {
+export class generarIngresoService {
+//constructor
+
   constructor(private readonly prisma: PrismaService) {}
 
   async generarIngreso(tipo: string) {
     try {
       const tipoDocumento = '008'; // INGRESO ALMACÉN
-
+     
       const resultado: any[] = await this.prisma.$queryRawUnsafe(
         `SELECT cod_sub 
          FROM gen_subtipodoc 
@@ -21,7 +24,7 @@ export class IngresoService {
           `No se encontró subtipo en Novasoft para el tipo '${tipo}'.`
         );
       }
-
+     
       return {
         mensaje: 'Subtipo encontrado correctamente',
         tipoIngreso: tipo,
@@ -36,30 +39,24 @@ export class IngresoService {
   }
 }
 
+import { Controller, Post, Body, HttpCode, HttpStatus, Query, Get } from '@nestjs/common';
+import { generarIngresoService } from './generaringreso.service';
+import { generarIngresoDto } from './dto/generaringreso.dto';
 
 
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { IngresoService } from './ingreso.service';
+@Controller()
+export class generarIngresoController{ 
+    constructor(private readonly generarIngresoService: generarIngresoService) {}
 
-class GenerarIngresoDto {
-  tipo: string; // El tipo de ingreso que viene del Paso 2
-}
-
-@Controller('ingreso')
-export class IngresoController {
-  constructor(private readonly ingresoService: IngresoService) {}
-
-  @Post('generar')
+    @Post('GenerarIngreso')
   @HttpCode(HttpStatus.OK)
-  async generarIngreso(@Body() body: GenerarIngresoDto) {
+  async generarIngreso(@Body() body: generarIngresoDto) {
     const { tipo } = body;
 
-    const resultado = await this.ingresoService.generarIngreso(tipo);
+    const resultado = await this.generarIngresoService.generarIngreso(tipo);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Proceso completado correctamente',
-      data: resultado,
-    };
+   
+
   }
+
 }
