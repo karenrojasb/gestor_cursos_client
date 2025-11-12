@@ -155,6 +155,8 @@ WHERE   CAB.ano_doc = @ano_o
       contenedorIngreso,
       subProceso,
       subtipo,
+      cantidaditems: items.length,
+      items,
       
       
     };
