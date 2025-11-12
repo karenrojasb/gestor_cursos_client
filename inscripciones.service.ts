@@ -45,6 +45,7 @@ export class GenerarIngresoService {
     //Constante de tipo de documento
     const INGRESOALMACEN = '008';
 
+    //Consulta de subtipo
     const cod_sub = await this.prisma.$queryRawUnsafe<any[]>(`
       SELECT cod_sub 
       FROM gen_subtipodoc 
@@ -53,6 +54,7 @@ export class GenerarIngresoService {
     `);
 
 
+    //Consulta de items
     const consultaitems = `
     DECLARE @sub_o CHAR(5);
     DECLARE @ano_o CHAR(4) = '${ano_o}';
@@ -123,6 +125,11 @@ WHERE   CAB.ano_doc = @ano_o
 
 
     ` 
+    const items = await this.prisma.$queryRawUnsafe<any[]>(`
+    ${consultaitems}`);
+
+
+
     //Validación de resultado
     if (cod_sub.length === 0) {
       return {
@@ -144,6 +151,8 @@ WHERE   CAB.ano_doc = @ano_o
       contenedorIngreso,
       subProceso,
       subtipo,
+      cantidaditems: items.length,
+      items,
     };
   }
 }
