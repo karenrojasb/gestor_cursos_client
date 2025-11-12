@@ -60,6 +60,8 @@ export class GenerarIngresoService {
     DECLARE @ano_o CHAR(4) = '${ano_o}';
     DECLARE @per_o CHAR(2) = '${per_o}';
     DECLARE @num_o CHAR(14) = '${num_o}';
+    DECLARE @fec_a DATE = '${formatoDateToDDMMYYYY()}';
+    DECLARE @sub_a CHAR(5) = '${cod_sub[0].cod_sub}';
     DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub[0].cod_sub}');
     DECLARE @referencia CHAR(20) = '${referencia}';
 
@@ -138,6 +140,8 @@ WHERE   CAB.ano_doc = @ano_o
         contenedorIngreso,
         subProceso,
         subtipo: null,
+        cantidaditems: items.length,
+        items,
       };
     }
 
@@ -151,8 +155,7 @@ WHERE   CAB.ano_doc = @ano_o
       contenedorIngreso,
       subProceso,
       subtipo,
-      cantidaditems: items.length,
-      items,
+      
       
     };
   }
