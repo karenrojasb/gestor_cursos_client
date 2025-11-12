@@ -153,6 +153,7 @@ WHERE   CAB.ano_doc = @ano_o
       subtipo,
       cantidaditems: items.length,
       items,
+      
     };
   }
 }
