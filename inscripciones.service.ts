@@ -65,23 +65,21 @@ export class GenerarIngresoService {
     DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub[0].cod_sub}');
     DECLARE @referencia CHAR(20) = '${referencia}';
 
-    IF EXISTS 
-        ( 
-        SELECT sub_tip FROM inv_inf_inv WHERE asig_numero = num_o
-        AND tip_doc = '007'
-        AND ons_orc LIKE '%' + @referencia + '%' 
-        )
-
-    BEGIN 
-        SELECT @sub_o = sub_tip
-        FROM inv_inf_inv
-        WHERE asig_numero = @num_o
-        AND tip_doc = '007'
-        AND ons_orc LIKE '%' + @referencia + '%' 
-        END
-
-    ELSE
-    BEGIN 
+    IF EXISTS   (
+                SELECT sub_tip 
+                FROM inv_inf_inv 
+                WHERE   asig_numero = @num_o 
+                AND tip_doc = '007' 
+                AND obs_orc LIKE '%' + @Referencia + '%' )	
+BEGIN 
+    SELECT @sub_o = sub_tip 
+    FROM inv_inf_inv 
+    WHERE   asig_numero = @num_o 
+    AND tip_doc = '007' 
+    AND obs_orc LIKE '%' + @Referencia + '%'; 	
+END; 
+ELSE 
+BEGIN 
     SELECT @sub_o = sub_tip 
     FROM inv_cuedoc 
     WHERE  num_doc = @num_o 
@@ -89,6 +87,7 @@ export class GenerarIngresoService {
     AND ano_doc = @ano_o 
     AND per_doc = @per_o 
 END; 
+
 SELECT      CONVERT(CHAR(4), FORMAT(@fec_a, 'yyyy')) ano_doc, CONVERT(CHAR(2), 
 FORMAT(@fec_a, 'MM')) per_doc, @sub_a sub_tip, @tip_a tip_doc, '' num_doc, 
             CUE.reg_doc, CONVERT(VARCHAR(MAX), @fec_a, 112) fecha, CAB.vendedor, 
