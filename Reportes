@@ -1,18 +1,12 @@
-
-DECLARE @ID INT;
-
-SELECT @ID = ID
-FROM Panel_109_68508
-WHERE Referencia = 'SCM-38.3_18587';  -- aquí pones la referencia que llega de AuraQuantic
-
---btener los ítems desde Panel_109_68508_68526 usando ese ID
 SELECT 
-    ID,
-    [3_codigo] + ' - ' + [3_NArticulo] AS codItem,
-    [3_Cantidad] AS CantidadT,
-    ISNULL([3_cantidadingr], 0) AS CantidadI,
-    ISNULL([3_cantidadreciart], 0) AS CantidadR,
-    ISNULL([3_numfacturaart], '') AS factura
-FROM Panel_109_68508_68526
-WHERE [_ElementID] = @ID
-ORDER BY ID;
+    I.ID,
+    I.[3_codigo] + ' - ' + I.[3_NArticulo] AS codItem,
+    I.[3_Cantidad] AS CantidadT,
+    ISNULL(I.[3_cantidadingr], 0) AS CantidadI,
+    ISNULL(I.[3_cantidadreciart], 0) AS CantidadR,
+    ISNULL(I.[3_numfacturaart], '') AS factura
+FROM Panel_109_68508_68526 I
+INNER JOIN Panel_109_68508 P ON P.ID = I._ElementID
+INNER JOIN AP__BPM_Procesos PR ON PR.ID = P._ElementID
+WHERE PR.Referencia = 'SCM-38.3_18587'
+ORDER BY I.ID;
