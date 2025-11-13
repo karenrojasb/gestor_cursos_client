@@ -1,14 +1,38 @@
-NODE_ENV=development
+import sql from 'mssql';
+import * as dotenv from 'dotenv';
 
-DATABASE_URL="sqlserver://10.1.5.40:1433;database=Novasoft;user=bpmpreciso;password=novabpm;trustServerCertificate=true;"
+dotenv.config(); // carga las variables del .env según el ambiente
 
-AURAQUIA_URL="sqlserver://10.1.5.213:1433;database=AuraquanticDev_BPMS;user=MigraBPMS;password=Ru0D,52p;trustServerCertificate=true;"
+// Configuración del pool usando variables del .env
+const auraConfig = {
+  server: process.env.AURAQUANTIC_SERVER,
+  port: Number(process.env.AURAQUANTIC_PORT),
+  user: process.env.AURAQUANTIC_USER,
+  password: process.env.AURAQUANTIC_PASSWORD,
+  database: process.env.AURAQUANTIC_DATABASE,
+  options: {
+    encrypt: false,                 // según tu SQL Server
+    trustServerCertificate: true,   // para evitar problemas con certificados
+  },
+};
 
+// Crear pool de conexión
+const pool = new sql.ConnectionPool(auraConfig);
+const poolConnect = pool.connect();
 
-AURAQUANTIC_SERVER: 10.1.5.213
-AURAQUANTIC_PORT: 1433
-AURAQUANTIC_DATABASE: AuraquanticDev_BPMS
-AURAQUANTIC_USER: MigraBPMS
-AURAQUANTIC_PASSWORD: Ru0D,52p
-AURAQUANTIC_TRUSTSERVERCERTIFICATE: true
+// Función para ejecutar consultas
+export async function queryAura(query: string) {
+  try {
+    await poolConnect; // asegura que el pool esté conectado
+    const result = await pool.request().query(query);
+    return result.recordset;
+  } catch (error) {
+    console.error('Error en queryAura:', error);
+    throw error;
+  }
+}
 
+// Función opcional para cerrar el pool al apagar la app
+export async function closeAuraPool() {
+  await pool.close();
+}
