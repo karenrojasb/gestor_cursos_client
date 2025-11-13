@@ -1,22 +1,7 @@
-SELECT  
-    GC_PM.ID, 
-    GC_PM.[3_numeroOrdencompra] AS numeroOrden, 
-    FORMAT(GC_PM.[3_fechaOC], 'yyyy') AS anoOrden, 
-    FORMAT(GC_PM.[3_fechaOC], 'MM') AS mesOrden, 
-    CASE ENL_TS.IdElementoEnlazado 
-        WHEN 9764 THEN 'S' 
-        WHEN 9765 THEN 'P' 
-        WHEN 9766 THEN 'B' 
-        WHEN 12144 THEN 'NC' 
-        WHEN 12166 THEN 'T' 
-        ELSE 'C' 
-    END AS tipo, 
-    ISNULL(OPC_TI.Opcion, '') AS tipoIngreso, 
-    ISNULL(GC_PM.[3_numfacturapro], '') AS factura, 
-    ISNULL(GC_PM.[3_numeroIngreso], '') AS ingreso
-FROM Panel_109_68508 GC_PM 
-INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID 
-INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID 
+SELECT GC_PM.ID
+FROM Panel_109_68508 GC_PM
+INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
 INNER JOIN AP__Enlaces ENL_TS ON ENL_TS.IdElementoOrigen = P.ID AND ENL_TS.IdTipoEnlace = 69170
 INNER JOIN AP__BPM_TraspasoContenedores TC ON TC.IdProcesoAsc = P.ID AND TC.IdContenedorAsc = 'contenedorIngreso'
 INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD ON TCD.IdTraspasoContenedor = TC.ID AND TCD.[_IdElemento] = GC_PM.ID
