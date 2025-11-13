@@ -1,3 +1,64 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
+import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
+import { generarIngresoDto } from './dto/generaringreso.dto';
+import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
+
+@Injectable()
+export class GenerarIngresoService {
+  constructor(
+    private readonly prismaNovasoftService: PrismaNovasoftService,
+    private readonly prismaAuraquanticService: PrismaAuraquanticService
+
+  ) {}
+
+  async generarIngreso(data: generarIngresoDto ) {
+    const { referencia, tipo, ano_o, per_o, num_o, solicitante } = data;
+
+    
+    //Declaración de variables
+    let tipoIngreso: string;
+    let contenedorIngreso: string;
+    let subProceso: string;
+
+    //Switch para asignar valores según el tipo
+    switch (tipo.toLowerCase()) {
+      case 'contractual':
+        tipoIngreso = 'contractual';
+        contenedorIngreso = '73';
+        subProceso = 'Contractual';
+        break;
+      case 'regular':
+        tipoIngreso = 'regular';
+        contenedorIngreso = '110';
+        subProceso = 'Regular';
+        break;
+      case 'proveedor unico':
+        tipoIngreso = 'proveedor unico';
+        contenedorIngreso = '128';
+        subProceso = 'Proveedor Único';
+        break;
+      case 'transporte':
+        tipoIngreso = 'transporte';
+        contenedorIngreso = '';
+        subProceso = 'transporte';
+        break;
+      default:
+        throw new Error(`Tipo no reconocido: ${tipo}`);
+    }
+
+    //Constante de tipo de documento
+    const INGRESOALMACEN = '008';
+
+    //Consulta de subtipo
+    const cod_sub = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT cod_sub 
+      FROM gen_subtipodoc 
+      WHERE cod_tip = '${INGRESOALMACEN}' 
+        AND cod_sub LIKE '${tipoIngreso.charAt(0).toUpperCase()}%'
+    `);
+
+
     
     const gcpmIds = await this.prismaAuraquanticService.$queryRawUnsafe<{ ID: number }[]>(`
         SELECT GC_PM.ID
@@ -90,3 +151,39 @@ WHERE   CAB.ano_doc = @ano_o
     ` 
     const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
+
+
+
+
+
+
+    //Validación de resultado
+    if (cod_sub.length === 0) {
+      return {
+        mensaje: `No se encontró subtipo para el tipo ${tipoIngreso}`,
+        tipoIngreso,
+        contenedorIngreso,
+        subProceso,
+        subtipo: null,
+        cantidaditems: items.length,
+        items,
+      };
+    }
+
+    const subtipo = cod_sub[0].cod_sub;
+
+
+    //Retorno de datos
+    return {
+      referencia,
+      tipoIngreso,
+      contenedorIngreso,
+      subProceso,
+      subtipo,
+      cantidaditems: items.length,
+      items,
+      
+      
+    };
+  }
+}
