@@ -129,6 +129,9 @@ WHERE   CAB.ano_doc = @ano_o
     const items = await this.prisma.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
 
+    
+
+
 
 
     //Validación de resultado
