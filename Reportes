@@ -1,12 +1,3 @@
-SELECT GC_PM.ID
-FROM Panel_109_68508 GC_PM
-INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
-INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
-INNER JOIN AP__Enlaces ENL_TS ON ENL_TS.IdElementoOrigen = P.ID AND ENL_TS.IdTipoEnlace = 69170
-INNER JOIN AP__BPM_TraspasoContenedores TC ON TC.IdProcesoAsc = P.ID AND TC.IdContenedorAsc = 'contenedorIngreso'
-INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD ON TCD.IdTraspasoContenedor = TC.ID AND TCD.[_IdElemento] = GC_PM.ID
-LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI ON OPC_TI.ID = GC_PM.[3_Pagos] AND IdTermino = '736'
-WHERE P.Referencia = 'Referencia'
-  AND [3_numeroOrdencompra] IS NOT NULL
-  AND (OPC_TI.Opcion = 'Parcial' OR (OPC_TI.Opcion = 'Completo' AND GC_PM.[3_numfacturapro] <> '' AND GC_PM.[3_numfacturapro] IS NOT NULL))
-  AND (GC_PM.[3_numeroIngreso] = 'Parcial' OR GC_PM.[3_numeroIngreso] = '' OR GC_PM.[3_numeroIngreso] IS NULL)
+SELECT [3_numeroOrdencompra] AS numeroOrden
+FROM Panel_109_68508
+WHERE [3_numeroOrdencompra] IS NOT NULL
