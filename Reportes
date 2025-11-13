@@ -74,6 +74,8 @@ export class GenerarIngresoService {
 
       const gcpmId = gcpmIds[0].ID;
 
+    
+
       
 
     //Consulta de items
@@ -164,9 +166,11 @@ WHERE   CAB.ano_doc = @ano_o
         tipoIngreso,
         contenedorIngreso,
         subProceso,
+        gcpmId,
         subtipo: null,
         cantidaditems: items.length,
         items,
+        
       };
     }
 
