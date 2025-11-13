@@ -1,16 +1,41 @@
-generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
-}
+PS C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api> npx prisma generate --schema=prisma/schema.prisma --env DATABASE_URL=$AURAQUANTIC_URL
+┌─────────────────────────────────────────────────────────┐
+│  Update available 6.14.0 -> 6.19.0                      │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
 
-datasource db {
-  provider = "sqlserver"
-  url      = env("DATABASE_URL")
-}
+! unknown or unexpected option: --env
 
-datasource db {
-  provider = "sqlserver"
-  url      = env("AURAQUANTIC_URL")
-}
+Generate artifacts (e.g. Prisma Client)
 
+Usage
 
+  $ prisma generate [options]
+
+Options
+          -h, --help   Display this help message
+            --config   Custom path to your Prisma config file
+            --schema   Custom path to your Prisma schema
+               --sql   Generate typed sql module
+             --watch   Watch the Prisma schema and rerun after a change
+         --generator   Generator to use (may be provided multiple times)
+         --no-engine   Generate a client for use with Accelerate only
+          --no-hints   Hides the hint messages but still outputs errors and warnings
+   --allow-no-models   Allow generating a client without models (default)
+    --require-models   Do not allow generating a client without models
+
+Examples
+
+  With an existing Prisma schema
+    $ prisma generate
+
+  Or specify a schema
+    $ prisma generate --schema=./schema.prisma
+
+  Run the command with multiple specific generators
+    $ prisma generate --generator client1 --generator client2
+
+  Watch Prisma schema file and rerun after each change
+    $ prisma generate --watch
