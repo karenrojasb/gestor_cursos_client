@@ -1,31 +1,14 @@
-PS C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api> npx prisma generate
-Environment variables loaded from .env
-Prisma schema loaded from prisma\schema.prisma
-Error: Prisma schema validation - (get-config wasm)
-Error code: P1012
-error: Error validating datasource `db`: You defined more than one datasource. This is not allowed yet because support for multiple databases has not been implemented yet.
-  -->  prisma\schema.prisma:11
-   |
-10 |
-11 | datasource db {
-12 |   provider = "sqlserver"
-13 |   url      = env("DATABASE_URL")
-14 | }
-   |
+NODE_ENV=development
+
+DATABASE_URL="sqlserver://10.1.5.40:1433;database=Novasoft;user=bpmpreciso;password=novabpm;trustServerCertificate=true;"
+
+AURAQUIA_URL="sqlserver://10.1.5.213:1433;database=AuraquanticDev_BPMS;user=MigraBPMS;password=Ru0D,52p;trustServerCertificate=true;"
 
 
-error: Error validating datasource `dbAura`: You defined more than one datasource. This is not allowed yet because support for multiple databases has not been implemented yet.
-  -->  prisma\schema.prisma:16
-   |
-15 |
-16 | datasource dbAura {
-17 |   provider = "sqlserver"
-18 |   url      = env("AURAQUANTIC_URL")
-19 | }
-   |
+AURAQUANTIC_SERVER: 10.1.5.213
+AURAQUANTIC_PORT: 1433
+AURAQUANTIC_DATABASE: AuraquanticDev_BPMS
+AURAQUANTIC_USER: MigraBPMS
+AURAQUANTIC_PASSWORD: Ru0D,52p
+AURAQUANTIC_TRUSTSERVERCERTIFICATE: true
 
-Validation Error Count: 2
-[Context: getConfig]
-
-Prisma CLI Version : 6.14.0
-PS C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api> 
