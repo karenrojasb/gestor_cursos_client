@@ -1,38 +1,28 @@
-import sql from 'mssql';
-import * as dotenv from 'dotenv';
-
-dotenv.config(); // carga las variables del .env según el ambiente
-
-// Configuración del pool usando variables del .env
-const auraConfig = {
-  server: process.env.AURAQUANTIC_SERVER,
-  port: Number(process.env.AURAQUANTIC_PORT),
-  user: process.env.AURAQUANTIC_USER,
-  password: process.env.AURAQUANTIC_PASSWORD,
-  database: process.env.AURAQUANTIC_DATABASE,
-  options: {
-    encrypt: false,                 // según tu SQL Server
-    trustServerCertificate: true,   // para evitar problemas con certificados
-  },
-};
-
-// Crear pool de conexión
-const pool = new sql.ConnectionPool(auraConfig);
-const poolConnect = pool.connect();
-
-// Función para ejecutar consultas
-export async function queryAura(query: string) {
-  try {
-    await poolConnect; // asegura que el pool esté conectado
-    const result = await pool.request().query(query);
-    return result.recordset;
-  } catch (error) {
-    console.error('Error en queryAura:', error);
-    throw error;
-  }
-}
-
-// Función opcional para cerrar el pool al apagar la app
-export async function closeAuraPool() {
-  await pool.close();
-}
+SELECT  GC_PM.ID, 
+GC_PM.[3_numeroOrdencompra] numeroOrden, 
+FORMAT(GC_PM.[3_fechaOC], 'yyyy') anoOrden, 
+FORMAT(GC_PM.[3_fechaOC], 'MM') mesOrden, 
+CASE ENL_TS.IdElementoEnlazado 
+    WHEN 9764 THEN 'S' 
+    WHEN 9765 THEN 'P' 
+    WHEN 9766 THEN 'B' 
+    WHEN 12144 THEN 'NC' 
+    WHEN 12166 THEN 'T' 
+    ELSE 'C' 
+END tipo, 
+ISNULL(OPC_TI.Opcion, '') tipoIngreso, 
+ISNULL(GC_PM.[3_numfacturapro], '') factura, 
+ISNULL(GC_PM.[3_numeroIngreso], '') ingreso, 
+EMP.codigoERP solicitante 
+FROM Panel_109_68508 GC_PM 
+INNER JOIN Panel_109 PA on PA.ID = GC_PM._ElementID 
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID 
+INNER JOIN AP__Enlaces ENL_TS ON (ENL_TS.IdElementoOrigen = P.ID AND ENL_TS.IdTipoEnlace = 69170) 
+INNER JOIN AP__BPM_TraspasoContenedores TC ON (TC.IdProcesoAsc = P.ID AND TC.IdContenedorAsc =  ' contenedorIngreso' ) 
+INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD ON (TCD.IdTraspasoContenedor = TC.ID AND TCD.[_IdElemento] = GC_PM.ID) 
+INNER JOIN AP_WSSV_AP__EmpleadosFichas EMP ON EMP.ID = PA.IdCreador 
+LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI ON (OPC_TI.ID = GC_PM.[3_Pagos] AND IdTermino = '736')
+WHERE   P.Referencia = ' Referencia' 
+AND [3_numeroOrdencompra] IS NOT NULL 
+AND (OPC_TI.Opcion = 'Parcial' OR (OPC_TI.Opcion = 'Completo' AND GC_PM.[3_numfacturapro] <> '' AND GC_PM.[3_numfacturapro] IS NOT NULL)) 
+AND (GC_PM.[3_numeroIngreso] = 'Parcial' OR GC_PM.[3_numeroIngreso] = '' OR GC_PM.[3_numeroIngreso] IS NULL)
