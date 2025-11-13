@@ -1,3 +1,8 @@
-SELECT [3_numeroOrdencompra] AS numeroOrden
-FROM Panel_109_68508
-WHERE [3_numeroOrdencompra] IS NOT NULL
+SELECT 
+    GC_PM.[3_numeroOrdencompra] AS numeroOrden,
+    P.Referencia
+FROM Panel_109_68508 GC_PM
+INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
+WHERE GC_PM.[3_numeroOrdencompra] IS NOT NULL
+  AND P.Referencia IS NOT NULL
