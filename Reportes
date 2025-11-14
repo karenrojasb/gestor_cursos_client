@@ -1,3 +1,27 @@
+-- Ejemplo de referencia
+DECLARE @Referencia CHAR(20) = 'SCM-38.3_18587';
+
+-- Paso 1: obtener tipo de ingreso y contenedor según la referencia
+DECLARE @ContenedorIngreso CHAR(5);
+
+-- Asignamos el contenedor según el tipo de ingreso
+SELECT TOP 1
+    CASE GC_PM.[TipoParametro]  -- aquí se debe usar el campo que indica el tipo (contractual, regular, etc.)
+        WHEN 'contractual' THEN '73'
+        WHEN 'regular' THEN '110'
+        WHEN 'proveedor unico' THEN '128'
+        WHEN 'transporte' THEN 'XXX' -- colocar el valor correspondiente
+        ELSE NULL
+    END AS ContenedorIngreso
+INTO #TempContenedor
+FROM Panel_109_68508 GC_PM
+INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
+WHERE P.Referencia = @Referencia;
+
+SELECT @ContenedorIngreso = ContenedorIngreso FROM #TempContenedor;
+
+-- Paso 2: consultar si el ingreso es completo
 SELECT 
     CASE 
         WHEN OPC_TI.Opcion = 'Completo'
@@ -6,26 +30,23 @@ SELECT
         ELSE 'NoCompleto'
     END AS tipoIngreso
 FROM Panel_109_68508 GC_PM
-    INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
-    INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
-    INNER JOIN AP__Enlaces ENL_TS 
-        ON ENL_TS.IdElementoOrigen = P.ID 
-        AND ENL_TS.IdTipoEnlace = 69170
-    INNER JOIN AP__BPM_TraspasoContenedores TC 
-        ON TC.IdProcesoAsc = P.ID 
-        AND TC.IdContenedorAsc = @ContenedorIngreso
-    INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD 
-        ON TCD.IdTraspasoContenedor = TC.ID 
-        AND TCD.[_IdElemento] = GC_PM.ID
-    LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI 
-        ON OPC_TI.ID = GC_PM.[3_Pagos] 
-        AND OPC_TI.IdTermino = '736'
+INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
+INNER JOIN AP__Enlaces ENL_TS 
+    ON ENL_TS.IdElementoOrigen = P.ID 
+    AND ENL_TS.IdTipoEnlace = 69170
+INNER JOIN AP__BPM_TraspasoContenedores TC 
+    ON TC.IdProcesoAsc = P.ID 
+    AND TC.IdContenedorAsc = @ContenedorIngreso
+INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD 
+    ON TCD.IdTraspasoContenedor = TC.ID 
+    AND TCD.[_IdElemento] = GC_PM.ID
+LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI 
+    ON OPC_TI.ID = GC_PM.[3_Pagos] 
+    AND OPC_TI.IdTermino = '736'
 WHERE 
     P.Referencia = @Referencia
     AND GC_PM.[3_numeroOrdencompra] IS NOT NULL
-    AND OPC_TI.Opcion = 'Completo'
-    AND GC_PM.[3_numfacturapro] <> ''
-    AND GC_PM.[3_numfacturapro] IS NOT NULL
     AND (GC_PM.[3_numeroIngreso] = 'Parcial' 
          OR GC_PM.[3_numeroIngreso] = '' 
          OR GC_PM.[3_numeroIngreso] IS NULL);
