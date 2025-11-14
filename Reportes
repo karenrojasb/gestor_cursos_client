@@ -1,35 +1,50 @@
--- Ejemplo de referencia
-DECLARE @Referencia CHAR(20) = 'SCM-38.3_18587';
-
--- Contenedor según tipo de ingreso
-DECLARE @ContenedorIngreso CHAR(5) = '73';  -- contractual
-
--- Consulta para verificar si el ingreso es completo
 SELECT 
-    CASE 
-        WHEN OPC_TI.Opcion = 'Completo'
-             AND ISNULL(GC_PM.[3_numfacturapro], '') <> ''
-        THEN 'Completo'
-        ELSE 'NoCompleto'
-    END AS tipoIngreso
+    ID,
+    [3_numeroOrdencompra] AS numeroOrden,
+    [3_fechaOC] AS fechaOC,
+    [3_numfacturapro] AS factura,
+    [3_numeroIngreso] AS ingreso,
+    [3_Pagos] AS idPago
+FROM Panel_109_68508
+WHERE [3_numeroOrdencompra] IS NOT NULL;
+
+
+SELECT ID, IdTermino, Opcion
+FROM AP__Diccionario_Terminos_Opciones
+WHERE IdTermino = '736';
+
+
+
+SELECT 
+    [3_numeroOrdencompra] AS numeroOrden,
+    [3_numeroIngreso] AS ingreso
+FROM Panel_109_68508
+WHERE [3_numeroIngreso] = 'Parcial'
+   OR [3_numeroIngreso] = ''
+   OR [3_numeroIngreso] IS NULL;
+
+
+
+SELECT 
+    GC_PM.[3_numeroOrdencompra] AS numeroOrden,
+    ISNULL(OPC_TI.Opcion, '') AS tipoIngreso,
+    GC_PM.[3_numeroIngreso] AS ingreso
 FROM Panel_109_68508 GC_PM
-INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
-INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
-INNER JOIN AP__Enlaces ENL_TS 
-    ON ENL_TS.IdElementoOrigen = P.ID 
-    AND ENL_TS.IdTipoEnlace = 69170
-INNER JOIN AP__BPM_TraspasoContenedores TC 
-    ON TC.IdProcesoAsc = P.ID 
-    AND TC.IdContenedorAsc = @ContenedorIngreso
-INNER JOIN AP__BPM_TraspasoContenedores_Datos TCD 
-    ON TCD.IdTraspasoContenedor = TC.ID 
-    AND TCD.[_IdElemento] = GC_PM.ID
-LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI 
-    ON OPC_TI.ID = GC_PM.[3_Pagos] 
-    AND OPC_TI.IdTermino = '736'
-WHERE 
-    P.Referencia = @Referencia
-    AND GC_PM.[3_numeroOrdencompra] IS NOT NULL
-    AND (GC_PM.[3_numeroIngreso] = 'Parcial' 
-         OR GC_PM.[3_numeroIngreso] = '' 
-         OR GC_PM.[3_numeroIngreso] IS NULL);
+LEFT JOIN AP__Diccionario_Terminos_Opciones OPC_TI
+    ON OPC_TI.ID = GC_PM.[3_Pagos] AND OPC_TI.IdTermino = '736'
+WHERE [3_numeroOrdencompra] IS NOT NULL
+  AND (OPC_TI.Opcion = 'Parcial' 
+       OR (OPC_TI.Opcion = 'Completo' 
+           AND GC_PM.[3_numfacturapro] <> '' 
+           AND GC_PM.[3_numfacturapro] IS NOT NULL))
+  AND (GC_PM.[3_numeroIngreso] = 'Parcial' 
+       OR GC_PM.[3_numeroIngreso] = '' 
+       OR GC_PM.[3_numeroIngreso] IS NULL);
+
+
+
+
+
+
+
+
