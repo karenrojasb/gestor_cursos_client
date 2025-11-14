@@ -2,6 +2,18 @@ SELECT
     [3_numeroOrdencompra] AS numeroOrden,
     [3_numeroIngreso] AS ingreso,
     CASE 
+        WHEN [3_numeroIngreso] = 'Parcial' OR [3_numeroIngreso] = '' OR [3_numeroIngreso] IS NULL 
+            THEN 'Parcial'
+        ELSE 'Completo'
+    END AS estadoIngreso
+FROM Panel_109_68508
+WHERE [3_numeroOrdencompra] = 'TU_NUMERO_DE_ORDEN';
+
+
+SELECT 
+    [3_numeroOrdencompra] AS numeroOrden,
+    [3_numeroIngreso] AS ingreso,
+    CASE 
         WHEN [3_numeroIngreso] = 'Parcial' OR [3_numeroIngreso] = '' OR [3_numeroIngreso] IS NULL THEN 'Parcial'
         ELSE 'Completo'
     END AS estadoIngreso
