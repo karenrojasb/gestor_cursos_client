@@ -1,7 +1,37 @@
-para obtener el cod_sub se debera primero hacer una consulta en la tabla de inv_inf_inv, para obtener el asig_numero, y si, Si el asig_numero empieza por OS u OC el sub_tip que se envía o toma u muestra C008,  Si el asig_numero empieza por PF el sub_tip que se envía o toma u muestra PFIN. 
- Si el número de asig_numero empieza por CN el sub_tip que se envía o toma u muestra NCIN. 
+import { queryAura } from '../database/auraPool'; // tu pool de AuraQuantic
 
-import { Injectable } from '@nestjs/common';
+export async function obtenerSubTip(referencia: string) {
+  // Consulta SQL para obtener asig_numero
+  const sql = `
+    DECLARE @Referencia CHAR(20) = '${referencia}';
+    DECLARE @asig_numero CHAR(14);
+    DECLARE @sub_tip CHAR(5);
+
+    -- Paso 1: obtener el asig_numero
+    SELECT @asig_numero = asig_numero
+    FROM inv_inf_inv
+    WHERE obs_orc LIKE '%' + @Referencia + '%';
+
+    -- Paso 2: determinar sub_tip
+    SET @sub_tip = CASE 
+        WHEN LEFT(@asig_numero, 2) IN ('OS', 'OC') THEN 'C008'
+        WHEN LEFT(@asig_numero, 2) = 'PF' THEN 'PFIN'
+        WHEN LEFT(@asig_numero, 2) = 'CN' THEN 'NCIN'
+        ELSE NULL
+    END;
+
+    -- Paso 3: mostrar resultado
+    SELECT @asig_numero AS asig_numero, @sub_tip AS sub_tip;
+  `;
+
+  try {
+    const result = await queryAura(sql); // ejecuta la consulta con tu Pool
+    return result[0]; // devuelve el primer registro
+  } catch (error) {
+    console.error('Error obteniendo sub_tip:', error);
+    throw error;
+  }
+}import { Injectable } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
 import { generarIngresoDto } from './dto/generaringreso.dto';
