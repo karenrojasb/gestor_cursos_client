@@ -1,27 +1,10 @@
 -- Ejemplo de referencia
 DECLARE @Referencia CHAR(20) = 'SCM-38.3_18587';
 
--- Paso 1: obtener tipo de ingreso y contenedor según la referencia
-DECLARE @ContenedorIngreso CHAR(5);
+-- Contenedor según tipo de ingreso
+DECLARE @ContenedorIngreso CHAR(5) = '73';  -- contractual
 
--- Asignamos el contenedor según el tipo de ingreso
-SELECT TOP 1
-    CASE GC_PM.[TipoParametro]  -- aquí se debe usar el campo que indica el tipo (contractual, regular, etc.)
-        WHEN 'contractual' THEN '73'
-        WHEN 'regular' THEN '110'
-        WHEN 'proveedor unico' THEN '128'
-        WHEN 'transporte' THEN 'XXX' -- colocar el valor correspondiente
-        ELSE NULL
-    END AS ContenedorIngreso
-INTO #TempContenedor
-FROM Panel_109_68508 GC_PM
-INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
-INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
-WHERE P.Referencia = @Referencia;
-
-SELECT @ContenedorIngreso = ContenedorIngreso FROM #TempContenedor;
-
--- Paso 2: consultar si el ingreso es completo
+-- Consulta para verificar si el ingreso es completo
 SELECT 
     CASE 
         WHEN OPC_TI.Opcion = 'Completo'
