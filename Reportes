@@ -1,3 +1,6 @@
+para obtener el cod_sub se debera primero hacer una consulta en la tabla de inv_inf_inv, para obtener el asig_numero, y si, Si el asig_numero empieza por OS u OC el sub_tip que se envía o toma u muestra C008,  Si el asig_numero empieza por PF el sub_tip que se envía o toma u muestra PFIN. 
+ Si el número de asig_numero empieza por CN el sub_tip que se envía o toma u muestra NCIN. 
+
 import { Injectable } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
