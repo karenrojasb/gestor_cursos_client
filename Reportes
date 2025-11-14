@@ -1,20 +1,19 @@
-let cod_sub = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    DECLARE @obs_orc CHAR(20) = '${referencia}';
-    DECLARE @asig_numero CHAR(14);
-    DECLARE @sub_tip CHAR(5);
-  
-    SELECT @asig_numero = asig_numero
-    FROM inv_inf_inv
-    WHERE obs_orc LIKE '%' + @obs_orc + '%';
-  
-    SET @sub_tip = CASE 
-        WHEN LEFT(@asig_numero, 2) IN ('OS', 'OC') THEN 'C008'
-        WHEN LEFT(@asig_numero, 2) = 'PF' THEN 'PFIN'
-        WHEN LEFT(@asig_numero, 2) = 'CN' THEN 'NCIN'
-        ELSE NULL
-    END;
-  
-    SELECT @asig_numero AS asig_numero, @sub_tip AS sub_tip;
-  `);
-  
-  
+DECLARE @obs_orc CHAR(20) = '123456'; -- Aquí pones una referencia que exista en inv_inf_inv
+DECLARE @asig_numero CHAR(14);
+DECLARE @sub_tip CHAR(5);
+
+-- Obtener el número de asignación
+SELECT @asig_numero = asig_numero
+FROM inv_inf_inv
+WHERE obs_orc LIKE '%' + @obs_orc + '%';
+
+-- Determinar el subtipo
+SET @sub_tip = CASE 
+    WHEN LEFT(@asig_numero, 2) IN ('OS', 'OC') THEN 'C008'
+    WHEN LEFT(@asig_numero, 2) = 'PF' THEN 'PFIN'
+    WHEN LEFT(@asig_numero, 2) = 'CN' THEN 'NCIN'
+    ELSE NULL
+END;
+
+-- Mostrar resultado
+SELECT @asig_numero AS asig_numero, @sub_tip AS sub_tip;
