@@ -258,31 +258,20 @@ if (tipoIngreso.toLowerCase() === 'completo') {
   }
 }
 
-await this.prismaNovasoftService.$executeRawUnsafe(`
-    EXEC dbo.USR_sp_gen_afeinv_preciso
-        @iano_doc = @iano_doc,
-        @fano_doc = @fano_doc,
-        @iper_doc = @iper_doc,
-        @fper_doc = @fper_doc,
-        @isub_tip = @isub_tip,
-        @fsub_tip = @fsub_tip,
-        @inum_doc = @inum_doc,
-        @fnum_doc = @fnum_doc,
-        @ifec_doc = @ifec_doc,
-        @ffec_doc = @ffec_doc,
+await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    EXEC dbo.USR_sp_gen_afeinv_preciso 
+        @iano_doc = '${getNowDate().getFullYear()}',
+        @fano_doc = '${getNowDate().getFullYear()}',
+        @iper_doc = '${getCurrentMonth()}',
+        @fper_doc = '${getCurrentMonth()}',
+        @isub_tip = '${cod_sub}',
+        @fsub_tip = '${cod_sub}',
+        @inum_doc = '${numDocConsecutivo}',
+        @fnum_doc = '${numDocConsecutivo}',
+        @ifec_doc = '${formatoDateToDDMMYYYY()}',
+        @ffec_doc = '${formatoDateToDDMMYYYY()}',
         @indver = 0
-`, 
-getNowDate().getFullYear(),          // @iano_doc
-getNowDate().getFullYear(),          // @fano_doc
-getCurrentMonth(),                    // @iper_doc
-getCurrentMonth(),                    // @fper_doc
-cod_sub,                              // @isub_tip
-cod_sub,                              // @fsub_tip
-numDocConsecutivo,                    // @inum_doc
-numDocConsecutivo,                    // @fnum_doc
-formatoDateToDDMMYYYY(),              // @ifec_doc
-formatoDateToDDMMYYYY()               // @ffec_doc
-);
+`);
 
 
 const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -292,7 +281,7 @@ const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>
       AND ano_doc = ${getNowDate().getFullYear()}
       AND per_doc = '${getCurrentMonth()}'
       AND sub_tip = '${cod_sub}'
-      AND tip_doc = '${tip_doc}'
+      AND tip_doc = '${cod_sub}'
       AND num_doc = ${numDocConsecutivo}
 `);
 
@@ -316,10 +305,6 @@ return {
         throw new InternalServerErrorException('Error al generar la consulta')
 
 
-    }
+    } 
 
-
-
-    
-    
-  }
+}
