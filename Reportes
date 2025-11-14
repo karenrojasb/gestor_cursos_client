@@ -1,3 +1,27 @@
+SELECT  
+    GC_PM.[3_numeroOrdencompra] AS numeroOrden,
+    GC_PM.ID,
+    CASE ENL_TS.IdElementoEnlazado
+        WHEN 9764 THEN 'S'
+        WHEN 9765 THEN 'P'
+        WHEN 9766 THEN 'B'
+        WHEN 12144 THEN 'NC'
+        WHEN 12166 THEN 'T'
+        ELSE 'C'
+    END AS tipo,
+    [3_numeroIngreso] AS ingreso,
+    CASE 
+        WHEN [3_numeroIngreso] = 'Parcial' OR [3_numeroIngreso] = '' OR [3_numeroIngreso] IS NULL
+            THEN 'Parcial'
+        ELSE 'Completo'
+    END AS estadoIngreso
+FROM Panel_109_68508 GC_PM
+INNER JOIN Panel_109 PA ON PA.ID = GC_PM._ElementID
+INNER JOIN AP__BPM_Procesos P ON P.ID = PA._ElementID
+INNER JOIN AP__Enlaces ENL_TS ON ENL_TS.IdElementoOrigen = P.ID AND ENL_TS.IdTipoEnlace = 69170
+WHERE GC_PM.[3_numeroOrdencompra] = 'TU_NUMERO_DE_ORDEN';
+
+
 SELECT 
     [3_numeroOrdencompra] AS numeroOrden,
     [3_numeroIngreso] AS ingreso,
