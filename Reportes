@@ -1,4 +1,14 @@
 SELECT 
+    [3_numeroOrdencompra] AS numeroOrden,
+    [3_numeroIngreso] AS ingreso,
+    CASE 
+        WHEN [3_numeroIngreso] = 'Parcial' OR [3_numeroIngreso] = '' OR [3_numeroIngreso] IS NULL THEN 'Parcial'
+        ELSE 'Completo'
+    END AS estadoIngreso
+FROM Panel_109_68508;
+
+
+SELECT 
     ID,
     [3_numeroOrdencompra] AS numeroOrden,
     [3_fechaOC] AS fechaOC,
