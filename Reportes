@@ -1,9 +1,26 @@
-import { queryAura } from '../database/auraPool'; // tu pool de AuraQuantic
+import { Injectable } from '@nestjs/common';
+import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
+import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
+import { generarIngresoDto } from './dto/generaringreso.dto';
+import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
 
-export async function obtenerSubTip(referencia: string) {
-  // Consulta SQL para obtener asig_numero
-  const sql = `
-    DECLARE @Referencia CHAR(20) = '${referencia}';
+@Injectable()
+export class GenerarIngresoService {
+  constructor(
+    private readonly prismaNovasoftService: PrismaNovasoftService,
+    private readonly prismaAuraquanticService: PrismaAuraquanticService
+
+  ) {}
+
+  async generarIngreso(data: generarIngresoDto ) {
+    const { referencia, tipoIngreso, ano_o, per_o, num_o, solicitante, _ElementID, Nfactura } = data;
+
+    
+  const tip_doc = '008';
+  console.log('${cod_sub}')
+    //Consulta de subtipo
+    const cod_sub = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      DECLARE @Referencia CHAR(20) = '${referencia}';
     DECLARE @asig_numero CHAR(14);
     DECLARE @sub_tip CHAR(5);
 
@@ -22,73 +39,6 @@ export async function obtenerSubTip(referencia: string) {
 
     -- Paso 3: mostrar resultado
     SELECT @asig_numero AS asig_numero, @sub_tip AS sub_tip;
-  `;
-
-  try {
-    const result = await queryAura(sql); // ejecuta la consulta con tu Pool
-    return result[0]; // devuelve el primer registro
-  } catch (error) {
-    console.error('Error obteniendo sub_tip:', error);
-    throw error;
-  }
-}import { Injectable } from '@nestjs/common';
-import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
-import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
-import { generarIngresoDto } from './dto/generaringreso.dto';
-import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
-
-@Injectable()
-export class GenerarIngresoService {
-  constructor(
-    private readonly prismaNovasoftService: PrismaNovasoftService,
-    private readonly prismaAuraquanticService: PrismaAuraquanticService
-
-  ) {}
-
-  async generarIngreso(data: generarIngresoDto ) {
-    const { referencia, tipo, ano_o, per_o, num_o, solicitante, _ElementID } = data;
-
-    
-    //Declaración de variables
-    let tipoIngreso: string;
-    let contenedorIngreso: string;
-    let subProceso: string;
-
-    //Switch para asignar valores según el tipo
-    switch (tipo.toLowerCase()) {
-      case 'contractual':
-        tipoIngreso = 'contractual';
-        contenedorIngreso = '73';
-        subProceso = 'Contractual';
-        break;
-      case 'regular':
-        tipoIngreso = 'regular';
-        contenedorIngreso = '110';
-        subProceso = 'Regular';
-        break;
-      case 'proveedor unico':
-        tipoIngreso = 'proveedor unico';
-        contenedorIngreso = '128';
-        subProceso = 'Proveedor Único';
-        break;
-      case 'transporte':
-        tipoIngreso = 'transporte';
-        contenedorIngreso = '';
-        subProceso = 'transporte';
-        break;
-      default:
-        throw new Error(`Tipo no reconocido: ${tipo}`);
-    }
-
-    //Constante de tipo de documento
-    const INGRESOALMACEN = '008';
-
-    //Consulta de subtipo
-    const cod_sub = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-      SELECT cod_sub 
-      FROM gen_subtipodoc 
-      WHERE cod_tip = '${INGRESOALMACEN}' 
-        AND cod_sub LIKE '${tipoIngreso.charAt(0).toUpperCase()}%'
     `);
    
 
@@ -116,8 +66,8 @@ FROM Panel_109_68508_83802
     DECLARE @per_o CHAR(2) = '${per_o}';
     DECLARE @num_o CHAR(14) = '${num_o}';
     DECLARE @fec_a DATE = '${formatoDateToDDMMYYYY()}';
-    DECLARE @sub_a CHAR(5) = '${subtipo}';
-    DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${subtipo}');
+    DECLARE @sub_a CHAR(5) = '${cod_sub}';
+    DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub}');
     DECLARE @referencia CHAR(20) = '${referencia}';
     
 
@@ -201,6 +151,8 @@ WHERE   CAB.ano_doc = @ano_o
 
     let numDocConsecutivo = null;
 
+
+
 if (tipoIngreso.toLowerCase() === 'completo') {
 
   const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -230,6 +182,36 @@ if (tipoIngreso.toLowerCase() === 'completo') {
     const nuevaCantidadI = CantidadI + CantidadR;
   
     // Insert
+   console.log(`
+    INSERT INTO inv_inf_inv (
+      ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+      fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+      cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+      fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+      cod_caja, cant_uni, item, alterno, trans, cantidad,
+      fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+      por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+      asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+      conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+      por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+      usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero,
+      cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+    )
+    VALUES (
+        '${nova.ano_doc}', '${nova.per_doc}', '${tip_doc}', '${cod_sub}','${numDocConsecutivo}', '${nova.reg_doc}',
+        '${nova.fecha}', '${nova.vendedor}', '${nova.cod_suc}', '${nova.cod_cco}','${nova.cod_cl1}', '${nova.cod_cl2}', 
+        '${nova.cod_cl3}', '${nova.cliente}','${nova.provee}', '${nova.lista}', '${nova.dia_pla}', '${nova.ind_mp}',
+        '${nova.fec_tas}', '${nova.tasa}', '${nova.obs_orc}', '${nova.bodega}','${nova.bod_des}', '${nova.fac_pro}', 
+        '${nova.cod_caja}','${nova.cant_uni}', '${nova.item}', '${nova.alterno}', '${nova.trans}','${CantidadR}',
+        '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}','${nova.por_iva}', '${nova.por_iva_ng}', 
+        '${nova.por_ret}', '${nova.por_com}','${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+        '${nova.asig_num}', '${nova.ind_refac}', '${nova.cod_conv}', '${nova.conv_suc}','${nova.conv_cco}', '${nova.conv_cl1}', 
+        '${nova.conv_cl2}', '${nova.conv_cl3}','${Nfactura}', '${nova.ord_fact}', '${nova.por_adm}', '${nova.por_imp}', 
+        '${nova.por_uti}','${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}', '${nova.usr_ano_ped}',
+        '${nova.usr_per_ped}', '${nova.usr_sub_ped}', '${nova.usr_pedido}','${nova.usr_reg_ped}', '${nova.usr_tercero}', 
+        '${nova.cod_rubro}','${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+    )
+   `);
    
     await this.prismaNovasoftService.$executeRawUnsafe(`
       INSERT INTO inv_inf_inv (
@@ -247,26 +229,18 @@ if (tipoIngreso.toLowerCase() === 'completo') {
         cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
       )
       VALUES (
-        '${nova.ano_doc}', '${nova.per_doc}', '${nova.tip_doc}', '${nova.sub_tip}',
-        '${numDocConsecutivo}', '${nova.reg_doc}',
-        '${nova.fecha}', '${nova.vendedor}', '${nova.cod_suc}', '${nova.cod_cco}',
-        '${nova.cod_cl1}', '${nova.cod_cl2}', '${nova.cod_cl3}', '${nova.cliente}',
-        '${nova.provee}', '${nova.lista}', '${nova.dia_pla}', '${nova.ind_mp}',
-        '${nova.fec_tas}', '${nova.tasa}', '${nova.obs_orc}', '${nova.bodega}',
-        '${nova.bod_des}', '${nova.fac_pro}', '${nova.cod_caja}',
-        '${nova.cant_uni}', '${nova.item}', '${nova.alterno}', '${nova.trans}',
-        '${CantidadR}',        -- cantidad actualizada
-        '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}',
-        '${nova.por_iva}', '${nova.por_iva_ng}', '${nova.por_ret}', '${nova.por_com}',
-        '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
-        '${nova.asig_num}', '${nova.ind_refac}', '${nova.cod_conv}', '${nova.conv_suc}',
-        '${nova.conv_cco}', '${nova.conv_cl1}', '${nova.conv_cl2}', '${nova.conv_cl3}',
-        '${aura.factura}',    -- factura viene de AuraQuantic
-        '${nova.ord_fact}', '${nova.por_adm}', '${nova.por_imp}', '${nova.por_uti}',
-        '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}', '${nova.usr_ano_ped}',
-        '${nova.usr_per_ped}', '${nova.usr_sub_ped}', '${nova.usr_pedido}',
-        '${nova.usr_reg_ped}', '${nova.usr_tercero}', '${nova.cod_rubro}',
-        '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+        '${nova.ano_doc}', '${nova.per_doc}', '${tip_doc}', '${cod_sub}','${numDocConsecutivo}', '${nova.reg_doc}',
+        '${nova.fecha}', '${nova.vendedor}', '${nova.cod_suc}', '${nova.cod_cco}','${nova.cod_cl1}', '${nova.cod_cl2}', 
+        '${nova.cod_cl3}', '${nova.cliente}','${nova.provee}', '${nova.lista}', '${nova.dia_pla}', '${nova.ind_mp}',
+        '${nova.fec_tas}', '${nova.tasa}', '${nova.obs_orc}', '${nova.bodega}','${nova.bod_des}', '${nova.fac_pro}', 
+        '${nova.cod_caja}','${nova.cant_uni}', '${nova.item}', '${nova.alterno}', '${nova.trans}','${CantidadR}',
+        '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}','${nova.por_iva}', '${nova.por_iva_ng}', 
+        '${nova.por_ret}', '${nova.por_com}','${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+        '${nova.asig_num}', '${nova.ind_refac}', '${nova.cod_conv}', '${nova.conv_suc}','${nova.conv_cco}', '${nova.conv_cl1}', 
+        '${nova.conv_cl2}', '${nova.conv_cl3}','${Nfactura}', '${nova.ord_fact}', '${nova.por_adm}', '${nova.por_imp}', 
+        '${nova.por_uti}','${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}', '${nova.usr_ano_ped}',
+        '${nova.usr_per_ped}', '${nova.usr_sub_ped}', '${nova.usr_pedido}','${nova.usr_reg_ped}', '${nova.usr_tercero}', 
+        '${nova.cod_rubro}','${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
       )
     `);
   }
@@ -283,8 +257,8 @@ if (tipoIngreso.toLowerCase() === 'completo') {
                             @fano_doc = '${getNowDate().getFullYear()}',
                             @iper_doc = '${getCurrentMonth()}',
                             @fper_doc = '${getCurrentMonth()}',
-                            @isub_tip = '${subtipo}',
-                            @fsub_tip = '${subtipo}',
+                            @isub_tip = '${cod_sub}',
+                            @fsub_tip = '${cod_sub}',
                             @inum_doc = '${numDocConsecutivo}',
                             @fnum_doc = '${numDocConsecutivo}',
                             @ifec_doc = '${formatoDateToDDMMYYYY()}',
@@ -297,11 +271,9 @@ if (tipoIngreso.toLowerCase() === 'completo') {
     //Validación de resultado
     if (cod_sub.length === 0) {
       return {
-        mensaje: `No se encontró subtipo para el tipo ${tipoIngreso}`,
-        tipoIngreso,
-        contenedorIngreso,
+        mensaje: `No se encontró subtipo para el tipo ${cod_sub}`,
+        
         numDocConsecutivo,
-        subProceso,
         subtipo: null,
         cantidaditems: items.length,
         items,
@@ -314,9 +286,7 @@ if (tipoIngreso.toLowerCase() === 'completo') {
     //Retorno de datos
     return {
       referencia,
-      tipoIngreso,
-      contenedorIngreso,
-      subProceso,
+
       numDocConsecutivo,
       cantidadesAura,
       subtipo,
