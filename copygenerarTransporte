@@ -1,3 +1,24 @@
+{
+  "num_cdp": "12345",
+  "provee": "900123456",
+  "cos_uni": 15000,
+  "por_des": 0,
+  "cantidad": 1,
+  "conv_cco": 0,
+  "conv_cl1": "C001",
+  "usr_descrip_cue": "Compra de materiales",
+  "obs_orc": "Orden generada desde Postman",
+  "usr_tercero": "10203040",
+  "cod_rubro": "R001",
+  "cant_uni": 1,
+  "cod_cl1": "C001",
+  "cod_cco": "CC01",
+  "cod_conv": "0",
+  "item": "TF104"
+}
+
+
+
 import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
 import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
 import { GenerarOrdenTDto } from "./dto/generarorden.dto";
