@@ -41,7 +41,7 @@ export class GenerarIngresoService {
     const alterno = 0;
     const trans = 32002;
     const fac_con = 0;
-    const por_com = 0;
+    
     const cod_conv = 0;
     const conv_suc = 0;
     const por_uti = 0;
@@ -173,8 +173,8 @@ WHERE   CAB.ano_doc = @ano_o
         AND CAB.num_doc = @num_o
 
 
-    ` 
-    const Resultasub_tip = Resulsub_tip[0].sub_tip;
+    `
+    
 
 
     
@@ -261,7 +261,7 @@ if (tipoIngreso.toLowerCase() === 'completo') {
       '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
       '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
       '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
-      '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
+      '${usr_sub_ped}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
       '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
   )
   `);
@@ -294,7 +294,7 @@ if (tipoIngreso.toLowerCase() === 'completo') {
       '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
       '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
       '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
-      '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
+      '${usr_sub_ped}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
       '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
   )
   `);
