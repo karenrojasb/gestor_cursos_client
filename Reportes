@@ -236,40 +236,40 @@ if (tipoIngreso.toLowerCase() === 'completo') {
    console.log(`
     INSERT INTO inv_inf_inv (
 
-                    ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
-    fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
-    cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
-    fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
-    cod_caja, cant_uni, item, alterno, trans, cantidad,
-    fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
-    por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
-    asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
-    conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
-    por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
-    usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
-    cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
-  )
- VALUES (
+       ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+      fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+      cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+      fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+      cod_caja, cant_uni, item, alterno, trans, cantidad,
+      fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+      por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+      asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+      conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+      por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+      usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
+      cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+    )
+   VALUES (
 
-    '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${tip_doc}','${cod_sub}', '${num_doc}', '${nova.reg_doc}', 
-    '${formatoDateToDDMMYYYY()}','${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}', '${nova.cod_cl1}', '${cod_cl2}', 
-    '${cod_cl3}','${cliente}', '${nova.provee}', '${lista}','${nova.dia_pla}', '${ind_mp}', 
-    '${formatoDateToDDMMYYYY()}', '${tasa}', '${nova.obs_orc}','${nova.bodega}', '${bod_des}', '${fac_pro}', 
-    '${cod_caja}', '${cant_uni}', '${nova.item}', '${alterno}', '${nova.trans}', '${CantidadR}', 
-    '${fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}','${nova.por_iva_ng}',
-    '${clean(nova.por_ret)}', '${por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '',        
-    '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
-    '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
-    '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
-    '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
-    '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
-)
-`);
+      '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${tip_doc}','${cod_sub}', '${num_doc}', '${nova.reg_doc}', 
+      '${formatoDateToDDMMYYYY()}','${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}', '${nova.cod_cl1}', '${cod_cl2}', 
+      '${cod_cl3}','${cliente}', '${nova.provee}', '${lista}','${nova.dia_pla}', '${ind_mp}', 
+      '${formatoDateToDDMMYYYY()}', '${tasa}', '${nova.obs_orc}','${nova.bodega}', '${bod_des}', '${fac_pro}', 
+      '${cod_caja}', '${cant_uni}', '${nova.item}', '${alterno}', '${nova.trans}', '${CantidadR}', 
+      '${fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}','${nova.por_iva_ng}',
+      '${clean(nova.por_ret)}', '${por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '',        
+      '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
+      '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
+      '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
+      '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
+      '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+  )
+  `);
 
     await this.prismaNovasoftService.$executeRawUnsafe(`
       INSERT INTO inv_inf_inv (
 
-                      ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+       ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
       fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
       cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
       fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
