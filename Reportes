@@ -118,7 +118,7 @@ FROM Panel_109_68508_83802
     DECLARE @num_o CHAR(14) = '${num_o}';
     DECLARE @fec_a DATE = '${formatoDateToDDMMYYYY()}';
     DECLARE @sub_a CHAR(5) = '${cod_sub}';
-    DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = @sub_a);  
+    DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub}');
     DECLARE @Referencia CHAR(20) = '${referencia}';
     
 
@@ -174,10 +174,10 @@ WHERE   CAB.ano_doc = @ano_o
 
 
     ` 
+    const Resultasub_tip = Resulsub_tip[0].sub_tip;
+
+
     
-
-
-
     const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
 
@@ -251,7 +251,19 @@ if (tipoIngreso.toLowerCase() === 'completo') {
   )
  VALUES (
 
-    '${consultaitems}'
+    '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${tip_doc}','${cod_sub}', '${num_doc}', '${nova.reg_doc}', 
+    '${formatoDateToDDMMYYYY()}','${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}', '${nova.cod_cl1}', '${cod_cl2}', 
+    '${cod_cl3}','${cliente}', '${nova.provee}', '${lista}','${nova.dia_pla}', '${ind_mp}', 
+    '${formatoDateToDDMMYYYY()}', '${tasa}', '${nova.obs_orc}','${nova.bodega}', '${bod_des}', '${fac_pro}', 
+    '${cod_caja}', '${cant_uni}', '${nova.item}', '${alterno}', '${nova.trans}', '${CantidadR}', 
+    '${fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}','${nova.por_iva_ng}',
+    '${clean(nova.por_ret)}', '${por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '',        
+    '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
+    '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
+    '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
+    '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
+    '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+)
 `);
 
     await this.prismaNovasoftService.$executeRawUnsafe(`
@@ -272,7 +284,18 @@ if (tipoIngreso.toLowerCase() === 'completo') {
     )
    VALUES (
 
-      '${consultaitems}'
+      '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${tip_doc}','${cod_sub}', '${num_doc}', '${nova.reg_doc}', 
+      '${formatoDateToDDMMYYYY()}','${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}', '${nova.cod_cl1}', '${cod_cl2}', 
+      '${cod_cl3}','${cliente}', '${nova.provee}', '${lista}','${nova.dia_pla}', '${ind_mp}', 
+      '${formatoDateToDDMMYYYY()}', '${tasa}', '${nova.obs_orc}','${nova.bodega}', '${bod_des}', '${fac_pro}', 
+      '${cod_caja}', '${cant_uni}', '${nova.item}', '${alterno}', '${nova.trans}', '${CantidadR}', 
+      '${fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}','${nova.por_iva_ng}',
+      '${clean(nova.por_ret)}', '${por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '',        
+      '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}','${conv_cco}', '${conv_cl1}', 
+      '${conv_cl2}', '${conv_cl3}', NULL, NULL ,'${por_adm}', '${por_imp}',
+      '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}','${nova.ano_doc}','${nova.per_doc}', 
+      '${Resultasub_tip}', '${asigNumero}', '${nova.reg_doc}','${nova.usr_tercero}',
+      '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
   )
   `);
 
