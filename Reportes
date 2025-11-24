@@ -15,7 +15,7 @@ export class GenerarIngresoService {
   
 
   async generarIngreso(data: generarIngresoDto ) {
-    const { referencia, tipoIngreso, ano_o, per_o, num_o, solicitante, _ElementID} = data;
+    const { referencia, tipoIngreso, ano_o, per_o, num_o, solicitante} = data;
 
  
   const clean = (val) =>
@@ -23,39 +23,52 @@ export class GenerarIngresoService {
       ? null 
       : String(val).trim();
   
+
+
   
-// Obtener asig_numero desde inv_inf_inv usando la referencia
-const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT TOP 1 asig_numero
-    FROM inv_inf_inv
-    WHERE obs_orc LIKE '%' + '${referencia}' + '%'
-  `);
-  
-  if (!resultadoAsig || resultadoAsig.length === 0) {
-    throw new Error(`No se encontró asig_numero para la referencia ${referencia}`);
-  }
-  
-  const asigNumero = resultadoAsig[0].asig_numero;
-  console.log(resultadoAsig)
+  // Obtener asig_numero desde inv_inf_inv usando la referencia
+  const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT TOP 1 asig_numero
+      FROM inv_inf_inv
+      WHERE obs_orc LIKE '%' + '${referencia}' + '%'
+    `);
+    
+    if (!resultadoAsig || resultadoAsig.length === 0) {
+      throw new Error(`No se encontró asig_numero para la referencia ${referencia}`);
+    }
+    
+    const asigNumero = resultadoAsig[0].asig_numero;
+    
+
   
 
- 
- 
+    // Determinar cod_sub según el prefijo de asig_numero
+    let cod_sub = '';
+    if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC')) {
+      cod_sub = 'C008';
+    } else if (asigNumero.startsWith('PF')) {
+      cod_sub = 'PFIN';
+    } else if (asigNumero.startsWith('CN')) {
+      cod_sub = 'NCIN';
+    } else {
+      throw new Error(`No se pudo determinar el sub_tip para asig_numero ${asigNumero}`);
+    }
+    
+    
+  
 
-  // Determinar cod_sub según el prefijo de asig_numero
-  let cod_sub = '';
-  if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC')) {
-    cod_sub = 'C008';
-  } else if (asigNumero.startsWith('PF')) {
-    cod_sub = 'PFIN';
-  } else if (asigNumero.startsWith('CN')) {
-    cod_sub = 'NCIN';
-  } else {
-    throw new Error(`No se pudo determinar el sub_tip para asig_numero ${asigNumero}`);
-  }
   
-  console.log('AsigNumero:', asigNumero, 'CodSub:', cod_sub);
-  
+    const elementID = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT p68508.ID
+    FROM AP__BPM_Procesos p
+    JOIN Panel_109 p109 ON p109._ElementID = p.ID
+    JOIN Panel_109_68508 p68508 ON p68508._ElementID = p109.ID
+    WHERE p.Referencia = '${referencia}'
+    AND p68508.[3_numeroOrdenCompra] = '${num_o}';
+    `);
+    const element = elementID[0].ID;
+    console.log(element)
+
 
     //Consulta de cantidades
     const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
@@ -66,7 +79,7 @@ const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
         ISNULL([2_ART_CON_GAN/ENT_CANT_RECIBIDA], 0) CantidadR, 
         ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
 FROM Panel_109_68508_83802 
-        WHERE [_ElementID] = ${_ElementID}
+        WHERE [_ElementID] = ${element}
         ORDER BY ID
       `);
       
@@ -150,7 +163,8 @@ WHERE   CAB.ano_doc = @ano_o
     
     if (cantidadAura !== cantidadNova) {
       return {
-        mensaje: `La cantidad de items de la orden '${referencia}' no es igual en ambos sistemas, no se puede generar el ingreso.`,
+        mensaje: `
+        `,
         referencia,
         cantidadAura,
         cantidadNova,
@@ -222,9 +236,8 @@ VALUES (
   '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
   '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
   '${nova.conv_cl2}', '${nova.conv_cl3}', NULL, NULL, '${nova.por_adm}', '${nova.por_imp}',
-  '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}', 
-  '${nova.usr_ano_ped}', '${nova.usr_per_ped}', '${nova.usr_sub_ped}', 
-  '${clean(asigNumero)}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
+  '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}','${nova.usr_ano_ped}','${nova.usr_per_ped}', 
+  '${nova.usr_sub_ped}', '${nova.usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
   '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
 );
 
@@ -234,12 +247,41 @@ VALUES (
 }
 
 
+await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  EXEC dbo.USR_sp_gen_afeinv_preciso 
+      @iano_doc = '${getNowDate().getFullYear()}',
+      @fano_doc = '${getNowDate().getFullYear()}',
+      @iper_doc = '${getCurrentMonth()}',
+      @fper_doc = '${getCurrentMonth()}',
+      @isub_tip = '${cod_sub}',
+      @fsub_tip = '${cod_sub}',
+      @inum_doc = '${num_doc}',
+      @fnum_doc = '${num_doc}',
+      @ifec_doc = '${formatoDateToDDMMYYYY()}',
+      @ffec_doc = '${formatoDateToDDMMYYYY()}',
+      @indver = 0
+`);
 
+
+const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  SELECT DISTINCT asig_numero
+  FROM inv_inf_inv
+  WHERE ind_tra = 'X'
+    AND ano_doc = ${getNowDate().getFullYear()}
+    AND per_doc = '${getCurrentMonth()}'
+    AND sub_tip = '${cod_sub}'
+    AND num_doc = ${num_doc}
+`);
+
+// Si no encuentra nada, dejar en blanco
+const asig_numero = asigNumeroResult.length > 0
+  ? asigNumeroResult[0].asig_numero
+  : '';
 
 return {
     Codigo: `200`,
     Mensaje: `Consulta realiza con éxito`,
-    num_doc
+    asig_numero
     
 };
 
