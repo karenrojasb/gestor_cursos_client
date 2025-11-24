@@ -138,6 +138,7 @@ export class generarOrdenService {
             
 
             const infoItem = itemInfo[0] || {};
+            const itemLimpio = item.trim().replace(/\s+/g, '');
 
             const terceroInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
             SELECT TOP 1 ter_nit
@@ -187,7 +188,7 @@ export class generarOrdenService {
             '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${data.sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
             '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
             '${cliente}', '${data.provee}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
-            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${item}', '${alterno}',
+            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${itemLimpio}', '${alterno}',
             '${trans}', '${cantidad}', '${fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
             '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${formatoDateToDDMMYYYY()}',
             '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
