@@ -122,11 +122,12 @@ export class generarOrdenService {
         
             const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
 
+            const itemLimpio = item.trim().replace(/;/g, '');
             // Validar info del item si es necesario
             const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
                 SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
                 FROM inv_items
-                WHERE cod_item = '${item}'
+                WHERE cod_item = '${itemLimpio}'
             `);
 
             if (itemInfo.length == 0) {
@@ -138,7 +139,7 @@ export class generarOrdenService {
             
 
             const infoItem = itemInfo[0] || {};
-            const itemLimpio = item.trim().replace(/\s+/g, '');
+            
 
             const terceroInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
             SELECT TOP 1 ter_nit
