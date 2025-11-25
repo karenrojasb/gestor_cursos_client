@@ -111,6 +111,17 @@ FROM Panel_109_68508_83802
         WHERE [_ElementID] = ${element}
         ORDER BY ID
       `);
+
+
+      const consulfactura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+      SELECT DISTINCT [3_numfacturaart] factura 
+      FROM Panel_109_68508_68526 WHERE [_ElementID] = ${element}
+      AND [3_numfacturaart] IS NOT NULL
+      `);
+      if (consulfactura.length === 0) {
+        throw new BadRequestException(`No se encontró factura para la referencia ${referencia} y la OC ${num_o}`);
+      }
+      const Nfactura = consulfactura[0].factura;
       
 
       
