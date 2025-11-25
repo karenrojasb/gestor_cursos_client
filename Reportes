@@ -169,7 +169,6 @@ WHERE   CAB.ano_doc = @ano_o
 
 
   for (let i = 0; i < items.length; i++) {
-    const aura = cantidad[i];  
     const nova = items[i];     
   
     
