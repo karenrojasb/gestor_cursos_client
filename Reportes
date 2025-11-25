@@ -157,6 +157,7 @@ WHERE   CAB.ano_doc = @ano_o
     const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
 
+    
     let num_doc = null;
 
   
@@ -283,7 +284,8 @@ const asig_numero = asigNumeroResult.length > 0
 return {
     Codigo: `200`,
     Mensaje: `Consulta realiza con éxito`,
-    asig_numero
+    asig_numero,
+    num_doc
     
 };
 
