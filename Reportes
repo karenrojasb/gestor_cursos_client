@@ -1,3 +1,7 @@
+•	Si el campo Nfactura del resultado de la consulta  es igual a vació o  CantidadR es iguala cero(0), se continua
+                            Si (Nfactura="") o (CantidadR = 0) se continua
+
+
 import { Injectable, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
