@@ -15,7 +15,7 @@ export class GenerarIngresotransporteService {
   
 
   async generarIngreso(data: generarIngresotransporteDto ) {
-    const { referencia, tipoIngreso,  num_o, solicitante, 
+    const { referencia,   num_o, solicitante, 
       sub_tip, cod_cco, usr_pedido, num_fact, cod_cl1, provee, num_cdp, cod_rubro,
     item, cantidad, cos_uni, dia_pla, por_des, bodega, usr_descrip_cue } = data;
 
@@ -71,7 +71,7 @@ export class GenerarIngresotransporteService {
     
     const anoDoc = ano_o[0].ano_doc;
 
-    
+
 
     const cantidadNova = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
       SELECT TOP 1 cantidad 
@@ -156,15 +156,9 @@ WHERE   CAB.ano_doc = @ano_o
     const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
 
-
-    //Validacion de cantidade
-   
-
     let num_doc = null;
 
-
-
-  if (tipoIngreso.toLowerCase() === 'completo') {
+  
 
   //Generar el consecutivo
   const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -174,10 +168,7 @@ WHERE   CAB.ano_doc = @ano_o
 
   num_doc = consecutivo[0]?.numDoc;
 
-  // Validación estricta
-  if (!num_doc || isNaN(num_doc)) {
-    throw new Error("Error al generar el consecutivo. No se puede continuar.");
-  }
+
 
 
   for (let i = 0; i < items.length; i++) {
@@ -224,7 +215,7 @@ VALUES (
 
   `);
 
-  }
+  
 }
 
 //GEjecutar procedimiento almacenado
