@@ -150,7 +150,7 @@ WHERE   CAB.ano_doc = @ano_o
         AND CAB.num_doc = @num_o
 
 
-    `
+    `;
     
 
     
@@ -192,7 +192,7 @@ WHERE   CAB.ano_doc = @ano_o
       cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
     )
     VALUES (
-      '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${sub_tip}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
+      '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${nova.sub_tip}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
       '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}', '${cod_cco}',
       '${cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${provee}', 
       '${clean(nova.lista)}', '${dia_pla}', '${nova.ind_mp}',
