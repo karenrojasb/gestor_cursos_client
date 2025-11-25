@@ -184,7 +184,7 @@ WHERE   CAB.ano_doc = @ano_o
   
   
 
-  
+
   
     // Insert
     await this.prismaNovasoftService.$executeRawUnsafe(`
@@ -220,7 +220,35 @@ VALUES (
 );
 
   `);
-
+  console.log (`INSERT INTO inv_inf_inv (
+    ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+    fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+    cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+    fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+    cod_caja, cant_uni, item, alterno, trans, cantidad,
+    fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+    por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+    asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+    conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+    por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+    usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
+    cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+  )
+  VALUES (
+    '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${sub_tip}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
+    '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}', '${cod_cco}',
+    '${cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${provee}', 
+    '${clean(nova.lista)}', '${dia_pla}', '${nova.ind_mp}',
+    '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
+    '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${cantidad}', 
+    '${nova.fac_con}', '${cos_uni}', '${nova.pre_vta}', '${por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
+    '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+    '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
+    '${nova.conv_cl2}', '${nova.conv_cl3}', ${num_fact}, NULL, '${nova.por_adm}', '${nova.por_imp}',
+    '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}','${nova.usr_ano_ped}','${nova.usr_per_ped}', 
+    '${nova.usr_sub_ped}', '${usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
+    '${cod_rubro}', '${usr_descrip_cue}', '${nova.sub_cdp}', '${num_cdp}'
+  );`)
   
 }
 
@@ -264,7 +292,7 @@ return {
 };
 
 } catch(error) {
-        console.error("Error al generar la orden:", error.mensaje);
+        console.error("Error al generar la orden:", error.menssaje);
         if (error instanceof HttpException) throw error;
 
         console.log('Error al reasignar el cdp', error);
