@@ -181,7 +181,7 @@ if (Number(cantidad) !== Number(cantidad_Nova)) {
   for (let i = 0; i < items.length; i++) {
     const nova = items[i];     
   
-    
+  
   
     // Insert
     await this.prismaNovasoftService.$executeRawUnsafe(`
