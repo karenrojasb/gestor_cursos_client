@@ -70,6 +70,18 @@ export class GenerarIngresotransporteService {
     }
     
     const anoDoc = ano_o[0].ano_doc;
+
+    
+
+    const cantidadNova = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT TOP 1 cantidad 
+      FROM inv_inf_inv
+      WHERE obs_orc LIKE '%' + '${referencia}' + '%'`
+      );
+      if (!cantidadNova || cantidadNova.length === 0) {
+        throw new Error(`No se encontró cantidad para la referencia ${referencia}`);
+      }
+      const cantidad_Nova = cantidadNova[0].cantidad;
   
 
       
