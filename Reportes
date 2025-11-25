@@ -1,3 +1,5 @@
-if (!consulta_nova.data || consulta_nova.data.length === 0) {
-  throw new BadRequestException("No existe registro en Novasoft para comparar cantidades.");
+if (Number(cantidad) !== Number(cantidad_Nova)) {
+  throw new BadRequestException(
+    `La cantidad ingresada (${cantidad}) no coincide con la cantidad registrada en Nova (${cantidad_Nova}). El consecutivo no puede generarse.`
+  );
 }
