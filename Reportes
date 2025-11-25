@@ -141,24 +141,7 @@ WHERE   CAB.ano_doc = @ano_o
     
 
     
-    const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    ${consultaitems}`);
 
-
-    //Validacion de cantidades
-    const cantidadAura = cantidad.length;
-    const cantidadNova = items.length;
-    
-    if (cantidadAura !== cantidadNova) {
-      return {
-        codigo: '400',
-        mensaje: `No se puede generar el ingreso, la cantidad de items no coincide`,
-        referencia,
-        num_o,
-        cantidadAura,
-        cantidadNova,
-      };
-    }
 
     let num_doc = null;
 
@@ -180,41 +163,8 @@ WHERE   CAB.ano_doc = @ano_o
   }
 
 
-  for (let i = 0; i < items.length; i++) {
-    const aura = cantidad[i];  
-    const nova = items[i];     
-  
-    
-    const cantidadUsuario = Number(aura);
-  
-    
-    const cantidadNovasoft = Number(nova.cantidad);
-  
 
-    if (isNaN(cantidadUsuario)) {
-      return {
-        codigo: '400',
-        mensaje: `La cantidad ingresada no es válida para el item ${nova.item}`,
-        item: nova.item,
-      };
-    }
-  
-    if (cantidadUsuario <= 0) {
-      return {
-        codigo: '400',
-        mensaje: `La cantidad debe ser mayor a 0 para el item ${nova.item}`,
-        item: nova.item,
-      };
-    }
-  
-    if (cantidadUsuario > cantidadNovasoft) {
-      return {
-        codigo: '400',
-        mensaje: `La cantidad ingresada (${cantidadUsuario}) supera la disponible (${cantidadNovasoft}) para el item ${nova.item}`,
-        item: nova.item,
-      };
-    }
-  
+    
 
   
 
