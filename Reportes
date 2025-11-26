@@ -120,10 +120,7 @@ FROM Panel_109_68508_83802
       AND [2_ART_CON_GAN/TXT_NUM_FACTURA] IS NOT NULL
 
       `);
-      if (consulfactura.length === 0) {
-        throw new BadRequestException(`No se encontró factura para la referencia ${obs_orc} y la OC ${num_o}`);
-      }
-      const Nfactura = consulfactura[0].factura;
+      
       
 
     //consulta de items
@@ -286,6 +283,8 @@ VALUES (
 }
 
 //Si es parcial
+
+let Nfactura = null;
 if (tipoIngreso.toLowerCase() === 'parcial') {
 
   // Generar consecutivo parcial
@@ -295,7 +294,10 @@ if (tipoIngreso.toLowerCase() === 'parcial') {
   `);
 
   num_doc = consecutivo[0]?.numDoc;
-
+  if (consulfactura.length === 0) {
+    throw new BadRequestException(`No se encontró factura para la referencia ${obs_orc} y la OC ${num_o}`);
+  }
+  const Nfactura = consulfactura[0].factura;
   if (!num_doc || isNaN(num_doc)) {
     throw new Error("Error al generar consecutivo para ingreso parcial.");
   }
