@@ -15,7 +15,7 @@ export class GenerarIngresoService {
   
 
   async generarIngreso(data: generarIngresoDto ) {
-    const { referencia, tipoIngreso,  num_o, solicitante} = data;
+    const {  obs_orc, tipoIngreso,  num_o, usr_tercero} = data;
 
     //Funcion para limpiar los valores
   const clean = (val) =>
@@ -31,11 +31,11 @@ export class GenerarIngresoService {
   const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
       SELECT TOP 1 asig_numero
       FROM inv_inf_inv
-      WHERE obs_orc LIKE '%' + '${referencia}' + '%'
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
     `);
     
     if (!resultadoAsig || resultadoAsig.length === 0) {
-      throw new Error(`No se encontró asig_numero para la referencia ${referencia}`);
+      throw new Error(`No se encontró asig_numero para la referencia ${obs_orc}`);
     }
     
     const asigNumero = resultadoAsig[0].asig_numero;
@@ -59,11 +59,11 @@ export class GenerarIngresoService {
     const per_o = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
       SELECT TOP 1 per_doc
       FROM inv_inf_inv
-      WHERE obs_orc LIKE '%' + '${referencia}' + '%'
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
     `);
     
     if (!per_o || per_o.length === 0) {
-      throw new Error(`No se encontró per_doc para la referencia ${referencia}`);
+      throw new Error(`No se encontró per_doc para la referencia ${obs_orc}`);
     }
     
     const perDoc = per_o[0].per_doc;
@@ -72,11 +72,11 @@ export class GenerarIngresoService {
     const ano_o = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
       SELECT TOP 1 ano_doc
       FROM inv_inf_inv
-      WHERE obs_orc LIKE '%' + '${referencia}' + '%'
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
     `);
     
     if (!ano_o || ano_o.length === 0) {
-      throw new Error(`No se encontró ano_doc para la referencia ${referencia}`);
+      throw new Error(`No se encontró ano_doc para la referencia ${obs_orc}`);
     }
     
     const anoDoc = ano_o[0].ano_doc;
@@ -88,11 +88,11 @@ export class GenerarIngresoService {
     FROM AP__BPM_Procesos p
     JOIN Panel_109 p109 ON p109._ElementID = p.ID
     JOIN Panel_109_68508 p68508 ON p68508._ElementID = p109.ID
-    WHERE p.Referencia = '${referencia}'
+    WHERE p.Referencia = '${obs_orc}'
     AND p68508.[3_numeroOrdenCompra] = '${num_o}';
     `);
     if (!elementID || elementID.length === 0) {
-      throw new BadRequestException(`No se encontró ElementID para la referencia ${referencia} y la OC ${num_o}`);
+      throw new BadRequestException(`No se encontró ElementID para la referencia ${obs_orc} y la OC ${num_o}`);
     }
     
     const element = elementID[0].ID;
@@ -121,7 +121,7 @@ FROM Panel_109_68508_83802
 
       `);
       if (consulfactura.length === 0) {
-        throw new BadRequestException(`No se encontró factura para la referencia ${referencia} y la OC ${num_o}`);
+        throw new BadRequestException(`No se encontró factura para la referencia ${obs_orc} y la OC ${num_o}`);
       }
       const Nfactura = consulfactura[0].factura;
       
@@ -135,7 +135,7 @@ FROM Panel_109_68508_83802
     DECLARE @fec_a DATE = '${formatoDateToDDMMYYYY()}';
     DECLARE @sub_a CHAR(5) = '${cod_sub}';
     DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub}');
-    DECLARE @Referencia CHAR(20) = '${referencia}';
+    DECLARE @Referencia CHAR(20) = '${obs_orc}';
     
 
     IF EXISTS   (
@@ -173,7 +173,7 @@ SELECT      CONVERT(CHAR(4), FORMAT(@fec_a, 'yyyy')) ano_doc, CONVERT(CHAR(2), F
             CUE.conv_cl2, CUE.conv_cl3, CUE.num_fact, CUE.ord_fact, CUE.por_adm, 
             CUE.por_imp, CUE.por_uti, CUE.mon_adm, CUE.mon_imp, CUE.mon_uti, 
             NULL asig_numero, CUE.ind_afe, @ano_o usr_ano_ped, @per_o usr_per_ped, @sub_o usr_sub_ped, 
-            @num_o usr_pedido, CUE.reg_doc usr_reg_ped, '${solicitante}' usr_tercero, NULL ano_cdp, NULL per_cdp, 
+            @num_o usr_pedido, CUE.reg_doc usr_reg_ped, '${usr_tercero}' usr_tercero, NULL ano_cdp, NULL per_cdp, 
             CUE.sub_cdp, CUE.num_cdp, CUE.cod_rubro, NULL usr_ano_des, NULL usr_per_des, 
             NULL usr_sub_des, NULL usr_despa, NULL usr_reg_des, CUE.descrip_cue usr_descrip_cue 
 FROM   inv_cuedoc CUE 
@@ -205,7 +205,7 @@ WHERE   CAB.ano_doc = @ano_o
       return {
         codigo: '400',
         mensaje: `No se puede generar el ingreso, la cantidad de items no coincide`,
-        referencia,
+        obs_orc,
         num_o,
         cantidadAura,
         cantidadNova,
