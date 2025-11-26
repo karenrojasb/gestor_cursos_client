@@ -53,6 +53,7 @@ export class generarOrdenService {
         const usr_pedido = '0';
         const usr_reg_ped = 0;
         const sub_cdp = 'U726';
+        
 
         
  
@@ -120,7 +121,11 @@ export class generarOrdenService {
             //Validar que el item exista
 
         
-            const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+    const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+
+            const usrDescripCueLimitado = usr_descrip_cue
+            ? usr_descrip_cue.substring(0, 200)
+            : '';
 
             const itemLimpio = item.trim().replace(/;/g, '');
             // Validar info del item si es necesario
@@ -197,7 +202,7 @@ export class generarOrdenService {
             '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
             '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
             '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${num_cdp}','${data.cod_rubro}',
-            '${usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${dia_pla}'
+            '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${dia_pla}'
             )
             `)
                 ;
