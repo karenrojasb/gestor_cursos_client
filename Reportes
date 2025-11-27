@@ -122,7 +122,7 @@ export class generarOrdenService {
 
         
     const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
-
+console.log(usr_descrip_cue)
             const usrDescripCueLimitado = usr_descrip_cue
             ? usr_descrip_cue.substring(0, 200)
             : '';
