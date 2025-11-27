@@ -253,7 +253,7 @@ console.log(usr_descrip_cue)
         };
 
     } catch(error) {
-        console.error("Error al generar la orden:", error.mensaje);
+        console.error("Error al generar la orden:", error.menssaje ?? error);
         if (error instanceof HttpException) throw error;
 
         console.log('Error al reasignar el cdp', error);
