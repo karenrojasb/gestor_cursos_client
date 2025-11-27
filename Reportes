@@ -14,7 +14,7 @@ export class generarOrdenService {
 
     async GenerarOrden(data: GenerarOrdenDto) {
         const { item, num_cdp, provee, Articulos } = data;
-        
+        try{
         // Variables
         const vendedor = '0';
         const cod_cl2 = '0';
@@ -263,4 +263,4 @@ console.log(usr_descrip_cue)
 
 
 
-}
+}}
