@@ -175,7 +175,8 @@ console.log(usr_descrip_cue)
             const pre_vta = cos_uni
 
             //Insertar la orden
-            await this.prismaNovasoftService.$transaction (async (tx) =>(`
+            await this.prismaNovasoftService.$transaction (async (tx) => {
+                return tx.$executeRawUnsafe(`
             INSERT INTO inv_inf_inv (
             ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
             vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
@@ -205,7 +206,7 @@ console.log(usr_descrip_cue)
             '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${dia_pla}'
             )
             `)
-                 )     ;
+            }    )     ;
         }
 
         
