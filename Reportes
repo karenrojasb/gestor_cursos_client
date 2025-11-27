@@ -211,7 +211,7 @@ console.log(usr_descrip_cue)
         
        
             
-            await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+          const resultadoSP =  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
                 EXEC dbo.USR_sp_gen_afeinv_preciso 
                     @iano_doc = '${getNowDate().getFullYear()}',
                     @fano_doc = '${getNowDate().getFullYear()}',
@@ -225,6 +225,9 @@ console.log(usr_descrip_cue)
                     @ffec_doc = '${formatoDateToDDMMYYYY()}',
                     @indver = 0
             `);
+            if (! resultadoSP) {
+                throw new BadRequestException(`ERROR: No se pudo generar la orden para el CDP ${num_cdp}`);
+            }
 
              //Obtener el asig_numero
         const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
