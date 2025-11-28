@@ -1,58 +1,50 @@
 import { IsNumber, IsString, Length, Min, Max, IsOptional, IsDateString,  IsBoolean, IsNotEmpty, ValidateNested, IsArray } from "class-validator";
 import { Transform, Type } from "class-transformer";
+import { ItemsOrdenTiqueDto } from "./itemsordenTique.dto";
 
-
-
-export class GenerarOrdenTDto {
-
-
- 
-
-    @IsOptional()
-    @IsString({ message: 'El campo cod_cco debe ser una cadena de texto' })
-    @Length(1, 10, { message: 'El campo cod_cco debe tener entre 1 y 10 caracteres' })
-    cod_cco?: string; 
-   
-    @IsOptional()
-    @IsString({ message: 'El campo cod_cl1 debe ser una cadena de texto' })
-    @Length(1, 12, { message: 'El campo cod_cl1 debe tener entre 1 y 12 caracteres' })
-    cod_cl1?: string; 
-
-    @IsOptional()
-    @IsString({ message: 'El campo provee debe ser una cadena de texto' })
-    @Length(1, 15, { message: 'El campo provee debe tener entre 1 y 15 caracteres' })
-    provee?: string; 
-
-    @IsOptional()
-    @IsString({ message: 'El campo num_cdp debe ser una cadena de texto' })
-    @Length(1, 14, { message: 'El campo num_cdp debe tener entre 1 y 14 caracteres' })
-    num_cdp?: string;
+export class GenerarOrdenTiqueDto {
     
-    @IsOptional()
-    @IsString({ message: 'El campo obs_orc debe ser una cadena de texto' })
-    @Length(1, 200, { message: 'El campo obs_ors debe tener entre 1 y 200 caracteres' })
-    obs_orc?: string; 
-
-    @IsOptional()
-    @IsString({ message: 'El campo tercero debe ser una cadena de texto' })
-    @Length(1, 15, { message: 'El campo tercero debe tener entre 1 y 5 caracteres' })
-    usr_tercero?: string;
-
-    @IsOptional()
-    @IsString({ message: 'El campo cod_rubro debe ser una cadena de texto' })
-    @Length(1, 17, { message: 'El campo cod_rubro debe tener entre 1 y 17 caracteres' })
-    cod_rubro?: string;
    
-
-ARRAY: {
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => value ?? null)
-    bodega?: string | null;
-
-}    
-
-
-
-
-}
+     
+    
+        @IsOptional()
+        @IsString({ message: 'El campo cod_cco debe ser una cadena de texto' })
+        @Length(1, 10, { message: 'El campo cod_cco debe tener entre 1 y 10 caracteres' })
+        cod_cco?: string; 
+       
+        @IsOptional()
+        @IsString({ message: 'El campo cod_cl1 debe ser una cadena de texto' })
+        @Length(1, 12, { message: 'El campo cod_cl1 debe tener entre 1 y 12 caracteres' })
+        cod_cl1?: string; 
+    
+        @IsOptional()
+        @IsString({ message: 'El campo provee debe ser una cadena de texto' })
+        @Length(1, 15, { message: 'El campo provee debe tener entre 1 y 15 caracteres' })
+        provee?: string; 
+    
+        @IsOptional()
+        @IsString({ message: 'El campo num_cdp debe ser una cadena de texto' })
+        @Length(1, 14, { message: 'El campo num_cdp debe tener entre 1 y 14 caracteres' })
+        num_cdp?: string;
+        
+        @IsOptional()
+        @IsString({ message: 'El campo obs_orc debe ser una cadena de texto' })
+        @Length(1, 200, { message: 'El campo obs_ors debe tener entre 1 y 200 caracteres' })
+        obs_orc?: string; 
+    
+        @IsOptional()
+        @IsString({ message: 'El campo tercero debe ser una cadena de texto' })
+        @Length(1, 15, { message: 'El campo tercero debe tener entre 1 y 5 caracteres' })
+        usr_tercero?: string;
+    
+        @IsOptional()
+        @IsString({ message: 'El campo cod_rubro debe ser una cadena de texto' })
+        @Length(1, 17, { message: 'El campo cod_rubro debe tener entre 1 y 17 caracteres' })
+        cod_rubro?: string;
+    
+        @IsArray()   
+            @ValidateNested({ each: true})
+            @Type(() => ItemsOrdenTiqueDto)
+            ARRAY: ItemsOrdenTiqueDto[];
+    }
+    
