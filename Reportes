@@ -104,7 +104,7 @@ export class GenerarOrdenTiqueService {
              `);
         const num_doc = consecutivo[0].numDoc;
 
-        const consultarValorTiquete = this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+        const consultarValorTiquete = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
         DECLARE @Referencia VARCHAR(100) = '${Referencia}';
 
         SELECT 
@@ -116,7 +116,7 @@ export class GenerarOrdenTiqueService {
                 ON T.[_ElementID] = PN.ID
         WHERE P.Referencia = @Referencia;
         `);
-        const consultarValorAgencia = this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+        const consultarValorAgencia = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
             DECLARE @Referencia VARCHAR(100) = '${Referencia}';
     
             SELECT 
@@ -129,8 +129,8 @@ export class GenerarOrdenTiqueService {
             WHERE P.Referencia = @Referencia;
             `);
 
-        for (let i = 0; i < ItemsOrdenTiqueDto.length; i++) {
-            const { bodega } = ItemsOrdenTiqueDto[i];
+        for (let j = 0; j < ItemsOrdenTiqueDto.length; j++) {
+            const { bodega } = ItemsOrdenTiqueDto[j];
 
             const itemsFijos = [
              {
@@ -159,13 +159,9 @@ export class GenerarOrdenTiqueService {
                 const filaAura = data.ARRAY[i];
                 const fijo = itemsFijos[i];
 
-                let cos_uni;
-                if (fijo.tipoconsulta === "TIQUETE"){
-                    cos_uni = await this.consultarValorTiquete()
-                }else{
-                    cos_uni = await this.consultarValorAgencia()
-                }
-                const bodega = filaAura.bodega;
+                let cos_uni= fijo.tipoconsulta === "TIQUETE" 
+                ? consultarValorTiquete[0]?.["3_ValorTiquete"] || 0
+                : consultarValorAgencia[0]?.["3_Valor Agencia"] || 0;
 
         //Obtener la información del item
         const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
