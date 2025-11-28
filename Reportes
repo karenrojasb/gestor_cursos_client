@@ -217,7 +217,36 @@ export class GenerarOrdenTiqueService {
 
             
             
+console.log(`
+            INSERT INTO inv_inf_inv (
+            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
+            cliente, provee, lista, ind_mp, fec_tas, tasa, obs_orc,
+            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
+            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
+            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
+            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
+            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
+            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
+            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
+            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
+            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc, dia_pla)
 
+            VALUES (
+            '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
+            '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
+            '${cliente}', '${data.provee}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
+            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${fijo.item}', '${alterno}',
+            '${trans}', '${fijo.cantidad}', '${fac_con}', '${cos_uni}', '${pre_vta}', '${fijo.por_des}', '${por_iva}',
+            '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${fec_ent}',
+            '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
+            '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
+            '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
+            '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
+            '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
+            '${fijo.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${fijo.dia_pla}'
+            )
+            `)
             //Insertar la orden
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
             INSERT INTO inv_inf_inv (
