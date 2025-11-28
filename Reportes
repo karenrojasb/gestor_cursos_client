@@ -134,7 +134,6 @@ export class GenerarOrdenTiqueService {
              {
                 item: "GV103",
                 cantidad: 1,
-                cos_uni: consultarValorTiquete,
                 por_des: 0,
                 bodega: bodega,
                 usr_descrip_cue: "PASAJES AEREOS NACIONALES",
@@ -144,7 +143,6 @@ export class GenerarOrdenTiqueService {
              {
                 item: "CGV106",
                 cantidad: 1,
-                cos_uni: consultarValorAgencia,
                 por_des: 0,
                 bodega: bodega,
                 usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
@@ -154,12 +152,11 @@ export class GenerarOrdenTiqueService {
             ]
 
             for (let i = 0; i < 2; i++){
-                const filaAura = data.ARRAY[j];
                 const fijo = itemsFijos[i];
 
                 let cos_uni= fijo.tipoconsulta === "TIQUETE" 
-                ? consultarValorTiquete[0]?.["3_ValorTiquete"] || 0
-                : consultarValorAgencia[0]?.["3_Valor Agencia"] || 0;
+                ? consultarValorTiquete[0]?.["3_Valortiquete"]
+                : consultarValorAgencia[0]?.["3_Valor Agencia"];
 
         //Obtener la información del item
         const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
