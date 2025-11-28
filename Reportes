@@ -129,8 +129,8 @@ export class GenerarOrdenTiqueService {
             WHERE P.Referencia = @Referencia;
             `);
 
-        for (let j = 0; j < ItemsOrdenTiqueDto.length; j++) {
-            const { bodega } = ItemsOrdenTiqueDto[j];
+        for (let j = 0; j < data.ARRAY.length; j++) {
+            const { bodega } = data.ARRAY[j];
 
             const itemsFijos = [
              {
@@ -244,7 +244,7 @@ export class GenerarOrdenTiqueService {
             '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
             '${cliente}', '${data.provee}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
             '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${fijo.item}', '${alterno}',
-            '${trans}', '${fijo.cantidad}', '${fac_con}', '${fijo.cos_uni}', '${pre_vta}', '${fijo.por_des}', '${por_iva}',
+            '${trans}', '${fijo.cantidad}', '${fac_con}', '${cos_uni}', '${pre_vta}', '${fijo.por_des}', '${por_iva}',
             '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${fec_ent}',
             '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
             '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
