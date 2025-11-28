@@ -52,12 +52,10 @@ export class GenerarOrdenTiqueService {
         const usr_pedido = 0;
         const usr_reg_ped = 0;
         const sub_cdp = 'U726';
-        
         const cod_conv = 0;
         const cant_uni = 0;
         const conv_cl1 = 0;
         const conv_cco = 0;
-        const cos_uni = 0;
         const sub_tip = "COS";
 
 
@@ -156,7 +154,7 @@ export class GenerarOrdenTiqueService {
             ]
 
             for (let i = 0; i < 2; i++){
-                const filaAura = data.ARRAY[i];
+                const filaAura = data.ARRAY[j];
                 const fijo = itemsFijos[i];
 
                 let cos_uni= fijo.tipoconsulta === "TIQUETE" 
@@ -253,7 +251,9 @@ export class GenerarOrdenTiqueService {
             '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
             '${fijo.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${fijo.dia_pla}'
             )
-            `); }}
+            `); 
+        }
+        }
 
             //Ejecutar el procedimiento afeinv_preciso
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
