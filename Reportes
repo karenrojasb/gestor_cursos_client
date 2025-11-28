@@ -1,8 +1,3 @@
-“Consecutivo” o “secuencial incremental por registro”
-
-(En SQL se conoce como parte de una llave primaria compuesta: reg_doc)
-
-
 import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
 import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
@@ -27,7 +22,6 @@ export class GenerarOrdenTiqueService {
         const cod_cl3 = 0;
         const asig_num = 1;
         const ind_refac = 0;
-        const reg_doc= 1;
         const conv_cl2 = 0;
         const conv_cl3 = 0;
         const por_adm = 0;
@@ -62,6 +56,7 @@ export class GenerarOrdenTiqueService {
         const conv_cl1 = 0;
         const conv_cco = 0;
         const sub_tip = "COS";
+        
 
 
         // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
@@ -139,12 +134,13 @@ export class GenerarOrdenTiqueService {
                     ON T.[_ElementID] = PN.ID
             WHERE P.Referencia = @Referencia;
             `);
-            
+            let reg_doc = 1;
             
             console.log(consultarValorTiquete)
             console.log(consultarValorAgencia)
 
         for (let j = 0; j < data.ARRAY.length; j++) {
+            for (let i = 0; i < 2; i++){
             const { bodega } = data.ARRAY[j];
 
             const itemsFijos = [
@@ -174,6 +170,7 @@ export class GenerarOrdenTiqueService {
                 let cos_uni= fijo.tipoconsulta === "TIQUETE" 
                 ? consultarValorTiquete[0]?.["3_Valortiquete"]
                 : consultarValorAgencia[0]?.["3_Valor Agencia"];
+                
 
         //Obtener la información del item
         const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -285,7 +282,7 @@ console.log(`
             `); 
         }
         }
-
+    }
             //Ejecutar el procedimiento afeinv_preciso
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
                 EXEC dbo.USR_sp_gen_afeinv_preciso 
@@ -326,7 +323,7 @@ console.log(`
             asig_numero
         };
 
-
+    
     } catch(error) {
         console.error("Error al generar la orden:", error.mensaje);
         if (error instanceof HttpException) throw error;
