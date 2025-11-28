@@ -1,50 +1,274 @@
-import { IsNumber, IsString, Length, Min, Max, IsOptional, IsDateString,  IsBoolean, IsNotEmpty, ValidateNested, IsArray } from "class-validator";
-import { Transform, Type } from "class-transformer";
-import { ItemsOrdenTiqueDto } from "./itemsordenTique.dto";
+import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
+import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
+import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
+import { GenerarOrdenTiqueDto } from "./dto/generarordenTique.dto";
+import { ItemsOrdenTiqueDto } from "./dto/itemsordenTique.dto";
 
-export class GenerarOrdenTiqueDto {
-    
-   
-     
-    
-        @IsOptional()
-        @IsString({ message: 'El campo cod_cco debe ser una cadena de texto' })
-        @Length(1, 10, { message: 'El campo cod_cco debe tener entre 1 y 10 caracteres' })
-        cod_cco?: string; 
-       
-        @IsOptional()
-        @IsString({ message: 'El campo cod_cl1 debe ser una cadena de texto' })
-        @Length(1, 12, { message: 'El campo cod_cl1 debe tener entre 1 y 12 caracteres' })
-        cod_cl1?: string; 
-    
-        @IsOptional()
-        @IsString({ message: 'El campo provee debe ser una cadena de texto' })
-        @Length(1, 15, { message: 'El campo provee debe tener entre 1 y 15 caracteres' })
-        provee?: string; 
-    
-        @IsOptional()
-        @IsString({ message: 'El campo num_cdp debe ser una cadena de texto' })
-        @Length(1, 14, { message: 'El campo num_cdp debe tener entre 1 y 14 caracteres' })
-        num_cdp?: string;
+@Injectable()
+export class GenerarOrdenTiqueService {
+
+  constructor(
+    private readonly prismaNovasoftService: PrismaNovasoftService
+  ) {}
+
+  async GenerarOrdenTique(data: GenerarOrdenTiqueDto) {
+  const { num_cdp, provee,  usr_descrip_cue} = data;
         
-        @IsOptional()
-        @IsString({ message: 'El campo obs_orc debe ser una cadena de texto' })
-        @Length(1, 200, { message: 'El campo obs_ors debe tener entre 1 y 200 caracteres' })
-        obs_orc?: string; 
-    
-        @IsOptional()
-        @IsString({ message: 'El campo tercero debe ser una cadena de texto' })
-        @Length(1, 15, { message: 'El campo tercero debe tener entre 1 y 5 caracteres' })
-        usr_tercero?: string;
-    
-        @IsOptional()
-        @IsString({ message: 'El campo cod_rubro debe ser una cadena de texto' })
-        @Length(1, 17, { message: 'El campo cod_rubro debe tener entre 1 y 17 caracteres' })
-        cod_rubro?: string;
-    
-        @IsArray()   
-            @ValidateNested({ each: true})
-            @Type(() => ItemsOrdenTiqueDto)
-            ARRAY: ItemsOrdenTiqueDto[];
+        // Variables
+        const vendedor = 0;
+        const cod_cl2 = 0;
+        const cod_cl3 = 0;
+        const asig_num = 1;
+        const ind_refac = 0;
+        const reg_doc= 1;
+        const conv_cl2 = 0;
+        const conv_cl3 = 0;
+        const por_adm = 0;
+        const por_imp = 0;
+        const cliente = 0;
+        const bod_des = 0;
+        const lista = 0;
+        const ind_mp = '00';
+        const tasa = 0;
+        const fac_pro = 0;
+        const cod_caja = 0;
+        const tip_doc = '007';
+        const alterno = 0;
+        const trans = 32002;
+        const fac_con = 0;
+        const por_com = 0;
+        const fec_ent = '1900-01-01 00:00:00.000';
+        const suc_des = 0;
+        const conv_suc = 0;
+        const por_uti = 0;
+        const mon_adm = 0;
+        const mon_imp = 0;
+        const mon_uti = 0;
+        const usr_ano_ped = 0;
+        const usr_per_ped = 0;
+        const usr_sub_ped = 0;
+        const usr_pedido = 0;
+        const usr_reg_ped = 0;
+        const sub_cdp = 'U726';
+        const item = 'TF104';
+        const cod_conv = 0;
+        const cant_uni = 0;
+        const conv_cl1 = 0;
+        const conv_cco = 0;
+        const cos_uni = 0;
+        const sub_tip = "COS";
+
+
+        
+ 
+
+        // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
+        const sucursalInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+           SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = '${data.cod_cl1}'
+            `);
+
+        if (sucursalInfo.length === 0) {
+            throw new BadRequestException(`El código de sucursal ${data.cod_cl1} no existe`);
+        }
+
+        const cod_suc = sucursalInfo[0].usr_sucursal;
+
+
+        //Validar que el NIT exista
+        const proveedorInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu
+        from cxp_provee 
+        WHERE provee = '${provee}'`);
+
+
+        if (proveedorInfo.length === 0) {
+            throw new BadRequestException(`El NIT ${provee}, no existe`)
+            ;
+        }
+
+        const { ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu } = proveedorInfo[0];
+        const pai_doc = `${cod_pai}`;
+        const dep_doc = `${cod_dep}`;
+        const ciu_doc = `${ciu}`;
+        const tar_rii = `${ret_iva}`;
+        const tar_rii_ng = `${ret_iva_ng}`;
+
+
+
+        // Obtener el consecutivo num_doc
+        const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+          SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
+          FROM inv_inf_inv
+             `);
+        const num_doc = consecutivo[0].numDoc;
+
+
+
+
+        //Obtener la información del item
+        const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
+        FROM inv_items
+        WHERE cod_item = '${item}'
+        `);
+
+        if (itemInfo.length == 0) {
+            throw new BadRequestException(`El item ${item},  no existe`)
+        }
+
+        const { cod_ret_com, por_ret, por_iva, por_iva_ng } = itemInfo[0];
+        const cod_ret = `${cod_ret_com}`;
+
+        const usrDescripCueLimitado = usr_descrip_cue
+            ? usr_descrip_cue.substring(0, 200)
+            : '';
+
+        const infoItem = itemInfo[0] || {};
+
+      
+            //Validar que el usr_tercero exista
+            const terceroInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT TOP 1 ter_nit
+            FROM gen_terceros
+            WHERE ter_nit = '${data.usr_tercero}'
+            `);
+
+            if (terceroInfo.length == 0) {
+                throw new BadRequestException(`El usr_tercero ${data.usr_tercero},  no es válido`)
+            }
+
+            //Validar que el CDP no exista
+            const cdpExistente = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                SELECT  TOP 1 num_cdp
+                FROM inv_inf_inv
+                WHERE num_cdp = '${num_cdp}'
+                `);
+        
+                if (cdpExistente.length > 0) {
+                    throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp} ya existe`)
+                }
+
+            
+
+            //Obtener la información de CDP 
+            const cdpInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                SELECT ano_doc AS ano_cdp, per_doc AS per_cdp
+                FROM PRE_cuedoc
+                WHERE num_cdp = '${num_cdp}'
+            `);
+
+            const ano_cdp = cdpInfo[0]?.ano_cdp || getNowDate().getFullYear();
+            const per_cdp = cdpInfo[0]?.per_cdp || 0;
+
+
+
+            const cos_unai = cos_uni;
+            const pre_vta = cos_uni;
+
+            const { bodega } = ItemsOrdenTiqueDto[i];
+            
+
+            //Insertar la orden
+            await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            INSERT INTO inv_inf_inv (
+            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
+            cliente, provee, lista, ind_mp, fec_tas, tasa, obs_orc,
+            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
+            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
+            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
+            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
+            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
+            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
+            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
+            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
+            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc, dia_pla)
+
+            VALUES (
+            '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
+            '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
+            '${cliente}', '${data.provee}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
+            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${item}', '${alterno}',
+            '${trans}', '${data.cantidad}', '${fac_con}', '${data.cos_uni}', '${pre_vta}', '${data.por_des}', '${por_iva}',
+            '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${fec_ent}',
+            '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
+            '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
+            '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
+            '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
+            '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
+            '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${data.dia_pla}'
+            )
+            `);
+
+            //Ejecutar el procedimiento afeinv_preciso
+            await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                EXEC dbo.USR_sp_gen_afeinv_preciso 
+                    @iano_doc = '${getNowDate().getFullYear()}',
+                    @fano_doc = '${getNowDate().getFullYear()}',
+                    @iper_doc = '${getCurrentMonth()}',
+                    @fper_doc = '${getCurrentMonth()}',
+                    @isub_tip = '${data.sub_tip}',
+                    @fsub_tip = '${data.sub_tip}',
+                    @inum_doc = '${num_doc}',
+                    @fnum_doc = '${num_doc}',
+                    @ifec_doc = '${formatoDateToDDMMYYYY()}',
+                    @ffec_doc = '${formatoDateToDDMMYYYY()}',
+                    @indver = 0
+            `);
+
+             //Obtener el asig_numero
+        const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT DISTINCT asig_numero
+            FROM inv_inf_inv
+            WHERE ind_tra = 'X'
+              AND ano_doc = ${getNowDate().getFullYear()}
+              AND per_doc = '${getCurrentMonth()}'
+              AND sub_tip = '${data.sub_tip}'
+              AND tip_doc = '${tip_doc}'
+              AND num_doc = ${num_doc}
+        `);
+        
+        // Si no encuentra nada, dejar en blanco
+        const asig_numero = asigNumeroResult.length > 0
+            ? asigNumeroResult[0].asig_numero
+            : '';
+
+
+        return {
+            Codigo: `200`,
+            Mensaje: `Consulta realiza con éxito`,
+            asig_numero
+        };
+
+
+    } catch(error) {
+        console.error("Error al generar la orden:", error.mensaje);
+        if (error instanceof HttpException) throw error;
+
+        console.log('Error al reasignar el cdp', error);
+        throw new InternalServerErrorException('Error al generar la consulta')
+
+
     }
-    
+} "ARRAY": [ 
+{ 
+FILA 1 
+["item": " GV103", Fijo 
+"cantidad": 1, Fijo
+"cos_uni": " 6_CotizacionesTiquete/3_valortiquete", lo consulto
+"por_des": 0, Fijo
+"usr_descrip_cue": " PASAJES AEREOS NACIONALES", Fijo
+"bodega": "3_TXT_BODE ", Lo envían en aura
+                                           "dia_pla": 0 Fijo
+] 
+ 
+FILA 2 
+["item": "CGV106", Fijo
+"cantidad": 1, Fijo
+"cos_uni": "3_Valor Agencia/3_Valor Agencia",  lo consulto
+"por_des": 0,  Fijo
+"usr_descrip_cue": "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES", Fijo
+"bodega": "3_TXT_BODE ", Lo envían en aura
+                                           "dia_pla": 0 Fijo
+] 
+} 
