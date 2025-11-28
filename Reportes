@@ -1,3 +1,8 @@
+“Consecutivo” o “secuencial incremental por registro”
+
+(En SQL se conoce como parte de una llave primaria compuesta: reg_doc)
+
+
 import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
 import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
@@ -82,6 +87,16 @@ export class GenerarOrdenTiqueService {
             throw new BadRequestException(`El NIT ${provee}, no existe`)
             ;
         }
+             //Validar que el CDP no exista
+             const cdpExistente = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                SELECT  TOP 1 num_cdp
+                FROM inv_inf_inv
+                WHERE num_cdp = '${num_cdp}'
+                `);
+        
+                if (cdpExistente.length > 0) {
+                    throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp} ya existe`)
+                }
 
         const { ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu } = proveedorInfo[0];
         const pai_doc = `${cod_pai}`;
@@ -189,16 +204,7 @@ export class GenerarOrdenTiqueService {
                 throw new BadRequestException(`El usr_tercero ${data.usr_tercero},  no es válido`)
             }
 
-            //Validar que el CDP no exista
-            const cdpExistente = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-                SELECT  TOP 1 num_cdp
-                FROM inv_inf_inv
-                WHERE num_cdp = '${num_cdp}'
-                `);
-        
-                if (cdpExistente.length > 0) {
-                    throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp} ya existe`)
-                }
+       
 
 
             //Obtener la información de CDP 
@@ -210,7 +216,6 @@ export class GenerarOrdenTiqueService {
 
             const ano_cdp = cdpInfo[0]?.ano_cdp || getNowDate().getFullYear();
             const per_cdp = cdpInfo[0]?.per_cdp || 0;
-
 
 
             const cos_unai = cos_uni;
