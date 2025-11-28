@@ -59,9 +59,6 @@ export class GenerarOrdenTiqueService {
         const sub_tip = "COS";
 
 
-        
- 
-
         // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
         const sucursalInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
            SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = '${data.cod_cl1}'
@@ -94,7 +91,6 @@ export class GenerarOrdenTiqueService {
         const tar_rii_ng = `${ret_iva_ng}`;
 
 
-
         // Obtener el consecutivo num_doc
         const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
           SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
@@ -114,8 +110,6 @@ export class GenerarOrdenTiqueService {
                 ON T.[_ElementID] = PN.ID
         WHERE P.Referencia = @Referencia;
         `);
-        
-        
         
 
         const consultarValorAgencia = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
@@ -206,7 +200,6 @@ export class GenerarOrdenTiqueService {
                     throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp} ya existe`)
                 }
 
-            
 
             //Obtener la información de CDP 
             const cdpInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -223,8 +216,7 @@ export class GenerarOrdenTiqueService {
             const cos_unai = cos_uni;
             const pre_vta = cos_uni;
 
-            
-            
+                    
 console.log(`
             INSERT INTO inv_inf_inv (
             ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
