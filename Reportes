@@ -1,6 +1,7 @@
 import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
 import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
+import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
 import { GenerarOrdenTiqueDto } from "./dto/generarordenTique.dto";
 import { ItemsOrdenTiqueDto } from "./dto/itemsordenTique.dto";
 
@@ -8,11 +9,12 @@ import { ItemsOrdenTiqueDto } from "./dto/itemsordenTique.dto";
 export class GenerarOrdenTiqueService {
 
   constructor(
-    private readonly prismaNovasoftService: PrismaNovasoftService
+    private readonly prismaNovasoftService: PrismaNovasoftService,
+    private readonly prismaAuraquanticService: PrismaAuraquanticService
   ) {}
 
   async GenerarOrdenTique(data: GenerarOrdenTiqueDto) {
-  const { num_cdp, provee,  usr_descrip_cue} = data;
+  const { num_cdp, provee, Referencia} = data;
         
         // Variables
         const vendedor = 0;
@@ -50,7 +52,7 @@ export class GenerarOrdenTiqueService {
         const usr_pedido = 0;
         const usr_reg_ped = 0;
         const sub_cdp = 'U726';
-        const item = 'TF104';
+        
         const cod_conv = 0;
         const cant_uni = 0;
         const conv_cl1 = 0;
@@ -102,26 +104,83 @@ export class GenerarOrdenTiqueService {
              `);
         const num_doc = consecutivo[0].numDoc;
 
+        const consultarValorTiquete = this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+        DECLARE @Referencia VARCHAR(100) = '${Referencia}';
 
+        SELECT 
+            T.[3_Valortiquete]
+        FROM AP__BPM_Procesos P
+            INNER JOIN Panel_110 PN
+                ON PN.[_ElementID] = P.ID
+            INNER JOIN Panel_110_69945 T
+                ON T.[_ElementID] = PN.ID
+        WHERE P.Referencia = @Referencia;
+        `);
+        const consultarValorAgencia = this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            DECLARE @Referencia VARCHAR(100) = '${Referencia}';
+    
+            SELECT 
+                T.[3_Valor Agencia]
+            FROM AP__BPM_Procesos P
+                INNER JOIN Panel_110 PN
+                    ON PN.[_ElementID] = P.ID
+                INNER JOIN Panel_110_69945 T
+                    ON T.[_ElementID] = PN.ID
+            WHERE P.Referencia = @Referencia;
+            `);
 
+        for (let i = 0; i < ItemsOrdenTiqueDto.length; i++) {
+            const { bodega } = ItemsOrdenTiqueDto[i];
+
+            const itemsFijos = [
+             {
+                item: "GV103",
+                cantidad: 1,
+                cos_uni: consultarValorTiquete,
+                por_des: 0,
+                bodega: bodega,
+                usr_descrip_cue: "PASAJES AEREOS NACIONALES",
+                dia_pla: 0,
+                tipoconsulta: "TIQUETE"
+             }, 
+             {
+                item: "CGV106",
+                cantidad: 1,
+                cos_uni: consultarValorAgencia,
+                por_des: 0,
+                bodega: bodega,
+                usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
+                dia_pla: 0,
+                tipoconsulta: "AGENCIA"
+             }
+            ]
+
+            for (let i = 0; i < 2; i++){
+                const filaAura = data.ARRAY[i];
+                const fijo = itemsFijos[i];
+
+                let cos_uni;
+                if (fijo.tipoconsulta === "TIQUETE"){
+                    cos_uni = await this.consultarValorTiquete()
+                }else{
+                    cos_uni = await this.consultarValorAgencia()
+                }
+                const bodega = filaAura.bodega;
 
         //Obtener la información del item
         const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
         SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
         FROM inv_items
-        WHERE cod_item = '${item}'
+        WHERE cod_item = '${fijo.item}'
         `);
 
         if (itemInfo.length == 0) {
-            throw new BadRequestException(`El item ${item},  no existe`)
+            throw new BadRequestException(`El item ${fijo.item},  no existe`)
         }
 
         const { cod_ret_com, por_ret, por_iva, por_iva_ng } = itemInfo[0];
         const cod_ret = `${cod_ret_com}`;
 
-        const usrDescripCueLimitado = usr_descrip_cue
-            ? usr_descrip_cue.substring(0, 200)
-            : '';
 
         const infoItem = itemInfo[0] || {};
 
@@ -165,7 +224,7 @@ export class GenerarOrdenTiqueService {
             const cos_unai = cos_uni;
             const pre_vta = cos_uni;
 
-            const { bodega } = ItemsOrdenTiqueDto[i];
+            
             
 
             //Insertar la orden
@@ -188,17 +247,17 @@ export class GenerarOrdenTiqueService {
             '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
             '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
             '${cliente}', '${data.provee}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
-            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${item}', '${alterno}',
-            '${trans}', '${data.cantidad}', '${fac_con}', '${data.cos_uni}', '${pre_vta}', '${data.por_des}', '${por_iva}',
+            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${fijo.item}', '${alterno}',
+            '${trans}', '${fijo.cantidad}', '${fac_con}', '${fijo.cos_uni}', '${pre_vta}', '${fijo.por_des}', '${por_iva}',
             '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${fec_ent}',
             '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
             '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
             '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
             '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
             '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${data.num_cdp}','${data.cod_rubro}',
-            '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${data.dia_pla}'
+            '${fijo.usr_descrip_cue}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${fijo.dia_pla}'
             )
-            `);
+            `); }}
 
             //Ejecutar el procedimiento afeinv_preciso
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -207,8 +266,8 @@ export class GenerarOrdenTiqueService {
                     @fano_doc = '${getNowDate().getFullYear()}',
                     @iper_doc = '${getCurrentMonth()}',
                     @fper_doc = '${getCurrentMonth()}',
-                    @isub_tip = '${data.sub_tip}',
-                    @fsub_tip = '${data.sub_tip}',
+                    @isub_tip = '${sub_tip}',
+                    @fsub_tip = '${sub_tip}',
                     @inum_doc = '${num_doc}',
                     @fnum_doc = '${num_doc}',
                     @ifec_doc = '${formatoDateToDDMMYYYY()}',
@@ -223,7 +282,7 @@ export class GenerarOrdenTiqueService {
             WHERE ind_tra = 'X'
               AND ano_doc = ${getNowDate().getFullYear()}
               AND per_doc = '${getCurrentMonth()}'
-              AND sub_tip = '${data.sub_tip}'
+              AND sub_tip = '${sub_tip}'
               AND tip_doc = '${tip_doc}'
               AND num_doc = ${num_doc}
         `);
@@ -250,25 +309,4 @@ export class GenerarOrdenTiqueService {
 
 
     }
-} "ARRAY": [ 
-{ 
-FILA 1 
-["item": " GV103", Fijo 
-"cantidad": 1, Fijo
-"cos_uni": " 6_CotizacionesTiquete/3_valortiquete", lo consulto
-"por_des": 0, Fijo
-"usr_descrip_cue": " PASAJES AEREOS NACIONALES", Fijo
-"bodega": "3_TXT_BODE ", Lo envían en aura
-                                           "dia_pla": 0 Fijo
-] 
- 
-FILA 2 
-["item": "CGV106", Fijo
-"cantidad": 1, Fijo
-"cos_uni": "3_Valor Agencia/3_Valor Agencia",  lo consulto
-"por_des": 0,  Fijo
-"usr_descrip_cue": "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES", Fijo
-"bodega": "3_TXT_BODE ", Lo envían en aura
-                                           "dia_pla": 0 Fijo
-] 
-} 
+}
