@@ -139,9 +139,9 @@ export class GenerarOrdenTiqueService {
             console.log(consultarValorTiquete)
             console.log(consultarValorAgencia)
 
-        for (let j = 0; j < data.ARRAY.length; j++) {
+        
             for (let i = 0; i < 2; i++){
-            const { bodega } = data.ARRAY[j];
+            const { bodega } = data.ARRAY[i];
 
             const itemsFijos = [
              {
@@ -282,7 +282,7 @@ console.log(`
             `); 
         }
         }
-    }
+    
             //Ejecutar el procedimiento afeinv_preciso
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
                 EXEC dbo.USR_sp_gen_afeinv_preciso 
