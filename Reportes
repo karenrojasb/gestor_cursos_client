@@ -114,6 +114,10 @@ export class GenerarOrdenTiqueService {
                 ON T.[_ElementID] = PN.ID
         WHERE P.Referencia = @Referencia;
         `);
+        
+        
+        
+
         const consultarValorAgencia = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
             DECLARE @Referencia VARCHAR(100) = '${Referencia}';
     
@@ -126,6 +130,10 @@ export class GenerarOrdenTiqueService {
                     ON T.[_ElementID] = PN.ID
             WHERE P.Referencia = @Referencia;
             `);
+            
+            
+            console.log(consultarValorTiquete)
+            console.log(consultarValorAgencia)
 
         for (let j = 0; j < data.ARRAY.length; j++) {
             const { bodega } = data.ARRAY[j];
