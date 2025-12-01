@@ -140,15 +140,14 @@ export class GenerarOrdenTiqueService {
         
 
         //Insertar los items fijos
-            for (let i = 0; i < 2; i++){
-            const { bodega } = data.ARRAY[i];
+       
 
             const itemsFijos = [
              {
                 item: "GV103",
                 cantidad: 1,
                 por_des: 0,
-                bodega: bodega,
+                bodega: data.ARRAY[0].bodega,
                 usr_descrip_cue: "PASAJES AEREOS NACIONALES",
                 dia_pla: 0,
                 tipoconsulta: "TIQUETE"
@@ -157,7 +156,7 @@ export class GenerarOrdenTiqueService {
                 item: "CGV106",
                 cantidad: 1,
                 por_des: 0,
-                bodega: bodega,
+                bodega: data.ARRAY[0].bodega,
                 usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
                 dia_pla: 0,
                 tipoconsulta: "AGENCIA"
@@ -218,7 +217,7 @@ export class GenerarOrdenTiqueService {
             const cos_unai = cos_uni;
             const pre_vta = cos_uni;
 
-                    
+              for(const fijo of itemsFijos)      {
 
             //Insertar la orden
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
