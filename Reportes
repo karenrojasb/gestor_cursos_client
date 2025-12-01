@@ -164,7 +164,7 @@ export class GenerarOrdenTiqueService {
              }
             ]
             //Insertar los items variables
-            for (let i = 0; i < 2; i++){
+          
                 const fijo = itemsFijos[i];
 
                 let cos_uni= fijo.tipoconsulta === "TIQUETE" 
@@ -252,7 +252,7 @@ export class GenerarOrdenTiqueService {
             )
             `); 
             reg_doc++;
-        }
+        
         }
     
             //Ejecutar el procedimiento afeinv_preciso
