@@ -156,7 +156,6 @@ export class AsignacdpService {
     //Eliminar el CDP 
 async eliminarcdp (eliminarcdp : eliminarcdpDto){
     const { Referenciaproc } = eliminarcdp;
- let resultHotel, resultTiquete, resultInscripcion, resultViaje;
 
     try {
         // HOTEL
