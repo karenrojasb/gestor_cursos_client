@@ -121,13 +121,13 @@ export class generarOrdenService {
             //Validar que el item exista
 
         
-    const { item, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+    const { item: itemArticulo, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
 
 const usrDescripCueLimitado = usr_descrip_cue
 ? usr_descrip_cue.substring(0, 200)
 : '';
 
-const itemLimpio = item.trim().replace(/;/g, '');
+const itemLimpio = itemArticulo.trim().replace(/;/g, '');
 console.log(itemLimpio)
 // Validar info del item
 const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -139,11 +139,9 @@ const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
 if (itemInfo.length === 0) {
     throw new BadRequestException(`El item ${itemLimpio} no existe`);
 }
-
-// VALIDAR SI EL ÍTEM ESTÁ ACTIVO (1 = activo, 0 = inactivo)
 const estadoItem = itemInfo[0].cod_est;
 
-if (estadoItem !== 0) {
+if (estadoItem !== 1) {
     throw new BadRequestException(`El item ${itemLimpio} no está activo`);
 }
 
