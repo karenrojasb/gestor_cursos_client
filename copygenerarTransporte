@@ -147,7 +147,6 @@ export class GenerarOrdenTiqueService {
                 item: "GV103",
                 cantidad: 1,
                 por_des: 0,
-                bodega: bodega[0],
                 usr_descrip_cue: "PASAJES AEREOS NACIONALES",
                 dia_pla: 0,
                 tipoconsulta: "TIQUETE"
@@ -156,7 +155,6 @@ export class GenerarOrdenTiqueService {
                 item: "CGV106",
                 cantidad: 1,
                 por_des: 0,
-                bodega: bodega[1],
                 usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
                 dia_pla: 0,
                 tipoconsulta: "AGENCIA"
@@ -218,7 +216,7 @@ export class GenerarOrdenTiqueService {
             const cos_unai = cos_uni;
             const pre_vta = cos_uni;
 
-            const bodega = fijo.bodega;
+            const bodega = data.bodega;
 
             //Insertar la orden
             await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
