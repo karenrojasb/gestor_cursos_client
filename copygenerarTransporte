@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Put, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Put } from '@nestjs/common';
 import { AsignacdpService } from './asignacdp.service';
 import { AsignaCdpDto } from './dto/asignacdp.dto';
 import { ReasignacdpDto } from './dto/reasignacdp.dto';
+import { eliminarcdpDto } from './dto/eliminarcdo.dto';
 
 @Controller()
 export class AsignacdpController {
@@ -18,5 +19,11 @@ export class AsignacdpController {
   async reasignacdp(@Body() reasignacdpDto: ReasignacdpDto) {
     return this.asignacdpService.reasignacdp(reasignacdpDto);
   }
-  
+
+  // 🟩 NUEVA RUTA PARA ELIMINAR / ANULAR CDP (estado 4)
+  @Put('eliminarcdp')
+  @HttpCode(HttpStatus.OK)
+  async eliminarcdp(@Body() eliminarcdp: eliminarcdpDto) {
+    return this.asignacdpService.eliminarcdp(eliminarcdp);
+  }
 }
