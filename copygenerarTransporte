@@ -1,29 +1,281 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Put } from '@nestjs/common';
-import { AsignacdpService } from './asignacdp.service';
-import { AsignaCdpDto } from './dto/asignacdp.dto';
-import { ReasignacdpDto } from './dto/reasignacdp.dto';
-import { eliminarcdpDto } from './dto/eliminarcdo.dto';
+[Nest] 11572  - 05/12/2025, 7:57:12 a. m.    WARN [AuraQuantic] App running in port 9010
+Error consultando AuraQuantic PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRawUnsafe()` invocation:
 
-@Controller()
-export class AsignacdpController {
-  constructor(private readonly asignacdpService: AsignacdpService) {}
 
-  @Post('asignacdp')
-  @HttpCode(HttpStatus.OK)
-  async createAsignacdp(@Body() asignacdpDto: AsignaCdpDto) {
-    return this.asignacdpService.createAsignacdp(asignacdpDto);
-  }
-
-  @Put('reasignacdp')
-  @HttpCode(HttpStatus.OK)
-  async reasignacdp(@Body() reasignacdpDto: ReasignacdpDto) {
-    return this.asignacdpService.reasignacdp(reasignacdpDto);
-  }
-
-  // 🟩 NUEVA RUTA PARA ELIMINAR / ANULAR CDP (estado 4)
-  @Put('eliminarcdp')
-  @HttpCode(HttpStatus.OK)
-  async eliminarcdp(@Body() eliminarcdp: eliminarcdpDto) {
-    return this.asignacdpService.eliminarcdp(eliminarcdp);
-  }
+Raw query failed. Code: `102`. Message: `Incorrect syntax near '_1389'.`
+    at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:7283)
+    at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:6608)
+    at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:6315)
+    at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:133:9551)
+    at async AsignacdpService.eliminarcdp (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\asignacdp\asignacdp.service.ts:173:29)
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 {
+  code: 'P2010',
+  meta: { code: '102', message: "Incorrect syntax near '_1389'." },
+  clientVersion: '6.14.0'
 }
+Error consultando AuraQuantic PrismaClientKnownRequestError: 
+Invalid `prisma.$queryRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `102`. Message: `Incorrect syntax near '_2345'.`
+    at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:7283)
+    at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:6608)
+    at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:124:6315)
+    at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-2\client\runtime\library.js:133:9551)
+    at async AsignacdpService.eliminarcdp (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\asignacdp\asignacdp.service.ts:173:29)
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 {
+  code: 'P2010',
+  meta: { code: '102', message: "Incorrect syntax near '_2345'." },
+  clientVersion: '6.14.0'
+}
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { AsignaCdpDto } from './dto/asignacdp.dto';
+import { DisponibilidadService } from 'src/disponibilidad/disponibilidad.service';
+import { formatDateToYMD, getNowDate } from 'src/utils/date.util';
+import { ReasignacdpDto } from './dto/reasignacdp.dto';
+import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
+import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
+import { eliminarcdpDto } from './dto/eliminarcdp.dto';
+
+interface ProcedureResultSaldo {
+    cod_rub: string,
+    Padre: string,
+    saldo: number,
+    estado: number
+}
+
+@Injectable()
+export class AsignacdpService {
+    constructor(
+        private readonly prismaNovasoftService: PrismaNovasoftService,
+        private readonly disponibilidadService: DisponibilidadService,
+        private readonly prismaAuraquanticService: PrismaAuraquanticService
+    ) { }
+
+    /**
+     * Asigna un CDP
+     * @param asignacdpDto - The AsignacdpDto object containing the CDP description, rubro code, operating center, SNIES code, value, requester, and process reference
+     * @returns An object containing the response code and message
+     */
+    async createAsignacdp(asignacdpDto: AsignaCdpDto) {
+        const { descripcion, Codigorubro, CentroOperativo, CodigoSNIES, valorcdp, solicitante, Referenciaproc } = asignacdpDto;
+
+        const newDescripcion = descripcion.slice(0, 250);
+
+        const codSuc: any = await this.disponibilidadService.getCodigoSucursal(Number(CentroOperativo));
+
+        const procedure_result_saldo: ProcedureResultSaldo = await this.disponibilidadService.executeProcedure(Codigorubro, codSuc, CodigoSNIES, Number(CentroOperativo), Number(valorcdp));
+
+        let procedure_result_asignar_cdp: any[];
+
+        try {
+            procedure_result_asignar_cdp = await this.prismaNovasoftService.$queryRaw`
+            EXEC usr_sp_pre_crea_cdp  ${formatDateToYMD()}, ${Codigorubro}, ${codSuc.usr_sucursal}, ${CodigoSNIES}, 
+            ${CentroOperativo}, '0', '0', ${procedure_result_saldo.Padre}, ${solicitante}, 
+            ${valorcdp}, ${procedure_result_saldo.estado}, ${newDescripcion}, ${Referenciaproc}
+        `;
+        } catch (error) {
+            console.log('Error al asignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        let codigos_respuesta: any[];
+
+        try {
+            codigos_respuesta = await this.prismaNovasoftService.$queryRaw`
+            select estado_cdp, num_doc from PRE_cuedoc where ano_doc = ${getNowDate().getFullYear()}
+            and cod_rubro = ${Codigorubro} and num_doc = ${procedure_result_asignar_cdp[0].num_doc}
+            and cod_cl1 = ${CentroOperativo} and cod_ter = ${solicitante}
+        `;
+        } catch (error) {
+            console.log('Error al obtener los codigos de respuestas', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        /**
+         * 1 - Disponible
+         * 0 - No disponible
+         */
+        const descripcion_estado = codigos_respuesta[0].estado_cdp == 1 ? "Disponible" : "No disponible";
+        const valorFinalCDP = descripcion_estado === "Disponible" ? valorcdp : 0;
+
+        return {
+            Codigo: "200",
+            Mensaje: "Consulta realizada Con éxito",
+            numerocdp: codigos_respuesta[0].num_doc.toString().trim().replace(/^0+/, ''),
+            estadoasig: codigos_respuesta[0].estado_cdp,
+            DescripcionEstado: descripcion_estado,
+            valorcdp: valorFinalCDP
+        }
+    }
+
+    /**
+     * Reasigna un CDP
+     * @param reasignacdpDto - The ReasignacdpDto object containing the CDP number, value, and status
+     * @returns An object containing the response code and message
+     */
+    async reasignacdp(reasignacdpDto: ReasignacdpDto) {
+        const { numerocdp, valorcdp, estadoasig, CentroOperativo, Codigorubro, solicitante } = reasignacdpDto;
+
+        let executeProcedureReasignaCdp: any[];
+
+        const newEstadoCdp = this.validateEstadoCdp(estadoasig);
+
+        const num_cdp_result = await this.numDocResult(Codigorubro, CentroOperativo, solicitante, numerocdp);
+
+        try {
+            executeProcedureReasignaCdp = await this.prismaNovasoftService.$queryRaw`
+                EXEC usr_sp_pre_modifica_cdp ${getNowDate().getFullYear()}, ${num_cdp_result}, ${valorcdp}, ${newEstadoCdp}
+            `;
+        } catch (error) {
+            console.log('Error al reasignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        if (executeProcedureReasignaCdp[0].respuesta == 'CDP NO EXISTE')
+            throw new NotFoundException('El cdp no existe');
+
+        return {
+            Codigo: "200",
+            Mensaje: "Consulta realizada Con éxito"
+        }
+    }
+
+    /**
+     * Obtener número de documento
+     * @param Codigorubro 
+     * @param CentroOperativo 
+     * @param solicitante 
+     * @param numerocdp 
+     * @returns 
+     */
+    private async numDocResult(Codigorubro: string, CentroOperativo: string, solicitante: string, numerocdp: string) {
+        let num_doc_result: any[];
+
+        try {
+            num_doc_result = await this.prismaNovasoftService.$queryRaw`
+                select num_doc from PRE_cuedoc
+                where ano_doc = ${getNowDate().getFullYear()} and cod_rubro = ${Codigorubro} 
+                and cod_cl1 = ${CentroOperativo} and cod_ter = ${solicitante}
+                AND num_doc LIKE CONCAT('%', ${numerocdp}, '%')
+        `;
+        } catch (error) {
+            console.log('Error al reasignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        if (num_doc_result.length === 0) throw new NotFoundException('El cdp no existe');
+
+        return num_doc_result[0].num_doc;
+    }
+
+    /**
+     * Validar estado CDP
+     * @param estadocdp 
+     * @returns 
+     */
+    private validateEstadoCdp(estadocdp: string) {
+        const newEstadoCdp = Number(estadocdp);
+
+        if (isNaN(newEstadoCdp)) throw new BadRequestException('El campo estadocdp no es un número');
+        // if (newEstadoCdp !== 0 && newEstadoCdp !== 1 || newEstadoCdp !== 4) throw new BadRequestException('El campo estadocdp debe ser 0 o 1');
+        return newEstadoCdp;
+    }
+ 
+    //
+    //Eliminar el CDP 
+async eliminarcdp(eliminarcdp: eliminarcdpDto) {
+    const { Referenciaproc, Solicitante, CentroOperativo } = eliminarcdp;
+
+    try {
+        // --- FUNCIÓN REUTILIZABLE PARA EJECUTAR EL SP ---
+        const ejecutarAnulacion = async (numeroCDP: string, valor: number) => {
+            if (!numeroCDP || !valor) return;
+
+            const ano = getNowDate().getFullYear();
+
+            await this.prismaNovasoftService.$queryRawUnsafe(`
+                EXEC usr_sp_pre_modifica_cdp '${ano}', '${numeroCDP}', '${valor}', 4
+            `);
+        };
+
+        // --- 1. HOTEL ---
+        const resultHotel = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110_70242.[3_valorCDPasignadoHT] AS valor,
+                p110_70242.[3_numeroCDPHT] AS numeroCDP,
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_70242 p110_70242 ON p110_70242._ElementID = p110.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = ${Referenciaproc}
+        `);
+
+        if (resultHotel.length > 0 && resultHotel[0].numeroCDP) {
+            await ejecutarAnulacion(resultHotel[0].numeroCDP, resultHotel[0].valor);
+        }
+
+        // --- 2. TIQUETE ---
+        const resultTiquete = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110_69945.[3_ValorAsignadoCDPTK] AS valor,
+                p110_69945.[3_numeroCDPTK] AS numeroCDP,
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_69945 p110_69945 ON p110_69945._ElementID = p110.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = ${Referenciaproc}
+        `);
+
+        if (resultTiquete.length > 0 && resultTiquete[0].numeroCDP) {
+            await ejecutarAnulacion(resultTiquete[0].numeroCDP, resultTiquete[0].valor);
+        }
+
+        // --- 3. INSCRIPCIÓN ---
+        const resultInscripcion = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110.[3_Numero CDP asignado] AS numeroCDP,
+                p110.[3_CDPaSolicitar] AS valor,
+                p110_o1.[3_TXT_RubroPresupuestal] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = ${Referenciaproc}
+        `);
+
+        if (resultInscripcion.length > 0 && resultInscripcion[0].numeroCDP) {
+            await ejecutarAnulacion(resultInscripcion[0].numeroCDP, resultInscripcion[0].valor);
+        }
+
+        // --- 4. GASTOS DE VIAJE ---
+        const resultViaje = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110.[3_cdpasigandoGV] AS numeroCDP,
+                p110.[3_ValorAsignadoGV] AS valor,    -- <- SI ESTE ES EL CAMPO CORRECTO
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = ${Referenciaproc}
+        `);
+
+        if (resultViaje.length > 0 && resultViaje[0].numeroCDP) {
+            await ejecutarAnulacion(resultViaje[0].numeroCDP, resultViaje[0].valor);
+        }
+
+        return {
+            mensaje: "CDPs anulados correctamente (estado 4) cuando existían datos"
+        };
+
+    } catch (error) {
+        console.log("Error consultando AuraQuantic", error);
+        throw new InternalServerErrorException("Error consultando información del proceso");
+    }
+}
+    }
+
