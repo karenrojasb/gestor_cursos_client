@@ -1,3 +1,94 @@
+async eliminarcdp(eliminarcdp: eliminarcdpDto) {
+    const { Referenciaproc, Solicitante, CentroOperativo } = eliminarcdp;
+
+    try {
+        // --- FUNCIÓN REUTILIZABLE PARA EJECUTAR EL SP ---
+        const ejecutarAnulacion = async (numeroCDP: string, valor: number) => {
+            if (!numeroCDP || !valor) return;
+
+            const ano = getNowDate().getFullYear();
+
+            await this.prismaNovasoftService.$queryRawUnsafe(`
+                EXEC usr_sp_pre_modifica_cdp '${ano}', '${numeroCDP}', '${valor}', 4
+            `);
+        };
+
+        // --- 1. HOTEL ---
+        const resultHotel = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110_70242.[3_valorCDPasignadoHT] AS valor,
+                p110_70242.[3_numeroCDPHT] AS numeroCDP,
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_70242 p110_70242 ON p110_70242._ElementID = p110.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = '${Referenciaproc}'
+        `);
+
+        if (resultHotel.length > 0 && resultHotel[0].numeroCDP) {
+            await ejecutarAnulacion(resultHotel[0].numeroCDP, resultHotel[0].valor);
+        }
+
+        // --- 2. TIQUETE ---
+        const resultTiquete = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110_69945.[3_ValorAsignadoCDPTK] AS valor,
+                p110_69945.[3_numeroCDPTK] AS numeroCDP,
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_69945 p110_69945 ON p110_69945._ElementID = p110.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = '${Referenciaproc}'
+        `);
+
+        if (resultTiquete.length > 0 && resultTiquete[0].numeroCDP) {
+            await ejecutarAnulacion(resultTiquete[0].numeroCDP, resultTiquete[0].valor);
+        }
+
+        // --- 3. INSCRIPCIÓN ---
+        const resultInscripcion = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110.[3_Numero CDP asignado] AS numeroCDP,
+                p110.[3_CDPaSolicitar] AS valor,
+                p110_o1.[3_TXT_RubroPresupuestal] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = '${Referenciaproc}'
+        `);
+
+        if (resultInscripcion.length > 0 && resultInscripcion[0].numeroCDP) {
+            await ejecutarAnulacion(resultInscripcion[0].numeroCDP, resultInscripcion[0].valor);
+        }
+
+        // --- 4. GASTOS DE VIAJE ---
+        const resultViaje = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                p110.[3_numerocdpGV] AS numeroCDP,
+                p110.[3_cdpasigandoGV] AS valor,  
+                p110_o1.[3_TXT_RubroCapacitaciones] AS rubro
+            FROM AP__BPM_Procesos p
+            JOIN Panel_110 p110 ON p110._ElementID = p.ID
+            JOIN Panel_110_o1 p110_o1 ON p110_o1._BaseTableRegisterID = p110.ID
+            WHERE p.Referencia = '${Referenciaproc}'
+        `);
+
+        if (resultViaje.length > 0 && resultViaje[0].numeroCDP) {
+            await ejecutarAnulacion(resultViaje[0].numeroCDP, resultViaje[0].valor);
+        }
+
+        return {
+            codigo: "200",
+            mensaje: "Consulta realizada con éxito"
+        };
+
+    } catch (error) {
+        console.log("Error consultando AuraQuantic", error);
+        throw new InternalServerErrorException("Error consultando información del proceso");
+    }
+}
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { AsignaCdpDto } from './dto/asignacdp.dto';
 import { DisponibilidadService } from 'src/disponibilidad/disponibilidad.service';
