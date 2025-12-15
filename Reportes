@@ -1,3 +1,75 @@
+else if (tipoIngreso.toLowerCase() === 'parcial') {
+
+  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
+    FROM inv_inf_inv
+  `);
+
+  num_doc = consecutivo[0]?.numDoc;
+  if (!num_doc || isNaN(num_doc)) {
+    throw new Error("Error al generar consecutivo para ingreso parcial.");
+  }
+
+  const hayFactura = cantidadesAuraParcial.some(
+    a => (a.factura || '').trim() !== ''
+  );
+
+  if (!hayFactura) {
+    throw new BadRequestException(
+      `No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`
+    );
+  }
+
+  for (const aura of cantidadesAuraParcial) {
+
+    const CantidadT = Number(aura.CantidadT || 0);
+    const CantidadR = Number(aura.CantidadR || 0);
+    const CantidadI = Number(aura.CantidadI || 0)
+    const factura = (aura.factura || '').trim();
+
+    if (!factura) continue;
+    if (CantidadR <= 0) continue;
+
+    const facturasValidas = consulfactura.map(f => (f.factura || '').trim());
+    if (!facturasValidas.includes(factura)) continue;
+
+    
+      const CantidadIActualizada = CantidadI + CantidadT;
+
+  
+  const CantidadPendiente = CantidadR - CantidadIActualizada;
+ console.log('===== DEBUG RESTA PARCIAL =====');
+  console.log({
+    item: aura.codItem,
+    CantidadR,        // recibida
+    CantidadT, 
+    CantidadI,       // total
+    resultadoResta: CantidadPendiente
+  });
+    console.log({
+      item: aura.codItem,
+      CantidadR,
+      CantidadT,
+      CantidadI,
+      CantidadPendiente
+    });
+
+    if (CantidadPendiente <= 0) continue;
+
+    const codigoAura = String(aura.codItem).split(' - ')[0].trim();
+
+    const normalizar = (v: string) =>
+      v.replace(/\s+/g, '').toUpperCase();
+
+    const novas = items.filter(
+      i => normalizar(i.item) === normalizar(codigoAura)
+    );
+
+    if (novas.length === 0) continue;
+
+    let restante = CantidadPendiente;
+//Se debe agregar antes de la resta se debe determinar bien, ya que primero se hace una suma entre cantidadI y cantidadT y con el resultado que de se hace la resta
+
 for (const nova of novas) {
   if (restante <= 0) break;
 
@@ -13,7 +85,7 @@ for (const nova of novas) {
   // 🔹 Primera suma: actualizar CantidadI con la cantidad recibida
   const CantidadIActualizada = CantidadI + CantidadR;
 
-  // 🔹 Resta final: calcular pendiente con el resultado de la suma
+  
   const CantidadPendiente = CantidadT - CantidadIActualizada;
 
   console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
@@ -41,20 +113,3 @@ for (const nova of novas) {
   );
 
   if (cantidadInsertar <= 0) continue;
-
-  // 🔹 Aquí se haría el INSERT con cantidadInsertar
-  await this.prismaNovasoftService.$executeRawUnsafe(`
-    INSERT INTO inv_inf_inv (
-      ...,
-      cantidad,
-      ...
-    )
-    VALUES (
-      ...,
-      '${cantidadInsertar}',
-      ...
-    );
-  `);
-
-  restante -= cantidadInsertar;
-}
