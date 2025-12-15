@@ -1,3 +1,5 @@
+//Se debe agregar antes de la resta se debe determinar bien, ya que primero se hace una suma entre cantidadI y cantidadT y con el resultado que de se hace la resta
+
 for (const nova of novas) {
   if (restante <= 0) break;
 
