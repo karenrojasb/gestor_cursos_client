@@ -377,7 +377,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
       if (pendienteRealERP <= 0) continue;
 
       
-      const cantidadInsertar = Math.min(restante, cantidadNova, pendienteRealERP);
+      const cantidadInsertar = CantidadPendiente >0 ? CantidadPendiente : 0;
       if (cantidadInsertar <= 0) continue;
   //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
@@ -401,7 +401,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
         '${nova.cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}', 
         '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
         '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
-        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${CantidadIActualizada}', 
+        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${cantidadInsertar}', 
         '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
         '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
         '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
