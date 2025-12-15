@@ -358,7 +358,9 @@ if (CantidadPendiente <= 0) continue;
 
   
 const codigoAura = String(aura.codItem).split(' - ')[0].trim();
- 
+console.log('--- DEBUG MATCH ---')
+  console.log('ITEMS AURA:', codigoAura);
+  console.log('ITEMS NOVA:', items.map(i => i.item));
 
 
 const normalizar = (v: string) =>
@@ -384,8 +386,7 @@ const yaIngresado = mapIngresado.get(codigoAura) || 0;
 const pendienteReal = CantidadT - yaIngresado; // CantidadR = recibida anterior
 if (pendienteReal <= 0) continue;
   const cantidadInsertar = Math.min(restante, cantidadNova);    
-  console.log('ITEMS AURA:', codigoAura);
-  console.log('ITEMS NOVA:', items.map(i => i.item));
+  
   
   //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
