@@ -1,3 +1,27 @@
+[11:18:08 a. m.] File change detected. Starting incremental compilation...
+
+[11:18:09 a. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 4748  - 15/12/2025, 11:18:12 a. m.    WARN [AuraQuantic] App running in port 9010
+===== DEBUG SUMA Y RESTA PARCIAL =====
+{
+  item: 'UP112;; - TARJETAS ALMACEN',
+  CantidadT: 0,
+  CantidadI: 1,
+  CantidadR: 11,
+  CantidadIActualizada: 1,
+  CantidadPendiente: 10
+}
+===== DEBUG SUMA Y RESTA PARCIAL =====
+{
+  item: 'UP115;; - ESFERO LOGO UGE - ALMACEN',
+  CantidadT: 0,
+  CantidadI: 1,
+  CantidadR: 12,
+  CantidadIActualizada: 1,
+  CantidadPendiente: 11
+}
+
 import { Injectable, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
