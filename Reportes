@@ -1,5 +1,3 @@
-//Se debe agregar antes de la resta se debe determinar bien, ya que primero se hace una suma entre cantidadI y cantidadT y con el resultado que de se hace la resta
-
 for (const nova of novas) {
   if (restante <= 0) break;
 
@@ -7,16 +5,35 @@ for (const nova of novas) {
   if (cantidadNova <= 0) continue;
 
   const yaIngresado = mapIngresado.get(codigoAura) || 0;
+
+  const CantidadI = Number(aura.CantidadI || 0);  // Cantidad ya ingresada
+  const CantidadR = Number(aura.CantidadR || 0);  // Cantidad recibida ahora
+  const CantidadT = Number(aura.CantidadT || 0);  // Cantidad total
+
+  // 🔹 Primera suma: actualizar CantidadI con la cantidad recibida
+  const CantidadIActualizada = CantidadI + CantidadR;
+
+  // 🔹 Resta final: calcular pendiente con el resultado de la suma
+  const CantidadPendiente = CantidadT - CantidadIActualizada;
+
+  console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
+  console.log({
+    item: aura.codItem,
+    CantidadT,
+    CantidadI,
+    CantidadR,
+    CantidadIActualizada,
+    CantidadPendiente
+  });
+
+  // Si no hay pendiente, continuar
+  if (CantidadPendiente <= 0) continue;
+
+  // Validación adicional con ERP
   const pendienteRealERP = CantidadPendiente - yaIngresado;
+  if (pendienteRealERP <= 0) continue;
 
-  if (pendienteRealERP <= 0) break;
-
-  const CantidadI = Number(aura.CantidadI || 0);
-  if (CantidadI > CantidadPendiente) {
-    console.log(`Se omite ${codigoAura} porque CantidadI (${CantidadI}) > CantidadPendiente (${CantidadPendiente})`);
-    continue;
-  }
-
+  // Determinar la cantidad a insertar
   const cantidadInsertar = Math.min(
     restante,
     cantidadNova,
@@ -24,3 +41,20 @@ for (const nova of novas) {
   );
 
   if (cantidadInsertar <= 0) continue;
+
+  // 🔹 Aquí se haría el INSERT con cantidadInsertar
+  await this.prismaNovasoftService.$executeRawUnsafe(`
+    INSERT INTO inv_inf_inv (
+      ...,
+      cantidad,
+      ...
+    )
+    VALUES (
+      ...,
+      '${cantidadInsertar}',
+      ...
+    );
+  `);
+
+  restante -= cantidadInsertar;
+}
