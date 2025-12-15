@@ -379,11 +379,11 @@ for (const nova of novas) {
   if (cantidadNova <= 0) continue;
 const yaIngresado = mapIngresado.get(codigoAura) || 0;
 
-const pendienteReal =
-  CantidadT - yaIngresado - CantidadR; // CantidadR = recibida anterior
+const pendienteReal = CantidadT - yaIngresado; // CantidadR = recibida anterior
 if (pendienteReal <= 0) continue;
   const cantidadInsertar = Math.min(restante, cantidadNova);    
-  
+  console.log('ITEMS AURA:', codigoAura);
+  console.log('ITEMS AURA:', items.map(i => i.item));
   
   //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
