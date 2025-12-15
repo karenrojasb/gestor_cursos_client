@@ -15,6 +15,7 @@ export class GenerarIngresoService {
   
 
   async generarIngreso(data: generarIngresoDto ) {
+    try {
     const {  obs_orc, tipoIngreso,  num_o, usr_tercero, Referencia} = data;
 
     //Funcion para limpiar los valores
@@ -25,7 +26,16 @@ export class GenerarIngresoService {
   
 
       
-
+ const ingresadoERP = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  SELECT item, SUM(cantidad) total_ingresado
+  FROM inv_inf_inv
+  WHERE usr_pedido = '${num_o}'
+    AND obs_orc LIKE '%' + '${Referencia}' + '%'
+  GROUP BY item
+`);
+const mapIngresado = new Map(
+  ingresadoERP.map(r => [String(r.item).trim(), Number(r.total_ingresado)])
+);
   
   // Obtener asig_numero desde inv_inf_inv usando la referencia
   const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -97,15 +107,26 @@ export class GenerarIngresoService {
     
     const element = elementID[0].ID;
     
-
+  const cantidadesAuraParcial = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+         SELECT ID, 
+        [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
+        [2_ART_CON_GAN/DEC_CANT_ERP] CantidadT, 
+        ISNULL([2_ART_CON_GAN/DEC_Cant_Ingre], 0) CantidadI, 
+        ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR, 
+        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
+FROM Panel_109_68508_83802 
+        WHERE [_ElementID] = ${element}
+        ORDER BY ID
+      `);
+      
 
     //Consulta de cantidades
     const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
         SELECT ID, 
         [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
-        [2_ART_CON_GAN/CANTIDAD_ART] CantidadT, 
-        ISNULL([2_ART_CON_GAN/ENT_CANT_ERP], 0) CantidadI, 
-        ISNULL([2_ART_CON_GAN/ENT_CANT_RECIBIDA], 0) CantidadR, 
+        [2_ART_CON_GAN/DEC_CANT_ERP] CantidadT, 
+        ISNULL([2_ART_CON_GAN/ENT_CANT_RECIBIDA], 0) CantidadI, 
+        ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR, 
         ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
 FROM Panel_109_68508_83802 
         WHERE [_ElementID] = ${element}
@@ -193,27 +214,29 @@ WHERE   CAB.ano_doc = @ano_o
     const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     ${consultaitems}`);
 
+  
 
     //Validacion de cantidades
-    const cantidadAura = cantidadesAura.length;
+   
+    let num_doc = null;
+
+
+     
+ //Si es completo
+  if (tipoIngreso.toLowerCase() === 'completo') {
+ const cantidadAura = cantidadesAura.length;
     const cantidadNova = items.length;
     
     if (cantidadAura !== cantidadNova) {
       return {
         codigo: '400',
-        mensaje: `No se puede generar el ingreso, la cantidad de items no coincide`,
+        Message: `No se puede generar el ingreso, la cantidad de items no coincide`,
         obs_orc,
         num_o,
         cantidadAura,
         cantidadNova,
       };
     }
-
-    let num_doc = null;
-
-
- //Si es completo
-  if (tipoIngreso.toLowerCase() === 'completo') {
 
   //Generar el consecutivo COMPLETO
   const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
@@ -284,56 +307,85 @@ VALUES (
 
 //Si es parcial
 
-let Nfactura = null;
-if (tipoIngreso.toLowerCase() === 'parcial') {
+else if (tipoIngreso.toLowerCase() === 'parcial') {
 
-  // Generar consecutivo parcial
+
   const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
     FROM inv_inf_inv
   `);
 
   num_doc = consecutivo[0]?.numDoc;
-  if (consulfactura.length === 0) {
-    throw new BadRequestException(`No se encontró factura para la referencia ${obs_orc} y la OC ${num_o}`);
-  }
-  const Nfactura = consulfactura[0].factura;
   if (!num_doc || isNaN(num_doc)) {
     throw new Error("Error al generar consecutivo para ingreso parcial.");
   }
 
-  // Ciclo para insertar PARCIAL
-  for (let i = 0; i < cantidadesAura.length; i++) {
-    const aura = cantidadesAura[i];
-    const nova = items[i];
-  
-    const CantidadT = Number(aura.CantidadT);
-    const CantidadI = Number(aura.CantidadI);
-    const CantidadR = Number(aura.CantidadR);
-    const factura = (aura.factura || "").trim();
-  
-    // REGLA 1 → Si factura del item != Nfactura → se continúa normal
-    if (factura !== Nfactura) {
-      console.log(`Item ${i}: factura diferente, continúa`);
-    }
-  
-    // Calcular CantidadR real
-    let CantidadRCalc = CantidadT - CantidadI;
-  
-    // REGLA 2 → Si CantidadR > (CantidadT - CantidadI), ajustar
-    if (CantidadR > CantidadRCalc) {
-      CantidadRCalc = CantidadRCalc;
-    }
-  
-    // REGLA 3 → Actualizar CantidadI local
-    const nuevaCantidadI = CantidadI + CantidadRCalc;
-  
-    // Si no hay factura o no hay cantidad pendiente
-    if (Nfactura === "" || CantidadRCalc === 0) continue;
-  
-    if (factura === '' || factura === null) continue;
 
-    //insert PARCIAL
+  const hayFactura = cantidadesAuraParcial.some(a => (a.factura || '').trim() !== '');
+  if (!hayFactura) {
+    throw new BadRequestException(
+      `No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`
+    );
+  }
+
+
+  for (const aura of cantidadesAuraParcial) {
+
+    const CantidadT = Number(aura.CantidadT);
+    const factura = (aura.factura || '').trim();
+
+    
+
+if (!factura) continue;
+let CantidadI = Number(aura.CantidadI);
+let CantidadR = Number(aura.CantidadR || 0);
+
+if (CantidadR === 0) continue;
+ const facturasValidas = consulfactura.map(f => (f.factura || '').trim());
+  if (!facturasValidas.includes(factura)) continue;
+if (CantidadR > (CantidadT - CantidadI)) {
+  CantidadR = CantidadT - CantidadI;
+}
+
+CantidadI = CantidadI + CantidadR;
+const CantidadPendiente = CantidadT - CantidadI;
+
+
+if (CantidadPendiente <= 0) continue;
+
+
+ 
+
+  
+const codigoAura = String(aura.codItem).split(' - ')[0].trim();
+ 
+
+
+    
+const novas = items.filter(
+  i => String(i.item).trim() === codigoAura
+);
+
+if (novas.length === 0) continue;
+const CantidadRCalc = CantidadPendiente;
+
+let restante = CantidadRCalc;
+
+for (const nova of novas) {
+ if (restante <= 0) break;
+
+  const cantidadNova = Number(nova.cantidad || 0);
+
+  if (cantidadNova <= 0) continue;
+const yaIngresado = mapIngresado.get(codigoAura) || 0;
+
+const pendienteReal =
+  CantidadT - yaIngresado - CantidadR; // CantidadR = recibida anterior
+if (pendienteReal <= 0) continue;
+  const cantidadInsertar = Math.min(restante, cantidadNova);    
+  
+  
+  //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
       INSERT INTO inv_inf_inv (
         ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
@@ -355,7 +407,7 @@ if (tipoIngreso.toLowerCase() === 'parcial') {
         '${nova.cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}', 
         '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
         '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
-        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${CantidadR}', 
+        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${cantidadInsertar}', 
         '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
         '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
         '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
@@ -366,7 +418,9 @@ if (tipoIngreso.toLowerCase() === 'parcial') {
       );
       
         `);
-      
+        
+        restante -= cantidadInsertar;
+    }      
         }
       }
 
@@ -404,13 +458,13 @@ const asig_numero = asigNumeroResult.length > 0
 
 return {
     Codigo: `200`,
-    Mensaje: `Consulta realiza con éxito`,
+    Message: `Consulta realiza con éxito`,
     asig_numero
     
 };
 
 } catch(error) {
-        console.error("Error al generar la orden:", error.mensaje);
+        console.error("Error al generar la orden:", error.message);
         if (error instanceof HttpException) throw error;
 
         console.log('Error al reasignar el cdp', error);
@@ -418,5 +472,5 @@ return {
 
 
     } 
-
+  }
 }
