@@ -1,15 +1,10 @@
-const hayFactura = cantidadesAuraParcial.some(
-  a => (a.factura || '').trim() !== ''
-);
+for (const aura of cantidadesAuraParcial) {
 
-console.log('HAY FACTURA =>', hayFactura);
-console.log(
-  'FACTURAS AURA =>',
-  cantidadesAuraParcial.map(a => a.factura)
-);
-
-if (!hayFactura) {
-  throw new BadRequestException(
-    `No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`
-  );
-}
+  console.log('================ AURA ITEM ================');
+  console.log({
+    codItem: aura.codItem,
+    factura: aura.factura,
+    CantidadT: aura.CantidadT,
+    CantidadI: aura.CantidadI,
+    CantidadR: aura.CantidadR
+  });
