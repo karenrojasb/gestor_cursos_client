@@ -1,76 +1,95 @@
-for (const aura of cantidadesAuraParcial) {
+else if (tipoIngreso.toLowerCase() === 'parcial') {
 
-  const CantidadT = Number(aura.CantidadT || 0); // Total
-  const CantidadI = Number(aura.CantidadI || 0); // Ya ingresado
-  const CantidadR = Number(aura.CantidadR || 0); // Recibido ahora
-  const factura = (aura.factura || '').trim();
+  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
+    FROM inv_inf_inv
+  `);
 
-  // Validar factura
-  if (!factura) {
-    console.warn(`Factura vacía para item ${aura.codItem}`);
-    continue;
+  num_doc = consecutivo[0]?.numDoc;
+  if (!num_doc || isNaN(num_doc)) {
+    throw new BadRequestException("Error al generar consecutivo para ingreso parcial.");
   }
 
-  const facturasValidas = consulfactura.map(f => (f.factura || '').trim().toUpperCase());
-  if (!facturasValidas.includes(factura.toUpperCase())) {
-    console.warn(`Factura no válida: ${factura} para item ${aura.codItem}`);
-    throw new BadRequestException(`Factura no válida: ${factura} para item ${aura.codItem}`);
+  const hayFactura = cantidadesAuraParcial.some(a => (a.factura || '').trim() !== '');
+  if (!hayFactura) {
+    throw new BadRequestException(`No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`);
   }
 
-  const CantidadIActualizada = CantidadI + CantidadT;
-  const CantidadPendiente = CantidadR - CantidadIActualizada;
+  for (const aura of cantidadesAuraParcial) {
 
-  // Depuración de cantidades
-  console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
-  console.log({
-    item: aura.codItem,
-    CantidadT,
-    CantidadI,
-    CantidadR,
-    CantidadIActualizada,
-    CantidadPendiente
-  });
+    const CantidadT = Number(aura.CantidadT || 0);
+    const CantidadI = Number(aura.CantidadI || 0);
+    const CantidadR = Number(aura.CantidadR || 0);
+    const factura = (aura.factura || '').trim();
 
-  if (CantidadPendiente <= 0) {
-    console.warn(`CantidadPendiente <= 0 para item ${aura.codItem}`);
-    continue; // O lanzar un BadRequest si quieres bloquear el flujo
-  }
-
-  const codigoAura = String(aura.codItem).split(' - ')[0].trim();
-  const normalizar = (v: string) => v.replace(/\s+/g, '').toUpperCase();
-  const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
-
-  if (novas.length === 0) {
-    console.warn(`No se encontró item correspondiente en Nova para ${codigoAura}`);
-    throw new BadRequestException(`No se encontró item correspondiente en Nova para ${codigoAura}`);
-  }
-
-  let restante = CantidadPendiente;
-
-  for (const nova of novas) {
-    if (restante <= 0) break;
-
-    const cantidadNova = Number(nova.cantidad || 0);
-    if (cantidadNova <= 0) {
-      console.warn(`cantidadNova <= 0 para item ${nova.item}`);
+    // Validación básica
+    if (!factura) {
+      console.warn(`Item ${aura.codItem} tiene factura vacía, se omite`);
+      continue;
+    }
+    if (CantidadR <= 0) {
+      console.warn(`Item ${aura.codItem} con CantidadR <= 0, se omite`);
       continue;
     }
 
-    const yaIngresado = mapIngresado.get(codigoAura) || 0;
-    const pendienteRealERP = CantidadPendiente - yaIngresado;
+    const facturasValidas = consulfactura.map(f => (f.factura || '').trim().toUpperCase());
+    if (!facturasValidas.includes(factura.toUpperCase())) {
+      console.warn(`Factura ${factura} de item ${aura.codItem} no coincide con facturas válidas`);
+      throw new BadRequestException(`Factura inválida para item ${aura.codItem}: ${factura}`);
+    }
 
-    if (pendienteRealERP <= 0) {
-      console.warn(`pendienteRealERP <= 0 para item ${nova.item}`);
+    const CantidadIActualizada = CantidadI + CantidadT;
+    const CantidadPendiente = CantidadR - CantidadIActualizada;
+
+    console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
+    console.log({
+      item: aura.codItem,
+      CantidadT,
+      CantidadI,
+      CantidadR,
+      CantidadIActualizada,
+      CantidadPendiente
+    });
+
+    if (CantidadPendiente <= 0) {
+      console.warn(`Item ${aura.codItem} con CantidadPendiente <= 0, se omite`);
       continue;
     }
 
-    const cantidadInsertar = pendienteRealERP > 0 ? pendienteRealERP : 0;
-    if (cantidadInsertar <= 0) {
-      console.warn(`cantidadInsertar <= 0 para item ${nova.item}`);
-      continue;
+    const codigoAura = String(aura.codItem).split(' - ')[0].trim();
+    const normalizar = (v: string) => v.replace(/\s+/g, '').toUpperCase();
+    const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
+
+    if (novas.length === 0) {
+      console.warn(`No se encontró item en Nova para código Aura ${codigoAura}`);
+      throw new BadRequestException(`Item no encontrado en ERP para código ${codigoAura}`);
     }
 
-    // Aquí iría tu insert
-    console.log(`Preparado para insertar item ${nova.item} cantidad: ${cantidadInsertar}`);
+    let restante = CantidadPendiente;
+
+    for (const nova of novas) {
+      if (restante <= 0) break;
+
+      const cantidadNova = Number(nova.cantidad || 0);
+      if (cantidadNova <= 0) {
+        console.warn(`Item Nova ${nova.item} con cantidad <= 0, se omite`);
+        continue;
+      }
+
+      const yaIngresado = mapIngresado.get(codigoAura) || 0;
+      const pendienteRealERP = CantidadPendiente - yaIngresado;
+      if (pendienteRealERP <= 0) {
+        console.warn(`Item ${aura.codItem} ya ingresado suficiente, pendienteRealERP <= 0`);
+        continue;
+      }
+
+      const cantidadInsertar = CantidadPendiente > 0 ? CantidadPendiente : 0;
+      if (cantidadInsertar <= 0) {
+        console.warn(`Item ${aura.codItem} cantidad a insertar <= 0`);
+        continue;
+      }
+
+      console.log(`Preparado para insertar item ${aura.codItem}, cantidad: ${cantidadInsertar}`);
+    }
   }
 }
