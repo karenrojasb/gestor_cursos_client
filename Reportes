@@ -327,7 +327,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
       `No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`
     );
   }
-  
+  console.log(hayFactura)
   console.log('TIPO INGRESO RAW =>', tipoIngreso);
 console.log('TIPO INGRESO NORMALIZADO =>', tipoIngreso?.toLowerCase()?.trim());
 
@@ -481,13 +481,3 @@ return {
     } 
   }
 }
-
-
-[8:20:08 a. m.] File change detected. Starting incremental compilation...
-
-[8:20:08 a. m.] Found 0 errors. Watching for file changes.
-
-[Nest] 22060  - 15/12/2025, 8:20:11 a. m.    WARN [AuraQuantic] App running in port 9010
-TIPO INGRESO RAW => parcial
-TIPO INGRESO NORMALIZADO => parcial
-CANTIDADES AURA PARCIAL LENGTH => 2
