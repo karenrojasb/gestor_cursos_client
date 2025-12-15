@@ -1,72 +1,76 @@
-else if (tipoIngreso.toLowerCase() === 'parcial') {
+for (const aura of cantidadesAuraParcial) {
 
-  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
-    FROM inv_inf_inv
-  `);
+  const CantidadT = Number(aura.CantidadT || 0); // Total
+  const CantidadI = Number(aura.CantidadI || 0); // Ya ingresado
+  const CantidadR = Number(aura.CantidadR || 0); // Recibido ahora
+  const factura = (aura.factura || '').trim();
 
-  num_doc = consecutivo[0]?.numDoc;
-  if (!num_doc || isNaN(num_doc)) {
-    throw new Error("Error al generar consecutivo para ingreso parcial.");
+  // Validar factura
+  if (!factura) {
+    console.warn(`Factura vacía para item ${aura.codItem}`);
+    continue;
   }
 
-  const hayFactura = cantidadesAuraParcial.some(
-    a => (a.factura || '').trim() !== ''
-  );
-
-  if (!hayFactura) {
-    throw new BadRequestException(
-      `No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`
-    );
+  const facturasValidas = consulfactura.map(f => (f.factura || '').trim().toUpperCase());
+  if (!facturasValidas.includes(factura.toUpperCase())) {
+    console.warn(`Factura no válida: ${factura} para item ${aura.codItem}`);
+    throw new BadRequestException(`Factura no válida: ${factura} para item ${aura.codItem}`);
   }
 
-  for (const aura of cantidadesAuraParcial) {
+  const CantidadIActualizada = CantidadI + CantidadT;
+  const CantidadPendiente = CantidadR - CantidadIActualizada;
 
-    const CantidadT = Number(aura.CantidadT || 0); // Total
-    const CantidadI = Number(aura.CantidadI || 0); // Ya ingresado
-    const CantidadR = Number(aura.CantidadR || 0); // Recibido ahora
-    const factura = (aura.factura || '').trim();
+  // Depuración de cantidades
+  console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
+  console.log({
+    item: aura.codItem,
+    CantidadT,
+    CantidadI,
+    CantidadR,
+    CantidadIActualizada,
+    CantidadPendiente
+  });
 
-    if (!factura || CantidadR <= 0) continue;
+  if (CantidadPendiente <= 0) {
+    console.warn(`CantidadPendiente <= 0 para item ${aura.codItem}`);
+    continue; // O lanzar un BadRequest si quieres bloquear el flujo
+  }
 
-    const facturasValidas = consulfactura.map(f => (f.factura || '').trim());
-    if (!facturasValidas.includes(factura)) continue;
+  const codigoAura = String(aura.codItem).split(' - ')[0].trim();
+  const normalizar = (v: string) => v.replace(/\s+/g, '').toUpperCase();
+  const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
 
-    
-    const CantidadIActualizada = CantidadI + CantidadT;
+  if (novas.length === 0) {
+    console.warn(`No se encontró item correspondiente en Nova para ${codigoAura}`);
+    throw new BadRequestException(`No se encontró item correspondiente en Nova para ${codigoAura}`);
+  }
 
-    
-    const CantidadPendiente = CantidadR - CantidadIActualizada;
+  let restante = CantidadPendiente;
 
-    console.log('===== DEBUG SUMA Y RESTA PARCIAL =====');
-    console.log({
-      item: aura.codItem,
-      CantidadT,
-      CantidadI,
-      CantidadR,
-      CantidadIActualizada,
-      CantidadPendiente
-    });
+  for (const nova of novas) {
+    if (restante <= 0) break;
 
-    if (CantidadPendiente <= 0) continue;
+    const cantidadNova = Number(nova.cantidad || 0);
+    if (cantidadNova <= 0) {
+      console.warn(`cantidadNova <= 0 para item ${nova.item}`);
+      continue;
+    }
 
-    const codigoAura = String(aura.codItem).split(' - ')[0].trim();
-    const normalizar = (v: string) => v.replace(/\s+/g, '').toUpperCase();
-    const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
-    if (novas.length === 0) continue;
+    const yaIngresado = mapIngresado.get(codigoAura) || 0;
+    const pendienteRealERP = CantidadPendiente - yaIngresado;
 
-    let restante = CantidadPendiente;
+    if (pendienteRealERP <= 0) {
+      console.warn(`pendienteRealERP <= 0 para item ${nova.item}`);
+      continue;
+    }
 
-    for (const nova of novas) {
-      if (restante <= 0) break;
+    const cantidadInsertar = pendienteRealERP > 0 ? pendienteRealERP : 0;
+    if (cantidadInsertar <= 0) {
+      console.warn(`cantidadInsertar <= 0 para item ${nova.item}`);
+      continue;
+    }
 
-      const cantidadNova = Number(nova.cantidad || 0);
-      if (cantidadNova <= 0) continue;
-
-      const yaIngresado = mapIngresado.get(codigoAura) || 0;
-      const pendienteRealERP = CantidadPendiente - yaIngresado;
-      if (pendienteRealERP <= 0) continue;
-
-      
-      const cantidadInsertar = CantidadPendiente >0 ? CantidadPendiente : 0;
-      if (cantidadInsertar <= 0) continue;
+    // Aquí iría tu insert
+    console.log(`Preparado para insertar item ${nova.item} cantidad: ${cantidadInsertar}`);
+  }
+}
