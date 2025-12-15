@@ -90,6 +90,4 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
       }
 
       console.log(`Preparado para insertar item ${aura.codItem}, cantidad: ${cantidadInsertar}`);
-    }
-  }
-}
+    
