@@ -1,9 +1,13 @@
-SELECT 
-  item,
-  usr_descrip_cue,
-  SUM(cantidad) AS total_ingresado
-FROM inv_inf_inv
-WHERE usr_pedido = '${num_o}'
-  AND obs_orc LIKE '%' + '${Referencia}' + '%'
-  AND usr_descrip_cue IS NOT NULL
-GROUP BY item, usr_descrip_cue;
+const codigoAura = String(aura.codItem).split(' - ')[0].trim();
+const descripcionAura = (aura['Descripción'] || '').trim();
+
+const ingresadoERP = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  SELECT ISNULL(SUM(cantidad), 0) total
+  FROM inv_inf_inv
+  WHERE usr_pedido = '${num_o}'
+    AND obs_orc LIKE '%' + '${Referencia}' + '%'
+    AND item = '${codigoAura}'
+    AND usr_descrip_cue = '${descripcionAura}'
+`);
+
+const yaIngresado = Number(ingresadoERP[0]?.total || 0);
