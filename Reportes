@@ -1,3 +1,58 @@
+[4:35:58 p. m.] File change detected. Starting incremental compilation...
+
+[4:35:59 p. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 9920  - 16/12/2025, 4:36:02 p. m.    WARN [AuraQuantic] App running in port 9010
+Error al generar la orden: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64404         , 1).`
+Error al reasignar el cdp PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64404         , 1).`
+    at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:7283)
+    at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6608)
+    at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6315)
+    at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:133:9551)
+    at async GenerarIngresoService.generarIngreso (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\generaringreso\generaringreso.service.ts:381:5)
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 {
+  code: 'P2010',
+  meta: {
+    code: '2627',
+    message: "Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64404         , 1)."
+  },
+  clientVersion: '6.14.0'
+}
+Error al generar la orden: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64405         , 1).`
+Error al reasignar el cdp PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64405         , 1).`
+    at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:7283)
+    at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6608)
+    at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6315)
+    at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:133:9551)
+    at async GenerarIngresoService.generarIngreso (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\generaringreso\generaringreso.service.ts:381:5)
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 {
+  code: 'P2010',
+  meta: {
+    code: '2627',
+    message: "Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64405         , 1)."
+  },
+  clientVersion: '6.14.0'
+}
+
+
 import { Injectable, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
@@ -364,26 +419,19 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     for (const nova of novas) {
       if (restante <= 0) break;
 
-      const cantidadNova = Number(nova.cantidad || 0);
-      if (cantidadNova <= 0) {
-        console.warn(`Item Nova ${nova.item} con cantidad <= 0, se omite`);
-        continue;
-      }
 
       
       
-      const cantidadInsertar = CantidadPendiente > 0 ? CantidadPendiente : 0;
+      const cantidadInsertar = Math.min(
+        restante, 
+        cantidadNova
+      );
       if (cantidadInsertar <= 0) {
         console.warn(`Item ${aura.codItem} cantidad a insertar <= 0`);
         continue;
       }
 
-     if (CantidadI <= 0) {
-  
-  continue;
-}
-
-//Agregar validación para que si el el CantidadT es superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
+     //Agregar validación para que si el el CantidadT es superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
   //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
       INSERT INTO inv_inf_inv (
