@@ -104,14 +104,12 @@ export class GenerarIngresoService {
         ISNULL([2_ART_CON_GAN/DEC_Cant_Ingre], 0) CantidadI, 
         ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR, 
         ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura,
-        ISNULL([2_ART_CON_GAN/_FamilyRecord-Description], '') Descripción 
+        ISNULL([2_ART_CON_GAN/_FamilyRecord-Description], '') Descripcion 
 FROM Panel_109_68508_83802 
         WHERE [_ElementID] = ${element}
         ORDER BY ID
       `);
-
-      
-    
+       
       
       
 
@@ -313,7 +311,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     DECLARE @sub_a CHAR(5) = '${cod_sub}';
     DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub}');
     DECLARE @Referencia CHAR(20) = '${obs_orc}';
-    DELCARE @Descripcion CHAR(200) = '${usr_descrip_cue}'
+    DELCARE @Descripcion CHAR(200) = '${DescripcionAura}'
     
 
     IF EXISTS   (
@@ -408,7 +406,7 @@ WHERE   CAB.ano_doc = @ano_o
     const CantidadI = Number(aura.CantidadI || 0);
     const CantidadR = Number(aura.CantidadR || 0);
     const factura = (aura.factura || '').trim();
-    const descripcionAura = (aura.Description || '').trim();
+    const descripcionAura = (aura.Descripcion || '').trim();
 
     // Validación básica
     if (!factura) {
