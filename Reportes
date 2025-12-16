@@ -1,8 +1,9 @@
 SELECT 
   item,
   usr_descrip_cue,
-  SUM(cantidad) total_ingresado
+  SUM(cantidad) AS total_ingresado
 FROM inv_inf_inv
 WHERE usr_pedido = '${num_o}'
   AND obs_orc LIKE '%' + '${Referencia}' + '%'
-GROUP BY item, usr_descrip_cue
+  AND usr_descrip_cue IS NOT NULL
+GROUP BY item, usr_descrip_cue;
