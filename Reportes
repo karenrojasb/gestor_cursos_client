@@ -26,17 +26,7 @@ export class GenerarIngresoService {
   
 
       
- const ingresadoERP = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-  SELECT item, SUM(cantidad) total_ingresado
-  FROM inv_inf_inv
-  WHERE usr_pedido = '${num_o}'
-    AND obs_orc LIKE '%' + '${Referencia}' + '%'
-  GROUP BY item
-`);
-const mapIngresado = new Map(
-  ingresadoERP.map(r => [String(r.item).trim(), Number(r.total_ingresado)])
-);
-  
+
   // Obtener asig_numero desde inv_inf_inv usando la referencia
   const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
       SELECT TOP 1 asig_numero
@@ -113,7 +103,7 @@ const mapIngresado = new Map(
         [2_ART_CON_GAN/DEC_CANT_ERP] CantidadT, 
         ISNULL([2_ART_CON_GAN/DEC_Cant_Ingre], 0) CantidadI, 
         ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR, 
-        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura, 
+        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
 FROM Panel_109_68508_83802 
         WHERE [_ElementID] = ${element}
         ORDER BY ID
@@ -380,13 +370,8 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
         continue;
       }
 
-      const yaIngresado = mapIngresado.get(codigoAura) || 0;
-      const pendienteRealERP = CantidadPendiente - yaIngresado;
-      if (pendienteRealERP <= 0) {
-        console.warn(`Item ${aura.codItem} ya ingresado suficiente, pendienteRealERP <= 0`);
-        continue;
-      }
-
+      
+      
       const cantidadInsertar = CantidadPendiente > 0 ? CantidadPendiente : 0;
       if (cantidadInsertar <= 0) {
         console.warn(`Item ${aura.codItem} cantidad a insertar <= 0`);
