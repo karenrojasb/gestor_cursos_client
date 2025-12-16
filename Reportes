@@ -331,6 +331,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     const CantidadI = Number(aura.CantidadI || 0);
     const CantidadR = Number(aura.CantidadR || 0);
     const factura = (aura.factura || '').trim();
+    const descripcionAura = (aura.Description || '').trim();
 
     // Validación básica
     if (!factura) {
@@ -363,7 +364,10 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     v.replace(/;;/g, '')
     .replace(/\s+/g, '')
     .toUpperCase();
-    const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
+    const novas = items.filter(i => 
+      normalizar(i.item) === normalizar(codigoAura)&&
+      normalizar(i.usr_descrip_cue) ===descripcionAura
+    );
 
     if (novas.length === 0) {
       console.warn(`No se encontró item en Nova para código Aura ${codigoAura}`);
