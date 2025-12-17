@@ -340,12 +340,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     
     const CantidadPendiente = CantidadR - CantidadT;
 
-
-
-    if (CantidadPendiente <= 0) {
-      console.warn(`Item ${aura.codItem} con CantidadPendiente <= 0, se omite`);
-      continue;
-    }
+    if (CantidadPendiente <= 0) continue;
 
     const codigoAura = String(aura.codItem).split(' - ')[0].trim();
     const normalizar = (v: string) => 
@@ -364,8 +359,6 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
     for (const nova of novas) {
       if (restante <= 0) break;
 
-
-      
       
       const cantidadInsertar = Math.min(
         restante, 
