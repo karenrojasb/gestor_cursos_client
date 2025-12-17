@@ -1,65 +1,54 @@
-else if (tipoIngreso.toLowerCase() === 'parcial') {
+for (const aura of cantidadesAuraParcial) {
 
-  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
-    FROM inv_inf_inv
-  `);
+  const CantidadT = Number(aura.CantidadT || 0);
+  const CantidadI = Number(aura.CantidadI || 0);
+  const CantidadR = Number(aura.CantidadR || 0);
+  const factura = (aura.factura || '').trim();
 
-  num_doc = consecutivo[0]?.numDoc;
-  if (!num_doc || isNaN(num_doc)) {
-    throw new BadRequestException("Error al generar consecutivo para ingreso parcial.");
+  if (!factura) continue;
+  if (!facturasValidas.has(factura.toUpperCase())) {
+    throw new BadRequestException(`Factura inválida: ${factura}`);
   }
 
-  const hayFactura = cantidadesAuraParcial.some(a => (a.factura || '').trim() !== '');
-  if (!hayFactura) {
-    throw new BadRequestException(`No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`);
+  // ✅ Pendiente correcto
+  const CantidadPendiente = CantidadT - CantidadI;
+  if (CantidadPendiente <= 0) continue;
+
+  const codigoAura = normalizar(String(aura.codItem).split(' - ')[0]);
+  const novas = mapaItems.get(codigoAura) || [];
+
+  if (novas.length === 0) {
+    throw new BadRequestException(`Item no encontrado en ERP: ${codigoAura}`);
   }
 
-  for (const aura of cantidadesAuraParcial) {
+  let restante = CantidadPendiente;
 
-    const CantidadT = Number(aura.CantidadT || 0);
-    const CantidadI = Number(aura.CantidadI || 0);
-    const CantidadR = Number(aura.CantidadR || 0);
-    const factura = (aura.factura || '').trim();
+  for (const nova of novas) {
+    if (restante <= 0) break;
 
-    // Validación básica
-    if (!factura) {
-      console.warn(`Item ${aura.codItem} tiene factura vacía, se omite`);
-      continue;
-    }
-    if (CantidadR <= 0) {
-      console.warn(`Item ${aura.codItem} con CantidadR <= 0, se omite`);
-      continue;
-    }
+    const cantidadInsertar = Math.min(restante, CantidadPendiente);
+    if (cantidadInsertar <= 0) continue;
 
-    const facturasValidas = consulfactura.map(f => (f.factura || '').trim().toUpperCase());
-    if (!facturasValidas.includes(factura.toUpperCase())) {
-      throw new BadRequestException(`Factura inválida para item ${aura.codItem}: ${factura}`);
-    }
-
-    
-    const CantidadPendiente = CantidadR - CantidadT;
-
-    if (CantidadPendiente <= 0) continue;
-
-    const codigoAura = String(aura.codItem).split(' - ')[0].trim();
-    const normalizar = (v: string) => 
-    v.replace(/;;/g, '')
-    .replace(/\s+/g, '')
-    .toUpperCase();
-    const novas = items.filter(i => normalizar(i.item) === normalizar(codigoAura));
-
-    if (novas.length === 0) {
-      throw new BadRequestException(`Item no encontrado en ERP para código ${codigoAura}`);
-    }
-
-    let restante = CantidadPendiente;
-
-    for (const nova of novas) {
-  
-
-     //Agregar validación para que si el el CantidadT es superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
-  //insert PARCIAL
-    await this.prismaNovasoftService.$executeRawUnsafe(`      
+    await this.prismaNovasoftService.$executeRawUnsafe(`
       INSERT INTO inv_inf_inv (
-        ano_doc, per_doc, tip_doc, sub_tip, num
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad
+        -- resto de campos
+      )
+      VALUES (
+        '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}',
+        '${clean(nova.tip_doc)}', '${clean(nova.sub_tip)}',
+        '${num_doc}', '${clean(nova.reg_doc)}',
+        '${formatoDateToDDMMYYYY()}',
+        '${nova.vendedor}', '${clean(nova.cod_suc)}',
+        '${clean(nova.cod_cco)}',
+        '${cantidadInsertar}'
+      );
+    `);
+
+    restante -= cantidadInsertar;
+  }
+}
