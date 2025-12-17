@@ -1,12 +1,1 @@
-const nova = novas[usado]; 
-indexUsado.set(codigoAura, usado + 1);
-
-if (CantidadI <= 0) continue;
-
-if ((CantidadT + CantidadI) > CantidadR) {
-  throw new BadRequestException(
-    `No se puede generar el ingreso parcial para el item ${codigoAura}. ` +
-    `Cantidad ingresada (${CantidadI}) + cantidad acumulada (${CantidadT}) ` +
-    `supera el límite (${CantidadR}).`
-  );
-}
+fix: corregir duplicación de inserciones por ítems repetidos en ingreso parcial
