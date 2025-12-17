@@ -1,3 +1,128 @@
+[9:56:47 a. m.] File change detected. Starting incremental compilation...
+
+[9:56:47 a. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 35612  - 17/12/2025, 9:56:50 a. m.    WARN [AuraQuantic] App running in port 9010
+      
+      INSERT INTO inv_inf_inv (
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad,
+        fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+        por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+        asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+        conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+        por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+        usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero,
+        cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+      )
+      VALUES (
+        '2025', '12', '008', 'C008', '64424', '1',
+        '20251217', '0  ', '10', '10',
+        '1105005000', '0', '0', '0', '1116546075',
+        '0', '8', '00',
+        '20251217', '0', 'SCM-38.3_19585-CDP_0000332884 CUENTA_Útiles y Papelería', 'C01', '0', '0',
+        '0', '0', 'UP103', '0', '32002', '1',
+        '0  ', '200', '200', '0', '0', '0',
+        '0', '0', '200', '20251217', '0  ', '',
+        '1', '0', '0', '0', '0', '0',
+        '0', '0', NULL, NULL, '0', '0',
+        '0', '0', '0', '0','2025','12',
+        'C007 ', 'OC30651       ', '1', '1032402874',
+        '2020', 'EJEMPLO ITEM 1', 'U726', '0000332884'
+      );
+
+
+      
+      INSERT INTO inv_inf_inv (
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad,
+        fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+        por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+        asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+        conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+        por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+        usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero,
+        cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+      )
+      VALUES (
+        '2025', '12', '008', 'C008', '64424', '2',
+        '20251217', '0  ', '10', '10',
+        '1105005000', '0', '0', '0', '1116546075',
+        '0', '8', '00',
+        '20251217', '0', 'SCM-38.3_19585-CDP_0000332884 CUENTA_Útiles y Papelería', 'C01', '0', '0',
+        '0', '0', 'UP103', '0', '32002', '1',
+        '0  ', '150', '150', '0', '0', '0',
+        '0', '0', '150', '20251217', '0  ', '',
+        '1', '0', '0', '0', '0', '0',
+        '0', '0', NULL, NULL, '0', '0',
+        '0', '0', '0', '0','2025','12',
+        'C007 ', 'OC30651       ', '2', '1032402874',
+        '2020', 'EJEMPLO ITEM 2', 'U726', '0000332884'
+      );
+
+
+      
+      INSERT INTO inv_inf_inv (
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad,
+        fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+        por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+        asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+        conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+        por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+        usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero,
+        cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+      )
+      VALUES (
+        '2025', '12', '008', 'C008', '64424', '1',
+        '20251217', '0  ', '10', '10',
+        '1105005000', '0', '0', '0', '1116546075',
+        '0', '8', '00',
+        '20251217', '0', 'SCM-38.3_19585-CDP_0000332884 CUENTA_Útiles y Papelería', 'C01', '0', '0',
+        '0', '0', 'UP103', '0', '32002', '2',
+        '0  ', '200', '200', '0', '0', '0',
+        '0', '0', '200', '20251217', '0  ', '',
+        '1', '0', '0', '0', '0', '0',
+        '0', '0', NULL, NULL, '0', '0',
+        '0', '0', '0', '0','2025','12',
+        'C007 ', 'OC30651       ', '1', '1032402874',
+        '2020', 'EJEMPLO ITEM 1', 'U726', '0000332884'
+      );
+
+
+Error al generar la orden: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64424         , 1).`
+Error al reasignar el cdp PrismaClientKnownRequestError: 
+Invalid `prisma.$executeRawUnsafe()` invocation:
+
+
+Raw query failed. Code: `2627`. Message: `Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64424         , 1).`
+    at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:7283)
+    at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6608)
+    at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6315)
+    at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:133:9551)
+    at async GenerarIngresoService.generarIngreso (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\generaringreso\generaringreso.service.ts:400:5)
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28
+    at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 {
+  code: 'P2010',
+  meta: {
+    code: '2627',
+    message: "Violation of PRIMARY KEY constraint 'PK_inv_inf_inv'. Cannot insert duplicate key in object 'dbo.inv_inf_inv'. The duplicate key value is (2025, 12, C008 , 64424         , 1)."
+  },
+  clientVersion: '6.14.0'
+}
 import { Injectable, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
 import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
@@ -362,9 +487,41 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
 
   for (const nova of novas) {
     if (restante <= 0) break;
-    
+
      //Agregar validación para que si el el CantidadT es superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
   //insert PARCIAL
+  console.log (`      
+      INSERT INTO inv_inf_inv (
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad,
+        fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+        por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+        asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+        conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+        por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+        usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
+        cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+      )
+      VALUES (
+        '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${clean(nova.sub_tip)}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
+        '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}',
+        '${nova.cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}', 
+        '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
+        '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
+        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${CantidadI}', 
+        '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
+        '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+        '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
+        '${nova.conv_cl2}', '${nova.conv_cl3}', NULL, NULL, '${nova.por_adm}', '${nova.por_imp}',
+        '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}','${nova.usr_ano_ped}','${nova.usr_per_ped}', 
+        '${nova.usr_sub_ped}', '${nova.usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
+        '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+      );
+      
+        `)
     await this.prismaNovasoftService.$executeRawUnsafe(`      
       INSERT INTO inv_inf_inv (
         ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
@@ -454,3 +611,22 @@ return {
     } 
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
