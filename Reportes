@@ -1,20 +1,16 @@
-const codigoAura = normalizar(
-      String(aura.codItem).split(' - ')[0]
-    );
+// Normalizador único
+const normalizar = (v: string) =>
+  v.replace(/;;/g, '').replace(/\s+/g, '').toUpperCase();
 
-    const novas = mapaItems.get(codigoAura);
-    if (!novas || novas.length === 0) {
-      throw new BadRequestException(`Item no encontrado: ${codigoAura}`);
-    }
+//Set de facturas válidas (O(1))
+const facturasValidas = new Set(
+  consulfactura.map(f => (f.factura || '').trim().toUpperCase())
+);
 
-    let restante = CantidadPendiente;
-
-    for (const nova of novas) {
-      if (restante <= 0) break;
-
-      // CANTIDAD REAL A INSERTAR
-      const cantidadInsertar = Math.min(restante, CantidadPendiente);
-      if (cantidadInsertar <= 0) break;
-
-      await this.prismaNovasoftService.$executeRawUnsafe(`
-   
+//Mapa de items Nova (evita filter repetido)
+const mapaItems = new Map<string, any[]>();
+for (const i of items) {
+  const key = normalizar(i.item);
+  if (!mapaItems.has(key)) mapaItems.set(key, []);
+  mapaItems.get(key)!.push(i);
+}
