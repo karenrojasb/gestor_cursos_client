@@ -1,54 +1,22 @@
-for (const aura of cantidadesAuraParcial) {
+// 🔹 utilidades compartidas (ANTES del if)
+const normalizar = (v: string) =>
+  v.replace(/;;/g, '').replace(/\s+/g, '').toUpperCase();
 
-  const CantidadT = Number(aura.CantidadT || 0);
-  const CantidadI = Number(aura.CantidadI || 0);
-  const CantidadR = Number(aura.CantidadR || 0);
-  const factura = (aura.factura || '').trim();
+const facturasValidas = new Set(
+  consulfactura.map(f => (f.factura || '').trim().toUpperCase())
+);
 
-  if (!factura) continue;
-  if (!facturasValidas.has(factura.toUpperCase())) {
-    throw new BadRequestException(`Factura inválida: ${factura}`);
-  }
+const mapaItems = new Map<string, any[]>();
+for (const i of items) {
+  const key = normalizar(i.item);
+  if (!mapaItems.has(key)) mapaItems.set(key, []);
+  mapaItems.get(key)!.push(i);
+}
 
-  // ✅ Pendiente correcto
-  const CantidadPendiente = CantidadT - CantidadI;
-  if (CantidadPendiente <= 0) continue;
-
-  const codigoAura = normalizar(String(aura.codItem).split(' - ')[0]);
-  const novas = mapaItems.get(codigoAura) || [];
-
-  if (novas.length === 0) {
-    throw new BadRequestException(`Item no encontrado en ERP: ${codigoAura}`);
-  }
-
-  let restante = CantidadPendiente;
-
-  for (const nova of novas) {
-    if (restante <= 0) break;
-
-    const cantidadInsertar = Math.min(restante, CantidadPendiente);
-    if (cantidadInsertar <= 0) continue;
-
-    await this.prismaNovasoftService.$executeRawUnsafe(`
-      INSERT INTO inv_inf_inv (
-        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
-        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
-        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
-        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
-        cod_caja, cant_uni, item, alterno, trans, cantidad
-        -- resto de campos
-      )
-      VALUES (
-        '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}',
-        '${clean(nova.tip_doc)}', '${clean(nova.sub_tip)}',
-        '${num_doc}', '${clean(nova.reg_doc)}',
-        '${formatoDateToDDMMYYYY()}',
-        '${nova.vendedor}', '${clean(nova.cod_suc)}',
-        '${clean(nova.cod_cco)}',
-        '${cantidadInsertar}'
-      );
-    `);
-
-    restante -= cantidadInsertar;
-  }
+// 🔹 AQUÍ empieza tu if
+if (tipoIngreso.toLowerCase() === 'total') {
+  ...
+}
+else if (tipoIngreso.toLowerCase() === 'parcial') {
+  ...
 }
