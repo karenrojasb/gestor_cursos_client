@@ -362,6 +362,7 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
 
   for (const nova of novas) {
     if (restante <= 0) break;
+    
      //Agregar validación para que si el el CantidadT es superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
   //insert PARCIAL
     await this.prismaNovasoftService.$executeRawUnsafe(`      
