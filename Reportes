@@ -1,60 +1,12 @@
-else if (tipoIngreso.toLowerCase() === 'parcial') {
+const nova = novas[usado]; 
+indexUsado.set(codigoAura, usado + 1);
 
-  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
-    FROM inv_inf_inv
-  `);
+if (CantidadI <= 0) continue;
 
-  num_doc = consecutivo[0]?.numDoc;
-  if (!num_doc || isNaN(num_doc)) {
-    throw new BadRequestException("Error al generar consecutivo para ingreso parcial.");
-  }
-
-  const hayFactura = cantidadesAuraParcial.some(a => (a.factura || '').trim() !== '');
-  if (!hayFactura) {
-    throw new BadRequestException(`No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`);
-  }
-const indexUsado = new Map<string, number>();
-  for (const aura of cantidadesAuraParcial) {
-
-    const CantidadT = Number(aura.CantidadT || 0);
-    const CantidadI = Number(aura.CantidadI || 0);
-    const CantidadR = Number(aura.CantidadR || 0);
-    const factura = (aura.factura || '').trim();
-
-    // Validación básica
-    if (!factura) {
-      console.warn(`Item ${aura.codItem} tiene factura vacía, se omite`);
-      continue;
-    }
-    if (CantidadR <= 0) {
-      console.warn(`Item ${aura.codItem} con CantidadR <= 0, se omite`);
-      continue;
-    }
-
-    const CantidadPendiente = CantidadR - CantidadT;
-
-    if (CantidadPendiente <= 0) continue;
-
-  const codigoAura = normalizar(String(aura.codItem).split(' - ')[0]);
-  const novas = mapaItems.get(codigoAura) || [];
-
-   if (!novas || novas.length === 0) {
-    throw new BadRequestException(`Item no encontrado: ${codigoAura}`);
-  }
-
-  
-  const usado = indexUsado.get(codigoAura) || 0;
-
-  if (usado >= novas.length) {
-    throw new BadRequestException(
-      `El item ${codigoAura} se intenta insertar más veces de las que existen en ERP`
-    );
-  }
-
-  const nova = novas[usado]; 
-  indexUsado.set(codigoAura, usado + 1);
-
-  if (aura.CantidadI <= 0) continue;
-
-     //Agregar validación si la suma entre CantidadT y cantidad i superior a CantidadR mande un mensaje diciendo que no se puede generar orden que supera el limite de cantidad
+if ((CantidadT + CantidadI) > CantidadR) {
+  throw new BadRequestException(
+    `No se puede generar el ingreso parcial para el item ${codigoAura}. ` +
+    `Cantidad ingresada (${CantidadI}) + cantidad acumulada (${CantidadT}) ` +
+    `supera el límite (${CantidadR}).`
+  );
+}
