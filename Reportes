@@ -346,12 +346,6 @@ else if (tipoIngreso.toLowerCase() === 'parcial') {
       console.warn(`Item ${aura.codItem} con CantidadR <= 0, se omite`);
       continue;
     }
-
-    const facturasValidas = consulfactura.map(f => (f.factura || '').trim().toUpperCase());
-    if (!facturasValidas.includes(factura.toUpperCase())) {
-      throw new BadRequestException(`Factura inválida para item ${aura.codItem}: ${factura}`);
-    }
-
     
     const CantidadPendiente = CantidadR - CantidadT;
 
