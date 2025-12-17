@@ -14,3 +14,21 @@ for (const i of items) {
   if (!mapaItems.has(key)) mapaItems.set(key, []);
   mapaItems.get(key)!.push(i);
 }
+
+
+// 🔥 Normalizador único
+const normalizar = (v: string) =>
+  v.replace(/;;/g, '').replace(/\s+/g, '').toUpperCase();
+
+// 🔥 Set de facturas válidas (O(1))
+const facturasValidas = new Set(
+  consulfactura.map(f => (f.factura || '').trim().toUpperCase())
+);
+
+// 🔥 Mapa de items Nova (evita filter repetido)
+const mapaItems = new Map<string, any[]>();
+for (const i of items) {
+  const key = normalizar(i.item);
+  if (!mapaItems.has(key)) mapaItems.set(key, []);
+  mapaItems.get(key)!.push(i);
+}
