@@ -1,22 +1,13 @@
-function limpiarProveedor(provee: string): string {
-  if (!provee) return provee;
+function limpiarProveedor(provee?: string): string {
+  if (!provee) return '';
 
   const partes = provee.split('-');
 
-  // Si tiene guion
   if (partes.length === 2) {
-    // Caso 123456-1  -> tomar la parte larga
-    // Caso 1-654321  -> tomar la parte larga
     return partes[0].length >= partes[1].length
       ? partes[0]
       : partes[1];
   }
 
-  // Si no tiene guion
   return provee;
 }
-
-
-const proveeLimpio = limpiarProveedor(provee);
-
-
