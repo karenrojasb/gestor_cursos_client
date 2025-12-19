@@ -112,7 +112,7 @@ FROM Panel_109_68508_83802
       
 
     //Consulta de cantidades
-     const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+/** const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
         SELECT ID, 
         [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
         [2_ART_CON_GAN/CANTIDAD_ART] CantidadT, 
@@ -123,6 +123,7 @@ FROM Panel_109_68508_83802
         WHERE [_ElementID] = ${element}
         ORDER BY ID
       `);
+ */
 
 //Consulta de facturas
       const consulfactura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
@@ -150,7 +151,8 @@ WHERE p68508.[_ElementID] = (
 );
         `
       )
-      
+      const numeroIngresoCompleto = 
+      consultaCompleto?.[0]?.['3_numeroIngreso'] ?? null;
 
   //consulta de items
     const consultaitems = `
@@ -240,7 +242,7 @@ for (const i of items) {
 
 
     //Validacion de cantidades
-    const cantidadAura = cantidadesAura.length;
+    const cantidadAura = cantidadesAuraParcial.length;
     const cantidadNova = items.length;
     
     if (cantidadAura !== cantidadNova) {
@@ -274,8 +276,8 @@ for (const i of items) {
   }
 
   //Ciclo para insertar los items en completo
-  for (let i = 0; i < cantidadesAura.length; i++) {
-    const aura = cantidadesAura[i];
+  for (let i = 0; i < cantidadesAuraParcial.length; i++) {
+    const aura = cantidadesAuraParcial[i];
     const nova = items[i]; 
   
     const CantidadT = Number(aura.CantidadT);
@@ -472,10 +474,16 @@ const asig_numero = asigNumeroResult.length > 0
 
 
  let estadoIngreso: number | null = null;
-
+if(tipoIngreso.toLocaleLowerCase() === 'completo'){
+  estadoIngreso = 
+  !numeroIngresoCompleto || String(numeroIngresoCompleto). trim() === ''
+  ? 0
+  : 1;
+}
 if (tipoIngreso.toLowerCase() === 'parcial') {
   estadoIngreso = totalIngresosGenerados === 0 ? 0 : 1;
 } 
+
 const Message =
   (tipoIngreso.toLowerCase() === 'parcial'
     ? totalIngresosGenerados === 0
