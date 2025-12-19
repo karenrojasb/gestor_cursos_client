@@ -1,7 +1,9 @@
-console.time('INSERTS PARCIAL');
-// loop de inserts
-console.timeEnd('INSERTS PARCIAL');
 
-console.time('SP');
-await this.prismaNovasoftService.$queryRawUnsafe(`EXEC dbo.USR_sp_gen_afeinv_preciso ...`);
-console.timeEnd('SP');
+[Nest] 30492  - 19/12/2025, 9:35:29 a. m.    WARN [AuraQuantic] App running in port 9010
+(node:30492) Warning: Label 'INSERTS PARCIAL' already exists for console.time()
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30492) Warning: Label 'INSERTS PARCIAL' already exists for console.time()
+Item UP102;; - FOLDER 3 ARGOLLAS 1 " LOGO - ALMACEN tiene factura vacía, se omite
+Item UP105;; - PAPEL MEMBRETE CARTA - ALMACEN tiene factura vacía, se omite
+INSERTS PARCIAL: 194.335ms
+SP: 32.252s
