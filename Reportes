@@ -1,15 +1,293 @@
-for (let i = 0; i < cantidadesAuraParcial.length; i++) {
-  const aura = cantidadesAuraParcial[i];
-  const nova = items[i];
+import { Injectable, HttpException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { PrismaNovasoftService } from 'src/prismaNovasoft/prismaNovasoft.service';
+import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util'; 
+import { generarIngresoDto } from './dto/generaringreso.dto';
+import { PrismaAuraquanticService } from 'src/prismaAuraquantic/prismaAuraquantic.service';
 
-  const CantidadT = Number(aura.CantidadT || 0);
+@Injectable()
+export class GenerarIngresoService {
+  constructor(
+    private readonly prismaNovasoftService: PrismaNovasoftService,
+    private readonly prismaAuraquanticService: PrismaAuraquanticService
+
+  ) {}
+
+  
+
+  async generarIngreso(data: generarIngresoDto ) {
+    let totalIngresosGenerados = 0;
+    try {
+    const {  obs_orc, tipoIngreso,  num_o, usr_tercero, Referencia} = data;
+
+    //Funcion para limpiar los valores
+  const clean = (val) =>
+    val === null || val === undefined || String(val).trim() === '' 
+      ? null 
+      : String(val).trim();
+  
+
+      
+
+  // Obtener asig_numero desde inv_inf_inv usando la referencia
+  const resultadoAsig = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT TOP 1 asig_numero
+      FROM inv_inf_inv
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
+    `);
+    
+    if (!resultadoAsig || resultadoAsig.length === 0) {
+      throw new Error(`No se encontró asig_numero para la referencia ${obs_orc}`);
+    }
+    
+    const asigNumero = resultadoAsig[0].asig_numero;
+    
+
+  
+
+    // Determinar cod_sub según el prefijo de asig_numero
+    let cod_sub = '';
+    if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC')) {
+      cod_sub = 'C008';
+    } else if (asigNumero.startsWith('PF')) {
+      cod_sub = 'PFIN';
+    } else if (asigNumero.startsWith('CN')) {
+      cod_sub = 'NCIN';
+    } else {
+      throw new Error(`No se pudo determinar el sub_tip para asig_numero ${asigNumero}`);
+    }
+    
+    //Obtener el per_doc
+    const per_o = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT TOP 1 per_doc
+      FROM inv_inf_inv
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
+    `);
+    
+    if (!per_o || per_o.length === 0) {
+      throw new Error(`No se encontró per_doc para la referencia ${obs_orc}`);
+    }
+    
+    const perDoc = per_o[0].per_doc;
+
+    //Obtener el ano_doc
+    const ano_o = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+      SELECT TOP 1 ano_doc
+      FROM inv_inf_inv
+      WHERE obs_orc LIKE '%' + '${obs_orc}' + '%'
+    `);
+    
+    if (!ano_o || ano_o.length === 0) {
+      throw new Error(`No se encontró ano_doc para la referencia ${obs_orc}`);
+    }
+    
+    const anoDoc = ano_o[0].ano_doc;
+  
+
+    //Obtener el ElementID
+    const elementID = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT p68508.ID
+    FROM AP__BPM_Procesos p
+    JOIN Panel_109 p109 ON p109._ElementID = p.ID
+    JOIN Panel_109_68508 p68508 ON p68508._ElementID = p109.ID
+    WHERE p.Referencia = '${Referencia}'
+    AND p68508.[3_numeroOrdenCompra] = '${num_o}';
+    `);
+    if (!elementID || elementID.length === 0) {
+      throw new BadRequestException(`No se encontró ElementID para la referencia ${obs_orc} y la OC ${num_o}`);
+    }
+    
+    const element = elementID[0].ID;
+    
+  const cantidadesAuraParcial = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+         SELECT ID, 
+        [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
+        [2_ART_CON_GAN/DEC_CANT_ERP] CantidadT, 
+        ISNULL([2_ART_CON_GAN/DEC_Cant_Ingre], 0) CantidadI, 
+        ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR, 
+        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
+FROM Panel_109_68508_83802 
+        WHERE [_ElementID] = ${element}
+        ORDER BY ID
+      `);
+      
+
+    //Consulta de cantidades
+/** const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+        SELECT ID, 
+        [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
+        [2_ART_CON_GAN/CANTIDAD_ART] CantidadT, 
+        ISNULL([2_ART_CON_GAN/ENT_CANT_ERP], 0) CantidadI, 
+        ISNULL([2_ART_CON_GAN/ENT_CANT_RECIBIDA], 0) CantidadR, 
+        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
+FROM Panel_109_68508_83802 
+        WHERE [_ElementID] = ${element}
+        ORDER BY ID
+      `);
+ */
+
+//Consulta de facturas
+      const consulfactura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+      
+      SELECT DISTINCT [2_ART_CON_GAN/TXT_NUM_FACTURA] factura 
+      FROM Panel_109_68508_83802 WHERE [_ElementID] = ${element}
+      AND [2_ART_CON_GAN/TXT_NUM_FACTURA] IS NOT NULL
+
+      `);
+      
+      const consultaCompleto = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(
+        `
+                SELECT 
+    p68508.[3_Pagos],
+    p68508.[3_numeroIngreso]
+FROM Panel_109_68508 p68508
+WHERE p68508.[_ElementID] = (
+    SELECT p109.ID
+    FROM Panel_109 p109
+    WHERE p109.[_ElementID] = (
+        SELECT bpm.ID
+        FROM AP__BPM_Procesos bpm
+        WHERE bpm.Referencia = '${Referencia}'
+    )
+);
+        `
+      )
+      const numeroIngresoCompleto = 
+      consultaCompleto?.[0]?.['3_numeroIngreso'] ?? null;
+
+  //consulta de items
+    const consultaitems = `
+    DECLARE @sub_o CHAR(5);
+    DECLARE @ano_o CHAR(4) = '${anoDoc}';
+    DECLARE @per_o CHAR(2) = '${perDoc}';
+    DECLARE @num_o CHAR(14) = '${num_o}';
+    DECLARE @fec_a DATE = '${formatoDateToDDMMYYYY()}';
+    DECLARE @sub_a CHAR(5) = '${cod_sub}';
+    DECLARE @tip_a CHAR(5) = (SELECT cod_tip FROM gen_subtipodoc WHERE cod_sub = '${cod_sub}');
+    DECLARE @Referencia CHAR(20) = '${obs_orc}';
+    
+
+    IF EXISTS   (
+                SELECT sub_tip 
+                FROM inv_inf_inv 
+                WHERE   asig_numero = @num_o 
+                AND tip_doc = '007' 
+                AND obs_orc LIKE '%' + @Referencia + '%' )	
+BEGIN 
+    SELECT @sub_o = sub_tip 
+    FROM inv_inf_inv 
+    WHERE   asig_numero = @num_o 
+    AND tip_doc = '007' 
+    AND obs_orc LIKE '%' + @Referencia + '%'; 	
+END; 
+ELSE 
+BEGIN 
+    SELECT @sub_o = sub_tip 
+    FROM inv_cuedoc 
+    WHERE  num_doc = @num_o 
+    AND tip_doc = '007'
+    AND ano_doc = @ano_o 
+    AND per_doc = @per_o 
+END; 
+SELECT      CONVERT(CHAR(4), FORMAT(@fec_a, 'yyyy')) ano_doc, CONVERT(CHAR(2), FORMAT(@fec_a, 'MM')) per_doc, @sub_a sub_tip, @tip_a tip_doc, '' num_doc, 
+            CUE.reg_doc, CONVERT(VARCHAR(MAX), @fec_a, 112) fecha, CAB.vendedor, CAB.cod_suc, CUE.cod_cco, 
+            CUE.cod_cl1, CUE.cod_cl2, CUE.cod_cl3, CAB.cliente, CAB.provee, 
+            CAB.lista, CAB.dia_pla, CAB.ind_mp, CONVERT(VARCHAR(MAX), CAB.fec_tas, 112) fec_tas, CAB.tasa, 
+            CAB.obs_orc, CAB.fac_pro, CAB.cod_caja, CUE.bodega, CUE.bod_des, 
+            CUE.cant_uni, CUE.item, CUE.alterno, '32002' trans, CONVERT(INT, CUE.cantidad) cantidad, 
+            + CUE.fac_con, CUE.cos_uni, CUE.pre_vta, CUE.por_des, CUE.por_iva, 
+            CUE.por_iva_ng, CUE.por_ret, CUE.por_com, CUE.cos_unai, CONVERT(VARCHAR(MAX), CUE.fec_ent, 112) fec_ent, 
+            CUE.suc_des, CUE.ven_lote, CUE.cod_lote, '' ind_tra, 1 asig_num, 
+            CUE.ind_refac, CUE.cod_conv, CUE.conv_suc, CUE.conv_cco, CUE.conv_cl1, 
+            CUE.conv_cl2, CUE.conv_cl3, CUE.num_fact, CUE.ord_fact, CUE.por_adm, 
+            CUE.por_imp, CUE.por_uti, CUE.mon_adm, CUE.mon_imp, CUE.mon_uti, 
+            NULL asig_numero, CUE.ind_afe, @ano_o usr_ano_ped, @per_o usr_per_ped, @sub_o usr_sub_ped, 
+            @num_o usr_pedido, CUE.reg_doc usr_reg_ped, '${usr_tercero}' usr_tercero, NULL ano_cdp, NULL per_cdp, 
+            CUE.sub_cdp, CUE.num_cdp, CUE.cod_rubro, NULL usr_ano_des, NULL usr_per_des, 
+            NULL usr_sub_des, NULL usr_despa, NULL usr_reg_des, CUE.descrip_cue usr_descrip_cue 
+FROM   inv_cuedoc CUE 
+    INNER JOIN inv_cabdoc CAB ON (
+                                        CUE.ano_doc = CAB.ano_doc 
+                                        AND CUE.per_doc = CAB.per_doc 
+                                        AND CUE.sub_tip = CAB.sub_tip 
+                                        AND CUE.num_doc = CAB.num_doc
+                                    )
+WHERE   CAB.ano_doc = @ano_o 
+        AND CAB.per_doc = @per_o 
+        AND CAB.sub_tip = @sub_o 
+        AND CAB.num_doc = @num_o
+
+
+    `
+    
+
+    //Consulta de items
+    const items = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    ${consultaitems}`);
+    const normalizar = (v: string) =>
+  v.replace(/;;/g, '').replace(/\s+/g, '').toUpperCase();
+
+// Set de facturas válidas (O(1))
+const facturasValidas = new Set(
+  consulfactura.map(f => (f.factura || '').trim().toUpperCase())
+);
+
+// Mapa de items Nova por código (evita filter N²)
+const mapaItems = new Map<string, any[]>();
+
+for (const i of items) {
+  const key = normalizar(i.item);
+  if (!mapaItems.has(key)) mapaItems.set(key, []);
+  mapaItems.get(key)!.push(i);
+}
+
+
+    //Validacion de cantidades
+    const cantidadAura = cantidadesAuraParcial.length;
+    const cantidadNova = items.length;
+    
+    if (cantidadAura !== cantidadNova) {
+      return {
+        codigo: '400',
+        mensaje: `No se puede generar el ingreso, la cantidad de items no coincide`,
+        obs_orc,
+        num_o,
+        cantidadAura,
+        cantidadNova,
+      };
+    }
+
+    let num_doc = null;
+
+
+ //Si es completo
+  if (tipoIngreso.toLowerCase() === 'completo') {
+
+  //Generar el consecutivo COMPLETO
+  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
+    FROM inv_inf_inv
+  `);
+
+  num_doc = consecutivo[0]?.numDoc;
+
+  // Validación estricta
+  if (!num_doc || isNaN(num_doc)) {
+    throw new Error("Error al generar el consecutivo. No se puede continuar.");
+  }
+
+  //Ciclo para insertar los items en completo
+  for (let i = 0; i < cantidadesAuraParcial.length; i++) {
+    const aura = cantidadesAuraParcial[i];
+    const nova = items[i]; 
+  
+    const CantidadT = Number(aura.CantidadT || 0);
   const CantidadI = Number(aura.CantidadI || 0);
   const CantidadR = Number(aura.CantidadR || 0);
 
-  // 1️⃣ Sumar
+  
   const sumaTI = CantidadT + CantidadI;
 
-  // 2️⃣ Validar
+  
   if (sumaTI > CantidadR) {
     throw new BadRequestException(
       `No se puede generar el ingreso completo para el item ${aura.codItem}. ` +
@@ -18,52 +296,228 @@ for (let i = 0; i < cantidadesAuraParcial.length; i++) {
     );
   }
 
-  // 3️⃣ Calcular lo que falta
+  
   const cantidadInsert = CantidadR - sumaTI;
-
+console.log(cantidadInsert)
   // Si no hay nada por ingresar, saltar
   if (cantidadInsert <= 0) continue;
 
-  // ✅ INSERT COMPLETO
-  await this.prismaNovasoftService.$executeRawUnsafe(`
-    INSERT INTO inv_inf_inv (
-      ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
-      fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
-      cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
-      fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
-      cod_caja, cant_uni, item, alterno, trans, cantidad,
-      fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
-      por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
-      asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
-      conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
-      por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
-      usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero,
-      cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
-    )
-    VALUES (
-      '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}',
-      '${clean(nova.sub_tip)}', '${clean(num_doc)}', '${clean(nova.reg_doc)}',
-      '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}',
-      '${clean(nova.cod_cco)}', '${nova.cod_cl1}', '${nova.cod_cl2}',
-      '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}',
-      '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
-      '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}',
-      '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
-      '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}',
-      '${clean(nova.alterno)}', '${nova.trans}', '${cantidadInsert}',
-      '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}',
-      '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
-      '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}',
-      '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
-      '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}',
-      '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}',
-      '${nova.conv_cl1}', '${nova.conv_cl2}', '${nova.conv_cl3}',
-      NULL, NULL, '${nova.por_adm}', '${nova.por_imp}',
-      '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}',
-      '${nova.usr_ano_ped}', '${nova.usr_per_ped}', '${nova.usr_sub_ped}',
-      '${nova.usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
-      '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}',
-      '${nova.sub_cdp}', '${nova.num_cdp}'
-    );
+
+  
+    // Insert COMPLETO
+    await this.prismaNovasoftService.$executeRawUnsafe(`      
+INSERT INTO inv_inf_inv (
+  ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+  fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+  cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+  fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+  cod_caja, cant_uni, item, alterno, trans, cantidad,
+  fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+  por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+  asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+  conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+  por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+  usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
+  cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+)
+VALUES (
+  '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${clean(nova.sub_tip)}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
+  '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}',
+  '${nova.cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}', 
+  '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
+  '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
+  '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${cantidadInsert}', 
+  '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
+  '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+  '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
+  '${nova.conv_cl2}', '${nova.conv_cl3}', NULL, NULL, '${nova.por_adm}', '${nova.por_imp}',
+  '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}','${nova.usr_ano_ped}','${nova.usr_per_ped}', 
+  '${nova.usr_sub_ped}', '${nova.usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
+  '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+);
+
   `);
+
+  }
+}
+
+
+//Si es parcial
+
+
+else if (tipoIngreso.toLowerCase() === 'parcial') {
+
+  const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc
+    FROM inv_inf_inv
+  `);
+
+  num_doc = consecutivo[0]?.numDoc;
+  if (!num_doc || isNaN(num_doc)) {
+    throw new BadRequestException("Error al generar consecutivo para ingreso parcial.");
+  }
+
+  const hayFactura = cantidadesAuraParcial.some(a => (a.factura || '').trim() !== '');
+  if (!hayFactura) {
+    throw new BadRequestException(`No se encontró ninguna factura válida para la referencia ${obs_orc} y la OC ${num_o}`);
+  }
+const indexUsado = new Map<string, number>();
+
+  for (const aura of cantidadesAuraParcial) {
+
+    const CantidadT = Number(aura.CantidadT || 0);
+    const CantidadI = Number(aura.CantidadI || 0);
+    const CantidadR = Number(aura.CantidadR || 0);
+    const factura = (aura.factura || '').trim();
+
+    // Validación básica
+    if (!factura) {
+      continue;
+    }
+    if (CantidadR <= 0) {
+      continue;
+    }
+
+    const CantidadPendiente = CantidadR - CantidadT;
+
+    if (CantidadPendiente <= 0) continue;
+
+  const codigoAura = normalizar(String(aura.codItem).split(' - ')[0]);
+  const novas = mapaItems.get(codigoAura) || [];
+
+   if (!novas || novas.length === 0) {
+    throw new BadRequestException(`Item no encontrado: ${codigoAura}`);
+  }
+
+  
+  const usado = indexUsado.get(codigoAura) || 0;
+
+  if (usado >= novas.length) {
+    throw new BadRequestException(
+      `El item ${codigoAura} se intenta insertar más veces de las que existen en ERP`
+    );
+  }
+
+  const nova = novas[usado]; 
+  indexUsado.set(codigoAura, usado + 1);
+
+  if (aura.CantidadI <= 0) continue;
+  if ((CantidadT + CantidadI) > CantidadR) {
+    throw new BadRequestException(
+      `No se puede generar el ingreso parcial para el item ${codigoAura}. ` +
+      `Cantidad ingresada (${CantidadI}) + cantidad ERP (${CantidadT}) ` +
+      `supera el límite  de la cantidad solicitada (${CantidadR}).`
+    );
+  }
+  
+  //insert PARCIAL
+    await this.prismaNovasoftService.$executeRawUnsafe(`      
+      INSERT INTO inv_inf_inv (
+        ano_doc, per_doc, tip_doc, sub_tip, num_doc, reg_doc,
+        fecha, vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2,
+        cod_cl3, cliente, provee, lista, dia_pla, ind_mp,
+        fec_tas, tasa, obs_orc, bodega, bod_des, fac_pro,
+        cod_caja, cant_uni, item, alterno, trans, cantidad,
+        fac_con, cos_uni, pre_vta, por_des, por_iva, por_iva_ng,
+        por_ret, por_com, cos_unai, fec_ent, suc_des, ind_tra,
+        asig_num, ind_refac, cod_conv, conv_suc, conv_cco, conv_cl1,
+        conv_cl2, conv_cl3, num_fact, ord_fact, por_adm, por_imp,
+        por_uti, mon_adm, mon_imp, mon_uti, usr_ano_ped, usr_per_ped,
+        usr_sub_ped, usr_pedido, usr_reg_ped, usr_tercero, 
+        cod_rubro, usr_descrip_cue, sub_cdp, num_cdp
+      )
+      VALUES (
+        '${clean(nova.ano_doc)}', '${clean(nova.per_doc)}', '${clean(nova.tip_doc)}', '${clean(nova.sub_tip)}', '${clean(num_doc)}', '${clean(nova.reg_doc)}', 
+        '${formatoDateToDDMMYYYY()}', '${nova.vendedor}', '${clean(nova.cod_suc)}', '${clean(nova.cod_cco)}',
+        '${nova.cod_cl1}', '${nova.cod_cl2}', '${clean(nova.cod_cl3)}', '${clean(nova.cliente)}', '${clean(nova.provee)}', 
+        '${clean(nova.lista)}', '${nova.dia_pla}', '${nova.ind_mp}',
+        '${nova.fec_tas}', '${nova.tasa}', '${clean(nova.obs_orc)}', '${nova.bodega}', '${clean(nova.bod_des)}', '${clean(nova.fac_pro)}',
+        '${clean(nova.cod_caja)}', '${nova.cant_uni}', '${nova.item}', '${clean(nova.alterno)}', '${nova.trans}', '${CantidadI}', 
+        '${nova.fac_con}', '${nova.cos_uni}', '${nova.pre_vta}', '${nova.por_des}', '${nova.por_iva}', '${nova.por_iva_ng}',
+        '${clean(nova.por_ret)}', '${nova.por_com}', '${nova.cos_unai}', '${nova.fec_ent}', '${nova.suc_des}', '${nova.ind_tra}',
+        '${nova.asig_num}', '${nova.ind_refac ? 1 : 0}', '${nova.cod_conv}', '${nova.conv_suc}', '${clean(nova.conv_cco)}', '${nova.conv_cl1}',
+        '${nova.conv_cl2}', '${nova.conv_cl3}', NULL, NULL, '${nova.por_adm}', '${nova.por_imp}',
+        '${nova.por_uti}', '${nova.mon_adm}', '${nova.mon_imp}', '${nova.mon_uti}','${nova.usr_ano_ped}','${nova.usr_per_ped}', 
+        '${nova.usr_sub_ped}', '${nova.usr_pedido}', '${nova.usr_reg_ped}', '${nova.usr_tercero}',
+        '${clean(nova.cod_rubro)}', '${nova.usr_descrip_cue}', '${nova.sub_cdp}', '${nova.num_cdp}'
+      );
+      
+        `);
+        totalIngresosGenerados++;
+        
+    }  
+   
+        }
+      
+      
+
+//GEjecutar procedimiento almacenado
+await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  EXEC dbo.USR_sp_gen_afeinv_preciso 
+      @iano_doc = '${getNowDate().getFullYear()}',
+      @fano_doc = '${getNowDate().getFullYear()}',
+      @iper_doc = '${getCurrentMonth()}',
+      @fper_doc = '${getCurrentMonth()}',
+      @isub_tip = '${cod_sub}',
+      @fsub_tip = '${cod_sub}',
+      @inum_doc = '${num_doc}',
+      @fnum_doc = '${num_doc}',
+      @ifec_doc = '${formatoDateToDDMMYYYY()}',
+      @ffec_doc = '${formatoDateToDDMMYYYY()}',
+      @indver = 0
+`);
+
+
+const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+  SELECT DISTINCT asig_numero
+  FROM inv_inf_inv
+  WHERE ind_tra = 'X'
+    AND ano_doc = ${getNowDate().getFullYear()}
+    AND per_doc = '${getCurrentMonth()}'
+    AND sub_tip = '${cod_sub}'
+    AND num_doc = ${num_doc}
+`);
+
+// Si no encuentra nada, dejar en blanco
+const asig_numero = asigNumeroResult.length > 0
+  ? asigNumeroResult[0].asig_numero
+  : '';
+
+
+
+ let estadoIngreso: number | null = null;
+if(tipoIngreso.toLocaleLowerCase() === 'completo'){
+  estadoIngreso = 
+  !numeroIngresoCompleto || String(numeroIngresoCompleto). trim() === ''
+  ? 0
+  : 1;
+}
+if (tipoIngreso.toLowerCase() === 'parcial') {
+  estadoIngreso = totalIngresosGenerados === 0 ? 0 : 1;
+} 
+
+const Message =
+  (tipoIngreso.toLowerCase() === 'parcial'
+    ? totalIngresosGenerados === 0
+      ? 'Los ingresos no están completos. '
+      : 'Ya hay ingresos generados. '
+    : '') + 'Consulta realizada con éxito';
+
+return {
+  Codigo: '200',
+  Message: Message,
+  estadoIngreso,
+  asig_numero
+};
+
+} catch(error) {
+        console.error("Error al generar la orden:", error.message);
+        if (error instanceof HttpException) throw error;
+
+        console.log('Error al reasignar el cdp', error);
+        throw new InternalServerErrorException('Error al generar la consulta')
+
+
+    } 
+  }
 }
