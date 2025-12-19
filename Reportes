@@ -1,9 +1,7 @@
 console.time('INSERTS PARCIAL');
-
-for (const aura of cantidadesAuraParcial) {
-  ...
-  await this.prismaNovasoftService.$executeRawUnsafe(`INSERT ...`);
-  totalIngresosGenerados++;
-}
-
+// loop de inserts
 console.timeEnd('INSERTS PARCIAL');
+
+console.time('SP');
+await this.prismaNovasoftService.$queryRawUnsafe(`EXEC dbo.USR_sp_gen_afeinv_preciso ...`);
+console.timeEnd('SP');
