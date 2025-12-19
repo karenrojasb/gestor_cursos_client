@@ -1,22 +1,11 @@
-
-let mensaje = 'Consulta realizada con éxito';
+let estadoIngreso: number | null = null;
 
 if (tipoIngreso.toLowerCase() === 'parcial') {
-  if (totalIngresosGenerados === 0) {
-    mensaje = 'Los ingresos no están completos. ' + mensaje;
-  } else {
-    mensaje = 'Ya hay ingresos generados. ' + mensaje;
-  }
+  estadoIngreso = totalIngresosGenerados === 0 ? 0 : 1;
 }
 
 
 
-
-return {
-  Codigo: '200',
-  Message: mensaje,
-  asig_numero
-};
 
 
 const Message =
