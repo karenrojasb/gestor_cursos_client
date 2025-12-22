@@ -16,6 +16,7 @@ export class GenerarIngresoService {
 
   async generarIngreso(data: generarIngresoDto ) {
     let totalIngresosGenerados = 0;
+    let ingresosCompletos: number | null = null;
     try {
     const {  obs_orc, tipoIngreso,  num_o, usr_tercero, Referencia} = data;
 
@@ -111,20 +112,6 @@ FROM Panel_109_68508_83802
       `);
       
 
-    //Consulta de cantidades
-/** const cantidadesAura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-        SELECT ID, 
-        [2_ART_CON_GAN/TXT_UP_ARTICULO] + ' - ' + [1_ART_CON_GAN/Name] codItem, 
-        [2_ART_CON_GAN/CANTIDAD_ART] CantidadT, 
-        ISNULL([2_ART_CON_GAN/ENT_CANT_ERP], 0) CantidadI, 
-        ISNULL([2_ART_CON_GAN/ENT_CANT_RECIBIDA], 0) CantidadR, 
-        ISNULL([2_ART_CON_GAN/TXT_NUM_FACTURA], '') factura 
-FROM Panel_109_68508_83802 
-        WHERE [_ElementID] = ${element}
-        ORDER BY ID
-      `);
- */
-
 //Consulta de facturas
       const consulfactura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
       
@@ -134,25 +121,7 @@ FROM Panel_109_68508_83802
 
       `);
       
-      const consultaCompleto = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(
-        `
-                SELECT 
-    p68508.[3_Pagos],
-    p68508.[3_numeroIngreso]
-FROM Panel_109_68508 p68508
-WHERE p68508.[_ElementID] = (
-    SELECT p109.ID
-    FROM Panel_109 p109
-    WHERE p109.[_ElementID] = (
-        SELECT bpm.ID
-        FROM AP__BPM_Procesos bpm
-        WHERE bpm.Referencia = '${Referencia}'
-    )
-);
-        `
-      )
-      const numeroIngresoCompleto = 
-      consultaCompleto?.[0]?.['3_numeroIngreso'] ?? null;
+
 
   //consulta de items
     const consultaitems = `
@@ -274,11 +243,30 @@ for (const i of items) {
   if (!num_doc || isNaN(num_doc)) {
     throw new Error("Error al generar el consecutivo. No se puede continuar.");
   }
-
+const indexUsado = new Map<string, number>();
   //Ciclo para insertar los items en completo
   for (let i = 0; i < cantidadesAuraParcial.length; i++) {
     const aura = cantidadesAuraParcial[i];
-    const nova = items[i]; 
+      const codigoAura = normalizar(String(aura.codItem).split(' - ')[0]);
+  const novas = mapaItems.get(codigoAura) || [];
+
+   if (!novas || novas.length === 0) {
+    throw new BadRequestException(`Item no encontrado: ${codigoAura}`);
+  }
+
+  
+  const usado = indexUsado.get(codigoAura) || 0;
+
+  if (usado >= novas.length) {
+    throw new BadRequestException(
+      `El item ${codigoAura} se intenta insertar más veces de las que existen en ERP`
+    );
+  }
+
+  const nova = novas[usado]; 
+  indexUsado.set(codigoAura, usado + 1);
+
+  
   
     const CantidadT = Number(aura.CantidadT || 0);
   const CantidadI = Number(aura.CantidadI || 0);
@@ -482,19 +470,52 @@ const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>
 const asig_numero = asigNumeroResult.length > 0
   ? asigNumeroResult[0].asig_numero
   : '';
-
+      const consultaCompleto = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(
+         `
+  SELECT p68508.[3_Pagos],p68508.[3_numeroIngreso]
+  FROM Panel_109_68508 p68508 
+  WHERE p68508.[_ElementID] = (
+      SELECT p109.ID 
+      FROM Panel_109 p109 
+      WHERE p109.[_ElementID] = (
+          SELECT bpm.ID 
+          FROM AP__BPM_Procesos bpm 
+          WHERE bpm.Referencia = '${Referencia}'
+      )
+  );
+  `
+      )
+      const numeroIngresoCompleto = 
+      consultaCompleto?.[0]?.['3_numeroIngreso'] ?? null;
+      
 
 
  let estadoIngreso: number | null = null;
 if(tipoIngreso.toLocaleLowerCase() === 'completo'){
-  estadoIngreso = 
-  !numeroIngresoCompleto || String(numeroIngresoCompleto). trim() === ''
-  ? 0
-  : 1;
+  estadoIngreso =
+    numeroIngresoCompleto === null ||
+    String(numeroIngresoCompleto).trim() === ''
+      ? 0
+      : 1;
+
+  // No aplica para completo
+  ingresosCompletos = null;
 }
 if (tipoIngreso.toLowerCase() === 'parcial') {
+  // Estado general del ingreso
   estadoIngreso = totalIngresosGenerados === 0 ? 0 : 1;
-} 
+
+  // Estado de ingresos completos (solo parcial)
+  const todosCompletos = cantidadesAuraParcial.every(aura => {
+    const CantidadT = Number(aura.CantidadT || 0);
+    const CantidadI = Number(aura.CantidadI || 0);
+    const CantidadR = Number(aura.CantidadR || 0);
+
+    return (CantidadT + CantidadI) === CantidadR;
+  });
+
+  ingresosCompletos = todosCompletos ? 1 : 0;
+}
 
 const Message =
   (tipoIngreso.toLowerCase() === 'parcial'
@@ -507,6 +528,7 @@ return {
   Codigo: '200',
   Message: Message,
   estadoIngreso,
+  ingresosCompletos,
   asig_numero
 };
 
