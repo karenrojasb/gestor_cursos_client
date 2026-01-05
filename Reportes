@@ -260,44 +260,24 @@ const Nfactura = factura[0]?.['3_NumeroFacturaContenedor'];
       ? asigNumeroResult[0].asig_numero
       : '';
 
-    const consulta1 = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT SUM(cantidad) AS cantidad
-        FROM inv_inf_inv 
-        WHERE obs_orc LIKE '%' + '${Referencia}' + '%' 
-          AND usr_pedido = ${usr_pedido}
-      `);
-      
-    const consulta2 = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT SUM(cantidad) AS cantidad
-        FROM inv_inf_inv 
-        WHERE obs_orc LIKE '%' + '${Referencia}' + '%' 
-          AND asig_numero = ${usr_pedido}
-      `);
- 
-          const cantidad1 = consulta1.length > 0
-        ? Number(consulta1[0].cantidad)
-        : null;
+    const consultaEstado = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT 
+        p110_70611.[3_NumeroIngresoContenedor]
+    FROM AP__BPM_Procesos p
+    INNER JOIN Panel_110 p110
+        ON p110.[_ElementID] = p.[ID]
+    INNER JOIN Panel_110_70611 p110_70611
+        ON p110_70611.[_ElementID] = p110.[ID]
+    WHERE p.Referencia = 'CEV-60.3_2447';
 
-      const cantidad2 = consulta2.length > 0
-        ? Number(consulta2[0].cantidad)
-        : null;
-
-      let estado = 0;
-      if (cantidad1 === null) {
-        estado = 0;
-      }
-      else if (cantidad2 !== null && cantidad1 === cantidad2) {
-        estado = 1;
-      }
-      else if (cantidad2 !== null && cantidad1 < cantidad2) {
-        estado = 0;
-      }
+          `);
+       
 
     return {
         Codigo: `200`,
         Mensaje: `Consulta realiza con éxito`,
         asig_numero,
-        estado
+        
         
     };
     
@@ -312,6 +292,3 @@ const Nfactura = factura[0]?.['3_NumeroFacturaContenedor'];
       );
     }
 }
-
-y este [10:38:48 a. m.] File change detected. Starting incremental compilation... [10:38:48 a. m.] Found 0 errors. Watching for file changes. [Nest] 64924 - 05/01/2026, 10:38:50 a. m. WARN [AuraQuantic] App running in port 9010 [Nest] 64924 - 05/01/2026, 1:40:02 p. m. ERROR [ExceptionsHandler] PrismaClientKnownRequestError: Invalid prisma.$queryRawUnsafe() invocation: Raw query failed. Code: 207. Message: Invalid column name 'OS13984'. at ei.handleRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:7283) at ei.handleAndLogRequestError (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6608) at ei.request (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:124:6315) at async a (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@prisma-db-1\client\runtime\library.js:133:9551) at async GenerarIngresoCapacitacionesService.generarIngreso (C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\src\generaringresoTiquete\generaringresoCapacitaciones.service.ts:263:23) at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-execution-context.js:46:28 at async C:\Users\karen.rojas-b\Documents\proyects\auraquantic-api\node_modules\@nestjs\core\router\router-proxy.js:9:17 { code: 'P2010', meta: { code: '207', message: "Invalid column name 'OS13984'." }, clientVersion: '6.14.0' }
-
