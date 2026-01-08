@@ -1,5 +1,5 @@
- let cod_sub = '';
-    if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC')) {
+    let cod_sub = '';
+    if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC') || asigNumero.startsWith('C0')) {
       cod_sub = 'C008';
     } else if (asigNumero.startsWith('PF')) {
       cod_sub = 'PFIN';
