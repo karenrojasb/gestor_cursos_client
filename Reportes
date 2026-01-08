@@ -1,12 +1,109 @@
-const totalConAsig = consultaEstadoNova.filter(
-    n => n.asig_numero !== null
-).length;
+const consultaEstado = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT 
+            p68508.[ID],
+            p68508.[3_Pagos],
+            p68508.[3_numeroOrdenCompra]
+        FROM Panel_109_68508 p68508 
+        WHERE p68508.[_ElementID] = (
+            SELECT p109.ID 
+            FROM Panel_109 p109 
+            WHERE p109.[_ElementID] = (
+                SELECT bpm.ID 
+            FROM AP__BPM_Procesos bpm 
+            WHERE bpm.Referencia = '${Referencia}'
+        )
+    );
+`);
 
-const esCompleto395 = totalConAsig >= totalEstado;
 
-if (esCompleto395) {
-    estado395 = 1;
-} else {
-    estado395 = 0;
-    break;
+  
+
+let estadosLineas: number[] = [];
+const lineas395 = consultaEstado.filter(e => e['3_Pagos'] === 395);
+
+let estado395 = 1;
+let asigNumeroResultado: any = null;
+
+if (lineas395.length > 0) {
+
+    const ordenes395 = [...new Set(
+        lineas395.map(e => e['3_numeroOrdenCompra'])
+    )];
+
+    for (const orden of ordenes395) {
+
+        const totalEstado = lineas395.filter(
+            e => e['3_numeroOrdenCompra'] === orden
+        ).length;
+
+        const consultaEstadoNova = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT asig_numero 
+            FROM inv_inf_inv 
+            WHERE obs_orc = '${obs_orc}'
+            AND usr_pedido = '${orden}'
+        `);
+
+        const totalNova = consultaEstadoNova.length;
+
+        const totalConAsig = consultaEstadoNova.filter(
+            n => n.asig_numero !== null
+        ).length;
+
+        const esCompleto395 = totalConAsig >= totalEstado;
+
+        if (esCompleto395) {
+            estado395 = 1;
+        } else {
+            estado395 = 0;
+            break;
+        }
+
+        if (!asigNumeroResultado && consultaEstadoNova[0]?.asig_numero) {
+            asigNumeroResultado = consultaEstadoNova[0].asig_numero;
+        }
+    }
 }
+for (const item of consultaEstado) {
+    let estadoLinea = 0;
+
+    
+if (item['3_Pagos'] === 395) {
+    estadoLinea = estado395;
+}
+
+    if (item['3_Pagos'] === 396) {
+        const detalle = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT 
+                [2_ART_CON_GAN/DEC_CANT_ERP] CantidadT, 
+                ISNULL([2_ART_CON_GAN/DEC_Cant_Ingre], 0) CantidadI, 
+                ISNULL([2_ART_CON_GAN/CANTIDAD_ART], 0) CantidadR
+            FROM Panel_109_68508_83802
+            WHERE [_ElementID] = ${item.ID}
+        `);
+
+        let completo = true;
+
+        for (const d of detalle) {
+            const sumaTI = Number(d.CantidadT) + Number(d.CantidadI);
+            const cantidadR = Number(d.CantidadR);
+
+            if (sumaTI !== cantidadR) {
+                completo = false;
+                break;
+            }
+        }
+
+        estadoLinea = completo ? 1 : 0;
+    }
+
+    estadosLineas.push(estadoLinea);
+}
+
+const estadoFinal = estadosLineas.every(e => e === 1) ? 1 : 0;
+
+return {
+    Codigo: '200',
+    Message: 'Consulta Realizada con Exito',
+    asig_numero,
+    estado: estadoFinal
+};
