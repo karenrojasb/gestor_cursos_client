@@ -1,25 +1,25 @@
 const consultaEstado = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT 
-        p68508.[ID],
-        p68508.[3_Pagos],
-        p68508.[3_numeroOrdenCompra]
-    FROM Panel_109_68508 p68508 
-    WHERE p68508.[_ElementID] = (
-        SELECT p109.ID 
-        FROM Panel_109 p109 
-        WHERE p109.[_ElementID] = (
-            SELECT bpm.ID 
+            p68508.[ID],
+            p68508.[3_Pagos],
+            p68508.[3_numeroOrdenCompra]
+        FROM Panel_109_68508 p68508 
+        WHERE p68508.[_ElementID] = (
+            SELECT p109.ID 
+            FROM Panel_109 p109 
+            WHERE p109.[_ElementID] = (
+                SELECT bpm.ID 
             FROM AP__BPM_Procesos bpm 
             WHERE bpm.Referencia = '${Referencia}'
         )
     );
 `);
 
+
+  
 let estadosLineas: number[] = [];
 
-/* =========================
-   🔹 LÓGICA 395 CORREGIDA
-   ========================= */
+
 const lineas395 = consultaEstado.filter(e => e['3_Pagos'] === 395);
 
 let estado395 = 1;
@@ -38,7 +38,7 @@ if (lineas395.length > 0) {
             e => e['3_numeroOrdenCompra'] === orden
         ).length;
 
-        // 🔹 SOLO traemos registros COMPLETOS (ignora parciales)
+        
         const consultaEstadoNova = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
             SELECT DISTINCT asig_numero
             FROM inv_inf_inv 
@@ -49,7 +49,7 @@ if (lineas395.length > 0) {
 
         const totalConAsig = consultaEstadoNova.length;
 
-        // ✅ Regla FINAL correcta
+        
         if (totalConAsig < totalEstado) {
             estado395 = 0;
             break;
@@ -61,9 +61,7 @@ if (lineas395.length > 0) {
     }
 }
 
-/* =========================
-   🔹 RECORRIDO GENERAL
-   ========================= */
+
 for (const item of consultaEstado) {
     let estadoLinea = 0;
 
@@ -99,14 +97,11 @@ for (const item of consultaEstado) {
     estadosLineas.push(estadoLinea);
 }
 
-/* =========================
-   🔹 ESTADO FINAL
-   ========================= */
 const estadoFinal = estadosLineas.every(e => e === 1) ? 1 : 0;
 
 return {
     Codigo: '200',
     Message: 'Consulta Realizada con Exito',
-    asig_numero: asigNumeroResultado,
+    asig_numero,
     estado: estadoFinal
 };
