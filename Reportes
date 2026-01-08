@@ -1,65 +1,46 @@
-   const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-                    SELECT 
-        p110_70611.[3_NumeroOrdenContenedor]
+const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT 
+        p110_70611.[3_NumeroOrdenContenedor] AS orden
     FROM AP__BPM_Procesos p
     INNER JOIN Panel_110 p110
         ON p110.[_ElementID] = p.[ID]
     INNER JOIN Panel_110_70611 p110_70611
         ON p110_70611.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}';
+    WHERE p.Referencia = '${Referencia}'
+`);
 
-          `);
-    const consultaIngreso = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-                    SELECT 
-        p110_70706.[3_NumOrden_Verificacion],
-        p110_70706.[3_Ingreso_Verificacion]
-    FROM AP__BPM_Procesos p
-    INNER JOIN Panel_110 p110
-        ON p110.[_ElementID] = p.[ID]
-    INNER JOIN Panel_110_70706 p110_70706
-        ON p110_70706.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}';
+// Total de órdenes
+const totalOrdenes = consultaOrdenes.length;
 
-          `);
-            const ordenes = consultaOrdenes
-        .map(o => o['3_NumeroOrdenContenedor'])
-        .filter(Boolean)
-        .map(o => String(o).trim());
+// Extraer las órdenes en un arreglo
+const ordenes = consultaOrdenes.map(o => o.orden);
 
-      const ingresosMap = new Map<string, string | null>();
 
-      for (const i of consultaIngreso) {
-        const orden = i['3_NumOrden_Verificacion'];
-        if (!orden) continue;
+let consultaIngreso: any[] = [];
 
-        ingresosMap.set(
-          String(orden).trim(),
-          i['3_Ingreso_Verificacion']
-        );
-      }
+if (ordenes.length > 0) {
+    consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT asig_numero, item
+        FROM inv_inf_inv 
+        WHERE obs_orc = '${obs_orc}'
+        AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
+        AND asig_numero IS NOT NULL
+    `);
+}
 
-      let estado = 0;
+// Total de ingresos
+const totalIngresos = consultaIngreso.length;
 
-      if (ordenes.length > 0) {
-        estado = 1;
 
-        for (const orden of ordenes) {
-          const ingreso = ingresosMap.get(orden);
+let estado = 0; // 0 = incompleto / sin ingreso
 
-          if (!ingreso || String(ingreso).trim() === '') {
-            estado = 0;
-            break;
-          }
-        }
-      }
-     
+if (totalOrdenes > 0 && totalIngresos === totalOrdenes) {
+    estado = 1; // 1 = completo
+}
 
-    return {
-        Codigo: `200`,
-        Mensaje: `Consulta realiza con éxito`,
-        asig_numero,
-        estado
-        
-        
-    };
-    
+return {
+    Codigo: '200',
+    Mensaje: 'Consulta realizada con éxito',
+ 
+    estado
+};
