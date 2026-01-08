@@ -1,5 +1,6 @@
- const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-    SELECT 
+// 1️⃣ Consultar órdenes por referencia
+const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT
         p110_70611.[3_NumeroOrdenContenedor] AS orden
     FROM AP__BPM_Procesos p
     INNER JOIN Panel_110 p110
@@ -9,39 +10,52 @@
     WHERE p.Referencia = '${Referencia}'
 `);
 
-// Total de órdenes
-const totalOrdenes = consultaOrdenes.length;
-
-// Extraer las órdenes en un arreglo
-const ordenes = consultaOrdenes.map(o => o.orden);
+const ordenes: string[] = consultaOrdenes.map(o => o.orden);
+const totalOrdenes = ordenes.length;
 
 
-let consultaIngreso: any[] = [];
+// 2️⃣ Consultar qué órdenes tienen ingreso
+let ordenesConIngreso: string[] = [];
 
 if (ordenes.length > 0) {
-    consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT asig_numero
-    FROM inv_inf_inv 
-    WHERE obs_orc = '${obs_orc}'
-    AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
-    AND asig_numero IS NOT NULL
-`);
+    const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT DISTINCT usr_pedido
+        FROM inv_inf_inv 
+        WHERE obs_orc = '${obs_orc}'
+        AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
+        AND asig_numero IS NOT NULL
+    `);
+
+    ordenesConIngreso = consultaIngreso.map(i => i.usr_pedido);
 }
 
-// Total de ingresos
-const totalIngresos = consultaIngreso.length;
+const totalIngresos = ordenesConIngreso.length;
 
 
-let estado = 0; // 0 = incompleto / sin ingreso
+// 3️⃣ Determinar estado correctamente
+// 0 = sin ingresos
+// 1 = completo
+// 2 = parcial
+let estado = 0;
 
-if (totalOrdenes > 0 && totalIngresos === totalOrdenes) {
-    estado = 1; // 1 = completo
+if (totalOrdenes > 0) {
+    if (ordenesConIngreso.length === 0) {
+        estado = 0; // ninguna orden tiene ingreso
+    } else if (ordenesConIngreso.length === totalOrdenes) {
+        estado = 1; // todas las órdenes tienen ingreso
+    } else {
+        estado = 2; // algunas sí, otras no (parcial)
+    }
 }
 
+
+// 4️⃣ Respuesta
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
-  totalIngresos,
-  totalOrdenes,
+    totalOrdenes,
+    totalIngresos,
+    ordenes,
+    ordenesConIngreso,
     estado
 };
