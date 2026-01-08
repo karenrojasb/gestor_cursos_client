@@ -1,9 +1,8 @@
-
 const consultaEstado = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT 
             p68508.[ID],
             p68508.[3_Pagos],
-            p68508.[3_numeroIngreso]
+            p68508.[3_numeroOrdenCompra]
         FROM Panel_109_68508 p68508 
         WHERE p68508.[_ElementID] = (
             SELECT p109.ID 
@@ -16,17 +15,20 @@ const consultaEstado = await this.prismaAuraquanticService.$queryRawUnsafe<any[]
     );
 `);
 
+
+  
+
 let estadosLineas: number[] = [];
 
 for (const item of consultaEstado) {
     let estadoLinea = 0;
 
     if (item['3_Pagos'] === 395) {
-        estadoLinea =
-            item['3_numeroIngreso'] &&
-            String(item['3_numeroIngreso']).trim() !== ''
-                ? 1
-                : 0;
+        const consultaEstadoNova = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+          SELECT asig_numero FROM inv_inf_inv 
+          WHERE obs_orc = '${obs_orc}' 
+          and usr_pedido = '[3_numeroOrdenCompra]'
+          `)
     }
 
     if (item['3_Pagos'] === 396) {
