@@ -1,4 +1,3 @@
-// 1️⃣ Consultar órdenes por referencia
 const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         p110_70611.[3_NumeroOrdenContenedor] AS orden
@@ -14,9 +13,6 @@ const ordenes: string[] = consultaOrdenes.map(o => o.orden);
 const totalOrdenes = ordenes.length;
 
 
-// 2️⃣ Consultar qué órdenes tienen ingreso
-let ordenesConIngreso: string[] = [];
-
 if (ordenes.length > 0) {
     const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
         SELECT DISTINCT usr_pedido
@@ -26,36 +22,11 @@ if (ordenes.length > 0) {
         AND asig_numero IS NOT NULL
     `);
 
-    ordenesConIngreso = consultaIngreso.map(i => i.usr_pedido);
 }
 
-const totalIngresos = ordenesConIngreso.length;
-
-
-// 3️⃣ Determinar estado correctamente
-// 0 = sin ingresos
-// 1 = completo
-// 2 = parcial
-let estado = 0;
-
-if (totalOrdenes > 0) {
-    if (ordenesConIngreso.length === 0) {
-        estado = 0; // ninguna orden tiene ingreso
-    } else if (ordenesConIngreso.length === totalOrdenes) {
-        estado = 1; // todas las órdenes tienen ingreso
-    } else {
-        estado = 2; // algunas sí, otras no (parcial)
-    }
-}
-
-
-// 4️⃣ Respuesta
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
-    totalOrdenes,
-    totalIngresos,
-    ordenes,
-    ordenesConIngreso,
-    estado
+    asigNumeroResult
+
 };
