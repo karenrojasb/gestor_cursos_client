@@ -1,10 +1,34 @@
-    let cod_sub = '';
-    if (asigNumero.startsWith('OS') || asigNumero.startsWith('OC') || asigNumero.startsWith('C0')) {
-      cod_sub = 'C008';
-    } else if (asigNumero.startsWith('PF')) {
-      cod_sub = 'PFIN';
-    } else if (asigNumero.startsWith('CN')) {
-      cod_sub = 'NCIN';
-    } else {
-      throw new Error(`No se pudo determinar el sub_tip para asig_numero ${asigNumero}`);
-    }
+    const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+                    SELECT 
+        p110_70611.[3_NumeroOrdenContenedor]
+    FROM AP__BPM_Procesos p
+    INNER JOIN Panel_110 p110
+        ON p110.[_ElementID] = p.[ID]
+    INNER JOIN Panel_110_70611 p110_70611
+        ON p110_70611.[_ElementID] = p110.[ID]
+    WHERE p.Referencia = '${Referencia}';
+
+          `);
+          const orden = consultaOrdenes.length > 0 
+          ? consultaOrdenes[0].asig_numero
+          : '';
+
+    const consultaIngreso = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+                   SELECT  asig_numero
+            FROM inv_inf_inv 
+            WHERE obs_orc = '${obs_orc}'
+            AND usr_pedido = '${orden}'
+            AND asig_numero IS NOT NULL
+
+          `);
+           
+
+    return {
+        Codigo: `200`,
+        Mensaje: `Consulta realiza con éxito`,
+        asig_numero,
+        estado
+        
+        
+    };
+    
