@@ -1,46 +1,7 @@
-const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-    SELECT 
-        p110_70611.[3_NumeroOrdenContenedor] AS orden
-    FROM AP__BPM_Procesos p
-    INNER JOIN Panel_110 p110
-        ON p110.[_ElementID] = p.[ID]
-    INNER JOIN Panel_110_70611 p110_70611
-        ON p110_70611.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}'
+consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT asig_numero
+    FROM inv_inf_inv 
+    WHERE obs_orc = '${obs_orc}'
+    AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
+    AND asig_numero IS NOT NULL
 `);
-
-// Total de órdenes
-const totalOrdenes = consultaOrdenes.length;
-
-// Extraer las órdenes en un arreglo
-const ordenes = consultaOrdenes.map(o => o.orden);
-
-
-let consultaIngreso: any[] = [];
-
-if (ordenes.length > 0) {
-    consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT asig_numero, item
-        FROM inv_inf_inv 
-        WHERE obs_orc = '${obs_orc}'
-        AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
-        AND asig_numero IS NOT NULL
-    `);
-}
-
-// Total de ingresos
-const totalIngresos = consultaIngreso.length;
-
-
-let estado = 0; // 0 = incompleto / sin ingreso
-
-if (totalOrdenes > 0 && totalIngresos === totalOrdenes) {
-    estado = 1; // 1 = completo
-}
-
-return {
-    Codigo: '200',
-    Mensaje: 'Consulta realizada con éxito',
- 
-    estado
-};
