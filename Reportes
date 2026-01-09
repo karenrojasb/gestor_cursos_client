@@ -1,4 +1,4 @@
-// 1️⃣ Consultar órdenes
+   //Consultas para mostrar el estado
 const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
@@ -21,7 +21,7 @@ if (ordenes.length === 0) {
     };
 }
 
-// 2️⃣ Consultar ingresos normalizados
+
 const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(usr_pedido) AS usr_pedido,
@@ -31,7 +31,6 @@ const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(
       AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
 `);
 
-// 3️⃣ Evaluar estado final
 let estadoFinal = 1;
 
 for (const orden of ordenes) {
@@ -48,10 +47,10 @@ for (const orden of ordenes) {
     }
 }
 
-// 4️⃣ Respuesta final
+
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-};
+};    
