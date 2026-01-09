@@ -1,75 +1,70 @@
-[8:56:20 a. m.] File change detected. Starting incremental compilation...
-
-[8:56:21 a. m.] Found 0 errors. Watching for file changes.
-
-[Nest] 77532  - 09/01/2026, 8:56:24 a. m.    WARN [AuraQuantic] App running in port 9010
-ÓRDENES OBTENIDAS: [ 'OS14026', 'OS14027' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14026', asig_numero: 'C000028988' } ]
------------------------
-Evaluando orden: OS14026
-Ingreso encontrado: { usr_pedido: 'OS14026', asig_numero: 'C000028988' }
-Orden válida
------------------------
-Evaluando orden: OS14027
-Ingreso encontrado: undefined
-No existe ingreso para la orden
-ESTADO FINAL: 0
-ÓRDENES OBTENIDAS: [ 'OS14026', 'OS14027' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14026', asig_numero: 'C000028988' } ]
------------------------
-Evaluando orden: OS14026
-Ingreso encontrado: { usr_pedido: 'OS14026', asig_numero: 'C000028988' }
-Orden válida
------------------------
-Evaluando orden: OS14027
-Ingreso encontrado: undefined
-No existe ingreso para la orden
-ESTADO FINAL: 0
-const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(usr_pedido) AS usr_pedido,
-        RTRIM(asig_numero) AS asig_numero
-    FROM inv_inf_inv
-    WHERE obs_orc = '${obs_orc}'
-      AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
+// ===============================
+// 1. CONSULTA ÓRDENES + INGRESOS
+// ===============================
+const consultaOrdenIngreso =
+  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT
+        RTRIM(o.orden)        AS orden,
+        RTRIM(i.asig_numero)  AS asig_numero
+    FROM (
+        SELECT DISTINCT
+            RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
+        FROM AP__BPM_Procesos p
+        INNER JOIN Panel_110 p110
+            ON p110.[_ElementID] = p.[ID]
+        INNER JOIN Panel_110_70611 p110_70611
+            ON p110_70611.[_ElementID] = p110.[ID]
+        WHERE p.Referencia = '${Referencia}'
+    ) o
+    LEFT JOIN inv_inf_inv i
+        ON RTRIM(i.usr_pedido) = o.orden
+       AND i.obs_orc = '${obs_orc}'
 `);
 
-console.log('INGRESOS OBTENIDOS:', consultaIngreso);
+// ===============================
+// 2. LOGS DE DEPURACIÓN
+// ===============================
+console.log('ÓRDENES + INGRESOS OBTENIDOS:', consultaOrdenIngreso);
 
-// Evaluar estado final
+// Si no hay órdenes
+if (consultaOrdenIngreso.length === 0) {
+    return {
+        Codigo: '200',
+        Mensaje: 'No hay órdenes',
+        estadoFinal: 0
+    };
+}
+
+// ===============================
+// 3. EVALUAR ESTADO FINAL
+// ===============================
 let estadoFinal = 1;
 
-for (const orden of ordenes) {
-    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
-
+for (const fila of consultaOrdenIngreso) {
     console.log('-----------------------');
-    console.log('Evaluando orden:', orden);
-    console.log('Ingreso encontrado:', ingreso);
-
-    if (!ingreso) {
-        console.log('No existe ingreso para la orden');
-        estadoFinal = 0;
-        break;
-    }
+    console.log('Evaluando orden:', fila.orden);
+    console.log('Asig número:', fila.asig_numero);
 
     if (
-        ingreso.asig_numero === null ||
-        ingreso.asig_numero === undefined ||
-        ingreso.asig_numero.trim() === ''
+        !fila.asig_numero ||
+        fila.asig_numero.trim() === ''
     ) {
-        console.log('Existe ingreso pero asig_numero inválido:', ingreso.asig_numero);
+        console.log('❌ Orden sin ingreso válido');
         estadoFinal = 0;
         break;
     }
 
-    console.log('Orden válida');
+    console.log('✅ Orden válida');
 }
 
 console.log('ESTADO FINAL:', estadoFinal);
 
+// ===============================
+// 4. RESPUESTA FINAL
+// ===============================
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
-    ordenes,
+    ordenes: consultaOrdenIngreso,
     estadoFinal
-};    
+};
