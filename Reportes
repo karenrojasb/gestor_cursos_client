@@ -1,105 +1,26 @@
-[9:34:46 a. m.] File change detected. Starting incremental compilation...
-
-[9:34:46 a. m.] Found 0 errors. Watching for file changes.
-
-[Nest] 17676  - 09/01/2026, 9:34:49 a. m.    WARN [AuraQuantic] App running in port 9010
-ÓRDENES OBTENIDAS: [ 'OS14032', 'OS14033' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14032', asig_numero: 'C000028995' } ]
------------------------
-Evaluando orden: OS14032
-Ingreso encontrado: { usr_pedido: 'OS14032', asig_numero: 'C000028995' }
-Orden válida
------------------------
-Evaluando orden: OS14033
-Ingreso encontrado: undefined
-Orden sin ingreso válido
-ESTADO FINAL: 0
-ÓRDENES OBTENIDAS: [ 'OS14032', 'OS14033' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14032', asig_numero: 'C000028995' } ]
------------------------
-Evaluando orden: OS14032
-Ingreso encontrado: { usr_pedido: 'OS14032', asig_numero: 'C000028995' }
-Orden válida
------------------------
-Evaluando orden: OS14033
-Ingreso encontrado: undefined
-Orden sin ingreso válido
-ESTADO FINAL: 0
-
-
-const consultaOrdenes =
-  await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
-    FROM AP__BPM_Procesos p
-    INNER JOIN Panel_110 p110
-        ON p110.[_ElementID] = p.[ID]
-    INNER JOIN Panel_110_70611 p110_70611
-        ON p110_70611.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}'
-`);
-
-const ordenes: string[] = consultaOrdenes.map(o => o.orden);
-
-console.log('ÓRDENES OBTENIDAS:', ordenes);
-
-if (ordenes.length === 0) {
-    return {
-        Codigo: '200',
-        Mensaje: 'No hay órdenes',
-        estadoFinal: 0
-    };
-}
-
-// ===============================
-// CONSULTA NOVA
-// ===============================
-const consultaIngreso =
-  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(usr_pedido) AS usr_pedido,
-        RTRIM(asig_numero) AS asig_numero
-    FROM inv_inf_inv
-    WHERE obs_orc = '${obs_orc}'
-      AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
-`);
-
-console.log('INGRESOS OBTENIDOS:', consultaIngreso);
-
-// ===============================
-// EVALUACIÓN ESTRICTA (AND)
-// ===============================
-let estadoFinal = 1; // asumimos OK hasta que falle una
+let estadoFinal = 1;
 
 for (const orden of ordenes) {
-    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
+
+    const ingreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT TOP 1
+            RTRIM(usr_pedido) AS usr_pedido,
+            RTRIM(asig_numero) AS asig_numero
+        FROM inv_inf_inv
+        WHERE obs_orc = '${obs_orc}'
+          AND RTRIM(usr_pedido) = '${orden}'
+    `);
 
     console.log('-----------------------');
-    console.log('Evaluando orden:', orden);
-    console.log('Ingreso encontrado:', ingreso);
+    console.log('Consultando orden:', orden);
+    console.log('Resultado:', ingreso);
 
     if (
-        !ingreso ||
-        !ingreso.asig_numero ||
-        ingreso.asig_numero.trim() === ''
+        ingreso.length === 0 ||
+        !ingreso[0].asig_numero ||
+        ingreso[0].asig_numero.trim() === ''
     ) {
-        console.log('Orden sin ingreso válido');
         estadoFinal = 0;
-        break; // una falla → todo falla
+        break;
     }
-
-    console.log('Orden válida');
 }
-
-console.log('ESTADO FINAL:', estadoFinal);
-
-// ===============================
-// RESPUESTA
-// ===============================
-return {
-    Codigo: '200',
-    Mensaje: 'Consulta realizada con éxito',
-    asigNumeroResult,
-    ordenes,
-    estadoFinal
-};
