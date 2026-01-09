@@ -10,19 +10,16 @@ const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[
 `);
 
 const ordenes: string[] = consultaOrdenes.map(o => o.orden);
-const totalOrdenes = ordenes.length;
 
 
-if (ordenes.length > 0) {
     const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT DISTINCT usr_pedido
+         SELECT asig_numero, item
         FROM inv_inf_inv 
         WHERE obs_orc = '${obs_orc}'
-        AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
-        AND asig_numero IS NOT NULL
+        AND usr_pedido = '${ordenes}'
     `);
 
-}
+
 
 return {
     Codigo: '200',
