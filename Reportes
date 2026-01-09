@@ -21,3 +21,70 @@ Evaluando orden: OS14025
 Ingreso encontrado: undefined
  NO existe ingreso para la orden
 ESTADO FINAL: 0
+
+
+const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT
+        p110_70611.[3_NumeroOrdenContenedor] AS orden
+    FROM AP__BPM_Procesos p
+    INNER JOIN Panel_110 p110
+        ON p110.[_ElementID] = p.[ID]
+    INNER JOIN Panel_110_70611 p110_70611
+        ON p110_70611.[_ElementID] = p110.[ID]
+    WHERE p.Referencia = '${Referencia}'
+`);
+
+const ordenes: string[] = consultaOrdenes.map(o => o.orden);
+
+// Si no hay órdenes, estado es 0
+if (ordenes.length === 0) {
+    return {
+        Codigo: '200',
+        Mensaje: 'No hay órdenes',
+        estadoFinal: 0
+    };
+}
+
+const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT usr_pedido, asig_numero
+    FROM inv_inf_inv 
+    WHERE obs_orc = '${obs_orc}'
+    AND usr_pedido IN (${ordenes.map(o => `'${o}'`).join(',')})
+`);
+
+
+console.log('ÓRDENES OBTENIDAS:', ordenes);
+console.log('INGRESOS OBTENIDOS:', consultaIngreso);
+
+let estadoFinal = 1;
+
+for (const orden of ordenes) {
+    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
+
+    console.log('-----------------------');
+    console.log('Evaluando orden:', orden);
+    console.log('Ingreso encontrado:', ingreso);
+
+    if (!ingreso) {
+        console.log(' NO existe ingreso para la orden');
+        estadoFinal = 0;
+        break;
+    }
+
+    if (!ingreso.asig_numero) {
+        console.log(' Existe ingreso pero asig_numero está vacío:', ingreso.asig_numero);
+        estadoFinal = 0;
+        break;
+    }
+
+    console.log(' Orden válida');
+}
+
+console.log('ESTADO FINAL:', estadoFinal);
+
+return {
+    Codigo: '200',
+    Mensaje: 'Consulta realizada con éxito',
+    ordenes,
+    estadoFinal
+};    
