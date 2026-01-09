@@ -1,6 +1,16 @@
-// ===============================
-// CONSULTA AURA
-// ===============================
+[9:10:38 a. m.] File change detected. Starting incremental compilation...
+
+[9:10:39 a. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 65372  - 09/01/2026, 9:10:43 a. m.    WARN [AuraQuantic] App running in port 9010
+ÓRDENES OBTENIDAS: [ 'OS14028', 'OS14029' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
+ÓRDENES CON INGRESO: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
+ESTADO FINAL: 1
+ÓRDENES OBTENIDAS: [ 'OS14028', 'OS14029' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
+ÓRDENES CON INGRESO: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
+ESTADO FINAL: 1
 const consultaOrdenes =
   await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
@@ -56,9 +66,11 @@ console.log('ESTADO FINAL:', estadoFinal);
 // ===============================
 // RESPUESTA
 // ===============================
+
+
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-};
+};    
