@@ -1,4 +1,8 @@
-const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+// ===============================
+// CONSULTA AURA
+// ===============================
+const consultaOrdenes =
+  await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
     FROM AP__BPM_Procesos p
@@ -9,13 +13,11 @@ const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[
     WHERE p.Referencia = '${Referencia}'
 `);
 
-const ordenes: string[] = consultaOrdenes.map(o => o.orden);
+const ordenes = consultaOrdenes.map(o => o.orden);
 
 console.log('ÓRDENES OBTENIDAS:', ordenes);
 
-// Validar si hay órdenes
 if (ordenes.length === 0) {
-    console.log('No hay órdenes');
     return {
         Codigo: '200',
         Mensaje: 'No hay órdenes',
@@ -23,8 +25,11 @@ if (ordenes.length === 0) {
     };
 }
 
-// Consultar ingresos
-const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+// ===============================
+// CONSULTA NOVA
+// ===============================
+const consultaIngreso =
+  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(usr_pedido) AS usr_pedido,
         RTRIM(asig_numero) AS asig_numero
@@ -35,40 +40,25 @@ const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(
 
 console.log('INGRESOS OBTENIDOS:', consultaIngreso);
 
-// Evaluar estado final
-let estadoFinal = 1;
+// ===============================
+// LÓGICA FLEXIBLE
+// ===============================
+const ordenesConIngreso = consultaIngreso.filter(
+    i => i.asig_numero && i.asig_numero.trim() !== ''
+);
 
-for (const orden of ordenes) {
-    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
+console.log('ÓRDENES CON INGRESO:', ordenesConIngreso);
 
-    console.log('-----------------------');
-    console.log('Evaluando orden:', orden);
-    console.log('Ingreso encontrado:', ingreso);
-
-    if (!ingreso) {
-        console.log('No existe ingreso para la orden');
-        estadoFinal = 0;
-        break;
-    }
-
-    if (
-        ingreso.asig_numero === null ||
-        ingreso.asig_numero === undefined ||
-        ingreso.asig_numero.trim() === ''
-    ) {
-        console.log('Existe ingreso pero asig_numero inválido:', ingreso.asig_numero);
-        estadoFinal = 0;
-        break;
-    }
-
-    console.log('Orden válida');
-}
+const estadoFinal = ordenesConIngreso.length > 0 ? 1 : 0;
 
 console.log('ESTADO FINAL:', estadoFinal);
 
+// ===============================
+// RESPUESTA
+// ===============================
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-};    
+};
