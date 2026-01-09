@@ -1,30 +1,30 @@
-// Consultar órdenes
-const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
-    FROM AP__BPM_Procesos p
-    INNER JOIN Panel_110 p110
-        ON p110.[_ElementID] = p.[ID]
-    INNER JOIN Panel_110_70611 p110_70611
-        ON p110_70611.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}'
-`);
+[8:56:20 a. m.] File change detected. Starting incremental compilation...
 
-const ordenes: string[] = consultaOrdenes.map(o => o.orden);
+[8:56:21 a. m.] Found 0 errors. Watching for file changes.
 
-console.log('ÓRDENES OBTENIDAS:', ordenes);
-
-// Validar si hay órdenes
-if (ordenes.length === 0) {
-    console.log('No hay órdenes');
-    return {
-        Codigo: '200',
-        Mensaje: 'No hay órdenes',
-        estadoFinal: 0
-    };
-}
-
-// Consultar ingresos
+[Nest] 77532  - 09/01/2026, 8:56:24 a. m.    WARN [AuraQuantic] App running in port 9010
+ÓRDENES OBTENIDAS: [ 'OS14026', 'OS14027' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14026', asig_numero: 'C000028988' } ]
+-----------------------
+Evaluando orden: OS14026
+Ingreso encontrado: { usr_pedido: 'OS14026', asig_numero: 'C000028988' }
+Orden válida
+-----------------------
+Evaluando orden: OS14027
+Ingreso encontrado: undefined
+No existe ingreso para la orden
+ESTADO FINAL: 0
+ÓRDENES OBTENIDAS: [ 'OS14026', 'OS14027' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14026', asig_numero: 'C000028988' } ]
+-----------------------
+Evaluando orden: OS14026
+Ingreso encontrado: { usr_pedido: 'OS14026', asig_numero: 'C000028988' }
+Orden válida
+-----------------------
+Evaluando orden: OS14027
+Ingreso encontrado: undefined
+No existe ingreso para la orden
+ESTADO FINAL: 0
 const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(usr_pedido) AS usr_pedido,
@@ -67,10 +67,9 @@ for (const orden of ordenes) {
 
 console.log('ESTADO FINAL:', estadoFinal);
 
-// 5️⃣ Respuesta
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-};
+};    
