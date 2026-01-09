@@ -1,28 +1,23 @@
-console.log('ÓRDENES OBTENIDAS:', ordenes);
-console.log('INGRESOS OBTENIDOS:', consultaIngreso);
-
-let estadoFinal = 1;
-
-for (const orden of ordenes) {
-    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
-
-    console.log('-----------------------');
-    console.log('Evaluando orden:', orden);
-    console.log('Ingreso encontrado:', ingreso);
-
-    if (!ingreso) {
-        console.log('❌ NO existe ingreso para la orden');
-        estadoFinal = 0;
-        break;
-    }
-
-    if (!ingreso.asig_numero) {
-        console.log('❌ Existe ingreso pero asig_numero está vacío:', ingreso.asig_numero);
-        estadoFinal = 0;
-        break;
-    }
-
-    console.log('✅ Orden válida');
-}
-
-console.log('ESTADO FINAL:', estadoFinal);
+ÓRDENES OBTENIDAS: [ 'OS14024       ', 'OS14025       ' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14024       ', asig_numero: 'C000028986    ' } ]
+-----------------------
+Evaluando orden: OS14024
+Ingreso encontrado: { usr_pedido: 'OS14024       ', asig_numero: 'C000028986    ' }
+ Orden válida
+-----------------------
+Evaluando orden: OS14025
+Ingreso encontrado: undefined
+ NO existe ingreso para la orden
+ESTADO FINAL: 0
+ÓRDENES OBTENIDAS: [ 'OS14024       ', 'OS14025       ' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14024       ', asig_numero: 'C000028986    ' } ]
+-----------------------
+-----------------------
+Evaluando orden: OS14024
+Ingreso encontrado: { usr_pedido: 'OS14024       ', asig_numero: 'C000028986    ' }
+ Orden válida
+-----------------------
+Evaluando orden: OS14025
+Ingreso encontrado: undefined
+ NO existe ingreso para la orden
+ESTADO FINAL: 0
