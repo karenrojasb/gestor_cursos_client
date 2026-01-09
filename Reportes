@@ -1,4 +1,4 @@
-   //Consultas para mostrar el estado
+// Consultar órdenes
 const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
@@ -12,8 +12,11 @@ const consultaOrdenes = await this.prismaAuraquanticService.$queryRawUnsafe<any[
 
 const ordenes: string[] = consultaOrdenes.map(o => o.orden);
 
-// Si no hay órdenes
+console.log('ÓRDENES OBTENIDAS:', ordenes);
+
+// Validar si hay órdenes
 if (ordenes.length === 0) {
+    console.log('No hay órdenes');
     return {
         Codigo: '200',
         Mensaje: 'No hay órdenes',
@@ -21,7 +24,7 @@ if (ordenes.length === 0) {
     };
 }
 
-
+// Consultar ingresos
 const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
         RTRIM(usr_pedido) AS usr_pedido,
@@ -31,26 +34,43 @@ const consultaIngreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(
       AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
 `);
 
+console.log('INGRESOS OBTENIDOS:', consultaIngreso);
+
+// Evaluar estado final
 let estadoFinal = 1;
 
 for (const orden of ordenes) {
     const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
 
+    console.log('-----------------------');
+    console.log('Evaluando orden:', orden);
+    console.log('Ingreso encontrado:', ingreso);
+
+    if (!ingreso) {
+        console.log('No existe ingreso para la orden');
+        estadoFinal = 0;
+        break;
+    }
+
     if (
-        !ingreso ||
         ingreso.asig_numero === null ||
         ingreso.asig_numero === undefined ||
         ingreso.asig_numero.trim() === ''
     ) {
+        console.log('Existe ingreso pero asig_numero inválido:', ingreso.asig_numero);
         estadoFinal = 0;
         break;
     }
+
+    console.log('Orden válida');
 }
 
+console.log('ESTADO FINAL:', estadoFinal);
 
+// 5️⃣ Respuesta
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-};    
+};
