@@ -1,3 +1,66 @@
+[9:23:44 a. m.] File change detected. Starting incremental compilation...
+
+[9:23:44 a. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 76024  - 09/01/2026, 9:23:47 a. m.    WARN [AuraQuantic] App running in port 9010
+ÓRDENES OBTENIDAS: [ 'OS14030', 'OS14031' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14030', asig_numero: 'C000028993' } ]
+TOTAL ÓRDENES: 2
+TOTAL CON INGRESO: 1
+ESTADO FINAL: 1
+ÓRDENES OBTENIDAS: [ 'OS14030', 'OS14031' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14030', asig_numero: 'C000028993' } ]
+TOTAL ÓRDENES: 2
+TOTAL CON INGRESO: 1
+ESTADO FINAL: 1
+
+
+const consultaOrdenes =
+  await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT
+        RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
+    FROM AP__BPM_Procesos p
+    INNER JOIN Panel_110 p110
+        ON p110.[_ElementID] = p.[ID]
+    INNER JOIN Panel_110_70611 p110_70611
+        ON p110_70611.[_ElementID] = p110.[ID]
+    WHERE p.Referencia = '${Referencia}'
+`);
+
+const ordenes = consultaOrdenes.map(o => o.orden);
+
+console.log('ÓRDENES OBTENIDAS:', ordenes);
+
+if (ordenes.length === 0) {
+    return {
+        Codigo: '200',
+        Mensaje: 'No hay órdenes',
+        estadoFinal: 0
+    };
+}
+
+// ===============================
+// CONSULTA NOVA
+// ===============================
+const consultaIngreso =
+  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+    SELECT DISTINCT
+        RTRIM(usr_pedido) AS usr_pedido,
+        RTRIM(asig_numero) AS asig_numero
+    FROM inv_inf_inv
+    WHERE obs_orc = '${obs_orc}'
+      AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
+`);
+
+console.log('INGRESOS OBTENIDOS:', consultaIngreso);
+
+// ===============================
+// LÓGICA FLEXIBLE
+// ===============================
+const ordenesConIngreso = consultaIngreso.filter(
+    i => i.asig_numero && i.asig_numero.trim() !== ''
+);
+
 const totalOrdenes = ordenes.length;
 const totalConIngreso = ordenesConIngreso.length;
 
@@ -14,3 +77,11 @@ if (totalConIngreso === 0) {
 console.log('TOTAL ÓRDENES:', totalOrdenes);
 console.log('TOTAL CON INGRESO:', totalConIngreso);
 console.log('ESTADO FINAL:', estadoFinal);
+
+
+return {
+    Codigo: '200',
+    Mensaje: 'Consulta realizada con éxito',
+    ordenes,
+    estadoFinal
+}; 
