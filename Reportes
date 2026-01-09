@@ -1,20 +1,6 @@
-[9:23:44 a. m.] File change detected. Starting incremental compilation...
-
-[9:23:44 a. m.] Found 0 errors. Watching for file changes.
-
-[Nest] 76024  - 09/01/2026, 9:23:47 a. m.    WARN [AuraQuantic] App running in port 9010
-ÓRDENES OBTENIDAS: [ 'OS14030', 'OS14031' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14030', asig_numero: 'C000028993' } ]
-TOTAL ÓRDENES: 2
-TOTAL CON INGRESO: 1
-ESTADO FINAL: 1
-ÓRDENES OBTENIDAS: [ 'OS14030', 'OS14031' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14030', asig_numero: 'C000028993' } ]
-TOTAL ÓRDENES: 2
-TOTAL CON INGRESO: 1
-ESTADO FINAL: 1
-
-
+// ===============================
+// CONSULTA AURA
+// ===============================
 const consultaOrdenes =
   await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
@@ -27,7 +13,7 @@ const consultaOrdenes =
     WHERE p.Referencia = '${Referencia}'
 `);
 
-const ordenes = consultaOrdenes.map(o => o.orden);
+const ordenes: string[] = consultaOrdenes.map(o => o.orden);
 
 console.log('ÓRDENES OBTENIDAS:', ordenes);
 
@@ -55,33 +41,38 @@ const consultaIngreso =
 console.log('INGRESOS OBTENIDOS:', consultaIngreso);
 
 // ===============================
-// LÓGICA FLEXIBLE
+// EVALUACIÓN ESTRICTA (AND)
 // ===============================
-const ordenesConIngreso = consultaIngreso.filter(
-    i => i.asig_numero && i.asig_numero.trim() !== ''
-);
+let estadoFinal = 1; // asumimos OK hasta que falle una
 
-const totalOrdenes = ordenes.length;
-const totalConIngreso = ordenesConIngreso.length;
+for (const orden of ordenes) {
+    const ingreso = consultaIngreso.find(i => i.usr_pedido === orden);
 
-let estadoFinal = 0;
+    console.log('-----------------------');
+    console.log('Evaluando orden:', orden);
+    console.log('Ingreso encontrado:', ingreso);
 
-if (totalConIngreso === 0) {
-    estadoFinal = 0; // ninguna
-} else if (totalConIngreso < totalOrdenes) {
-    estadoFinal = 1; // parcial
-} else {
-    estadoFinal = 2; // completo
+    if (
+        !ingreso ||
+        !ingreso.asig_numero ||
+        ingreso.asig_numero.trim() === ''
+    ) {
+        console.log('❌ Orden sin ingreso válido');
+        estadoFinal = 0;
+        break; // una falla → todo falla
+    }
+
+    console.log('✅ Orden válida');
 }
 
-console.log('TOTAL ÓRDENES:', totalOrdenes);
-console.log('TOTAL CON INGRESO:', totalConIngreso);
 console.log('ESTADO FINAL:', estadoFinal);
 
-
+// ===============================
+// RESPUESTA
+// ===============================
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
     ordenes,
     estadoFinal
-}; 
+};
