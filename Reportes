@@ -1,76 +1,16 @@
-[9:10:38 a. m.] File change detected. Starting incremental compilation...
+const totalOrdenes = ordenes.length;
+const totalConIngreso = ordenesConIngreso.length;
 
-[9:10:39 a. m.] Found 0 errors. Watching for file changes.
+let estadoFinal = 0;
 
-[Nest] 65372  - 09/01/2026, 9:10:43 a. m.    WARN [AuraQuantic] App running in port 9010
-ÓRDENES OBTENIDAS: [ 'OS14028', 'OS14029' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
-ÓRDENES CON INGRESO: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
-ESTADO FINAL: 1
-ÓRDENES OBTENIDAS: [ 'OS14028', 'OS14029' ]
-INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
-ÓRDENES CON INGRESO: [ { usr_pedido: 'OS14028', asig_numero: 'C000028991' } ]
-ESTADO FINAL: 1
-const consultaOrdenes =
-  await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(p110_70611.[3_NumeroOrdenContenedor]) AS orden
-    FROM AP__BPM_Procesos p
-    INNER JOIN Panel_110 p110
-        ON p110.[_ElementID] = p.[ID]
-    INNER JOIN Panel_110_70611 p110_70611
-        ON p110_70611.[_ElementID] = p110.[ID]
-    WHERE p.Referencia = '${Referencia}'
-`);
-
-const ordenes = consultaOrdenes.map(o => o.orden);
-
-console.log('ÓRDENES OBTENIDAS:', ordenes);
-
-if (ordenes.length === 0) {
-    return {
-        Codigo: '200',
-        Mensaje: 'No hay órdenes',
-        estadoFinal: 0
-    };
+if (totalConIngreso === 0) {
+    estadoFinal = 0; // ninguna
+} else if (totalConIngreso < totalOrdenes) {
+    estadoFinal = 1; // parcial
+} else {
+    estadoFinal = 2; // completo
 }
 
-// ===============================
-// CONSULTA NOVA
-// ===============================
-const consultaIngreso =
-  await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-    SELECT DISTINCT
-        RTRIM(usr_pedido) AS usr_pedido,
-        RTRIM(asig_numero) AS asig_numero
-    FROM inv_inf_inv
-    WHERE obs_orc = '${obs_orc}'
-      AND RTRIM(usr_pedido) IN (${ordenes.map(o => `'${o}'`).join(',')})
-`);
-
-console.log('INGRESOS OBTENIDOS:', consultaIngreso);
-
-// ===============================
-// LÓGICA FLEXIBLE
-// ===============================
-const ordenesConIngreso = consultaIngreso.filter(
-    i => i.asig_numero && i.asig_numero.trim() !== ''
-);
-
-console.log('ÓRDENES CON INGRESO:', ordenesConIngreso);
-
-const estadoFinal = ordenesConIngreso.length > 0 ? 1 : 0;
-
+console.log('TOTAL ÓRDENES:', totalOrdenes);
+console.log('TOTAL CON INGRESO:', totalConIngreso);
 console.log('ESTADO FINAL:', estadoFinal);
-
-// ===============================
-// RESPUESTA
-// ===============================
-
-
-return {
-    Codigo: '200',
-    Mensaje: 'Consulta realizada con éxito',
-    ordenes,
-    estadoFinal
-};    
