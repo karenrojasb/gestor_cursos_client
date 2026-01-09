@@ -1,6 +1,32 @@
-// ===============================
-// CONSULTA AURA
-// ===============================
+[9:34:46 a. m.] File change detected. Starting incremental compilation...
+
+[9:34:46 a. m.] Found 0 errors. Watching for file changes.
+
+[Nest] 17676  - 09/01/2026, 9:34:49 a. m.    WARN [AuraQuantic] App running in port 9010
+ÓRDENES OBTENIDAS: [ 'OS14032', 'OS14033' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14032', asig_numero: 'C000028995' } ]
+-----------------------
+Evaluando orden: OS14032
+Ingreso encontrado: { usr_pedido: 'OS14032', asig_numero: 'C000028995' }
+Orden válida
+-----------------------
+Evaluando orden: OS14033
+Ingreso encontrado: undefined
+Orden sin ingreso válido
+ESTADO FINAL: 0
+ÓRDENES OBTENIDAS: [ 'OS14032', 'OS14033' ]
+INGRESOS OBTENIDOS: [ { usr_pedido: 'OS14032', asig_numero: 'C000028995' } ]
+-----------------------
+Evaluando orden: OS14032
+Ingreso encontrado: { usr_pedido: 'OS14032', asig_numero: 'C000028995' }
+Orden válida
+-----------------------
+Evaluando orden: OS14033
+Ingreso encontrado: undefined
+Orden sin ingreso válido
+ESTADO FINAL: 0
+
+
 const consultaOrdenes =
   await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
     SELECT DISTINCT
@@ -57,12 +83,12 @@ for (const orden of ordenes) {
         !ingreso.asig_numero ||
         ingreso.asig_numero.trim() === ''
     ) {
-        console.log('❌ Orden sin ingreso válido');
+        console.log('Orden sin ingreso válido');
         estadoFinal = 0;
         break; // una falla → todo falla
     }
 
-    console.log('✅ Orden válida');
+    console.log('Orden válida');
 }
 
 console.log('ESTADO FINAL:', estadoFinal);
@@ -73,6 +99,7 @@ console.log('ESTADO FINAL:', estadoFinal);
 return {
     Codigo: '200',
     Mensaje: 'Consulta realizada con éxito',
+    asigNumeroResult,
     ordenes,
     estadoFinal
 };
