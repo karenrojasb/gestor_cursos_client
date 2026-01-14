@@ -1,53 +1,84 @@
---Se requiere hacer un PROCEDIMIENTO ALMACENADO con UPDATE para actualizar el campo de cada tabla se actualice el numero del ingreso        
---La tabla que se requiere actualizar depende de lo siguiente
---Primero se consulta con la referenicia para determinar que id tiene en la tabla ap_bpm_procesos
-SELECT [ID] FROM AP__BPM_Procesos WHERE Referencia = 'CEV-60.3_2519'
---Luego con el id anterior se consulta para determinar el id de panel_110
-SELECT [ID] FROM Panel_110 WHERE [_ElementID] = '268894'
---con el id de panel_110, consultaremos aqui para determinar los 3 datos
-SELECT [3_TIPO_PARA_SERV], [3_NumeroOrdenContenedor], [3_NumeroIngresoContenedor], *  FROM Panel_110_70611 WHERE [_ElementID] = '4865'
-/*ahora pueden existir varias lineas por eso es necesario determinar que 3_tipo_para_serv cada una con HOTEL, TIQUETE o INSCRIPCIONES(Pueden haber dos lineas con hotel, o dos hotel un tiquete
-o dostiquete y dos hotel, o incluso mas por eso se debe repetir
-*/
-/* 
-Si el 3_tipo_para_serv es  = HOTEL entonces: 
-   Se deberá válidar si el campo 3_numeroIngresoContenedor, no es = a null o vacio,
-   si el campo no es vacio debe tomar el 3_NumeroOrdenContenedor
-   y realiza la siguiente consulta(Si hay una sola linea con HOTEL solo se repite una ves 
-   cada 3_NumeroOrdenCotenedor es unico y no se repite entonces cdebe repetirce el proceso las veces que sea necesario o 
-   por linea solo a las que tengan en 3_tipo_para_serv HOTEL):
+CREATE PROCEDURE SP_Actualizar_Numero_Ingreso_Contenedor
+(
+    @Referencia VARCHAR(100)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-*/
-/*La siguiente consulta deberá ser un UPDATE, se llama con el elementID y el 3_numeroordencompra
-con la consuta de esta tabla Panel_110_70611, de cada orden tiene un 
-  3_NumeroIngresoContenedor y ese es el dato que se debe insertar u actualizar solo el campo llamado 3_numeroingresoHT
-*/
-SELECT [3_numeroingresoHT] FROM Panel_110_70242 WHERE [_ElementID] = '4862' and [3_numeroordendecompra] = 'OS14086'--HOTEL
-/* 
-Si el 3_tipo_para_serv es  = TIQUETE entonces: 
-   Se deberá válidar si el campo 3_numeroIngresoContenedor, no es = a null o vacio,
-   si el campo no es vacio debe tomar el 3_NumeroOrdenContenedor
-   y realiza la siguiente consulta(Si hay una sola linea con TIQUETE solo se repite una ves 
-   cada 3_NumeroOrdenCotenedor es unico y no se repite entonces cdebe repetirce el proceso las veces que sea necesario o 
-   por linea solo a las que tengan en 3_tipo_para_serv TIQUETE):
+    DECLARE 
+        @IdProceso INT,
+        @ElementIDPanel110 INT,
+        @TipoServicio VARCHAR(50),
+        @NumeroOrden VARCHAR(100),
+        @NumeroIngreso VARCHAR(100);
 
-*/
-/*La siguiente consulta deberá ser un UPDATE, se llama con el elementID y el 3_numeroordencompra
-con la consuta de esta tabla Panel_110_70611, de cada orden tiene un 
-  3_NumeroIngresoContenedor y ese es el dato que se debe insertar u actualizar solo el campo llamado 3_numeroingresoTK
-*/
-SELECT [3_numeroingresoTK] FROM Panel_110_69945  WHERE [_ElementID] = '4862' and [3_numeroordenTK] = ''--Tiquete
-/* 
-Si el 3_tipo_para_serv es  = INSCRIPCION entonces: 
-   Se deberá válidar si el campo 3_numeroIngresoContenedor, no es = a null o vacio,
-   si el campo no es vacio debe tomar el 3_NumeroOrdenContenedor
-   y realiza la siguiente consulta(Si hay una sola linea con TIQUETE solo se repite una ves 
-   cada 3_NumeroOrdenCotenedor es unico y no se repite entonces cdebe repetirce el proceso las veces que sea necesario o 
-   por linea solo a las que tengan en 3_tipo_para_serv INSCRIPCION):
+    /* 1. Obtener ID del proceso */
+    SELECT @IdProceso = ID
+    FROM AP__BPM_Procesos
+    WHERE Referencia = @Referencia;
 
-*/
-/*La siguiente consulta deberá ser un UPDATE, se llama con el elementID y el 3_numeroordencompra
-con la consuta de esta tabla Panel_110_70611, de cada orden tiene un 
-  3_NumeroIngresoContenedor y ese es el dato que se debe insertar u actualizar solo el campo llamado 3_numeroingresocev
-*/
-SELECT [3_numeroingresocev] FROM Panel_110_70327  WHERE [_ElementID] = '4862' and [3_numerodeorden] = '' --Inscripción
+    IF @IdProceso IS NULL
+        RETURN;
+
+    /* 2. Obtener ElementID del panel 110 */
+    SELECT @ElementIDPanel110 = ID
+    FROM Panel_110
+    WHERE [_ElementID] = @IdProceso;
+
+    IF @ElementIDPanel110 IS NULL
+        RETURN;
+
+    /* 3. Cursor para recorrer todas las líneas */
+    DECLARE curServicios CURSOR FOR
+        SELECT 
+            [3_TIPO_PARA_SERV],
+            [3_NumeroOrdenContenedor],
+            [3_NumeroIngresoContenedor]
+        FROM Panel_110_70611
+        WHERE [_ElementID] = @ElementIDPanel110
+          AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
+
+    OPEN curServicios;
+    FETCH NEXT FROM curServicios 
+        INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+
+        /* HOTEL */
+        IF @TipoServicio = 'HOTEL'
+        BEGIN
+            UPDATE Panel_110_70242
+            SET [3_numeroingresoHT] = @NumeroIngreso
+            WHERE [_ElementID] = @ElementIDPanel110
+              AND [3_numeroordendecompra] = @NumeroOrden;
+        END
+
+        /* TIQUETE */
+        ELSE IF @TipoServicio = 'TIQUETE'
+        BEGIN
+            UPDATE Panel_110_69945
+            SET [3_numeroingresoTK] = @NumeroIngreso
+            WHERE [_ElementID] = @ElementIDPanel110
+              AND [3_numeroordenTK] = @NumeroOrden;
+        END
+
+        /* INSCRIPCION */
+        ELSE IF @TipoServicio = 'INSCRIPCION'
+        BEGIN
+            UPDATE Panel_110_70327
+            SET [3_numeroingresocev] = @NumeroIngreso
+            WHERE [_ElementID] = @ElementIDPanel110
+              AND [3_numerodeorden] = @NumeroOrden;
+        END
+
+        FETCH NEXT FROM curServicios 
+            INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
+    END
+
+    CLOSE curServicios;
+    DEALLOCATE curServicios;
+
+END
+GO
