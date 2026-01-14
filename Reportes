@@ -1,26 +1,7 @@
-let estadoFinal = 1;
+SELECT [ID] FROM AP__BPM_Procesos WHERE Referencia = 'CEV-60.3_2519'
+SELECT [ID] FROM Panel_110 WHERE [_ElementID] = '268894'
+SELECT [3_TIPO_PARA_SERV], [3_NumeroOrdenContenedor], [3_NumeroIngresoContenedor] FROM Panel_110_70611 WHERE [_ElementID] = '4862'
 
-for (const orden of ordenes) {
-
-    const ingreso = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT TOP 1
-            RTRIM(usr_pedido) AS usr_pedido,
-            RTRIM(asig_numero) AS asig_numero
-        FROM inv_inf_inv
-        WHERE obs_orc = '${obs_orc}'
-          AND RTRIM(usr_pedido) = '${orden}'
-    `);
-
-    console.log('-----------------------');
-    console.log('Consultando orden:', orden);
-    console.log('Resultado:', ingreso);
-
-    if (
-        ingreso.length === 0 ||
-        !ingreso[0].asig_numero ||
-        ingreso[0].asig_numero.trim() === ''
-    ) {
-        estadoFinal = 0;
-        break;
-    }
-}
+SELECT * FROM Panel_110_70242 WHERE [_ElementID] = '4862' and [3_numeroordendecompra] = 'OS14086'--Hotel 
+SELECT * FROM Panel_110_70327  WHERE [_ElementID] = '4862' and [3_numerodeorden] = '' --Inscripción
+SELECT * FROM Panel_110_69945  WHERE [_ElementID] = '4862' and [3_numeroordenTK] = ''--Tiquete
