@@ -7,3 +7,12 @@ WHERE Referencia LIKE '%2519%';
 SELECT ID
 FROM Panel_110
 WHERE [_ElementID] = 268894;
+
+SELECT 
+    [3_TIPO_PARA_SERV],
+    [3_NumeroOrdenContenedor],
+    [3_NumeroIngresoContenedor],
+    LEN([3_NumeroOrdenContenedor]) AS LARGO_ORDEN
+FROM Panel_110_70611
+WHERE [_ElementID] = 4862
+  AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
