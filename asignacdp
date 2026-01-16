@@ -1,38 +1,9 @@
-USE AuraquanticDev_BPMS
-ALTER PROCEDURE [dbo].[SP_Actualizar_NIngresoContenedor] 
-(
-    @IdProceso as int,
-    @IdClaseProceso as int,
-    @CodigoObjeto as nvarchar(255),
-    @RefBase as nvarchar(255)
-)
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE 
-        @Inicio DATETIME2,
-        @Fin DATETIME2,
-        @TiempoMs BIGINT;
-
-    DECLARE 
-        
-        @IdPanel110 INT,
-        @TipoServicio VARCHAR(50),
-        @NumeroOrden VARCHAR(100),
-        @NumeroIngreso VARCHAR(100);
-
-    SET @Inicio = SYSDATETIME();
-
-    BEGIN TRY
-
-        /* Obtener ID del proceso */
-        SELECT @IdProceso = ID
-        FROM AP__BPM_Procesos
-        WHERE Referencia = @RefBase;
-
-        IF @IdProceso IS NULL
-            THROW 50001, 'No se encontró el proceso para la referencia enviada.', 1;
+        IF NOT EXISTS (
+            SELECT 1 
+            FROM AP__BPM_Procesos 
+            WHERE ID = @IdProceso
+        )
+            THROW 50001, 'El IdProceso enviado no existe.', 1;
 
         /* Obtener ID del Panel 110 */
         SELECT @IdPanel110 = ID
@@ -52,61 +23,3 @@ BEGIN
             WHERE [_ElementID] = @IdPanel110
               AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
 
-        OPEN curServicios;
-
-        FETCH NEXT FROM curServicios 
-            INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            IF @TipoServicio = 'HOTEL'
-            BEGIN
-                UPDATE Panel_110_70242
-                SET [3_numeroingresoHT] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numeroordendecompra] = @NumeroOrden;
-            END
-            ELSE IF @TipoServicio = 'TIQUETES'
-            BEGIN
-                UPDATE Panel_110_69945
-                SET [3_numeroingresoTK] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numeroordenTK] = @NumeroOrden;
-            END
-            ELSE IF @TipoServicio = 'INSCRIPCION'
-            BEGIN
-                UPDATE Panel_110_70327
-                SET [3_numeroingresocev] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numerodeorden] = @NumeroOrden;
-            END
-
-            FETCH NEXT FROM curServicios 
-                INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
-        END
-
-        CLOSE curServicios;
-        DEALLOCATE curServicios;
-
-        SET @Fin = SYSDATETIME();
-        SET @TiempoMs = DATEDIFF(MILLISECOND, @Inicio, @Fin);
-
-        /* Resultado final */
-        SELECT 
-            1 AS Exitoso,
-            'Consulta realizada con éxito' AS Mensaje,
-            @TiempoMs AS TiempoEjecucionMs;
-
-    END TRY
-    BEGIN CATCH
-
-        SET @Fin = SYSDATETIME();
-        SET @TiempoMs = DATEDIFF(MILLISECOND, @Inicio, @Fin);
-
-        SELECT 
-            0 AS Exitoso,
-            ERROR_MESSAGE() AS Mensaje,
-            @TiempoMs AS TiempoEjecucionMs;
-
-    END CATCH
-END
