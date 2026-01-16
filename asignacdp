@@ -25,8 +25,8 @@ BEGIN
     SET @Inicio = SYSDATETIME();
 
     BEGIN TRY
-    
-        IF NOT EXISTS (
+
+         IF NOT EXISTS (
             SELECT 1 
             FROM AP__BPM_Procesos 
             WHERE ID = @IdProceso
@@ -40,16 +40,6 @@ BEGIN
 
         IF @IdPanel110 IS NULL
             THROW 50002, 'No se encontró el Panel 110 para el proceso.', 1;
-
-        /* Cursor */
-        DECLARE curServicios CURSOR LOCAL FAST_FORWARD FOR
-            SELECT 
-                [3_TIPO_PARA_SERV],
-                [3_NumeroOrdenContenedor],
-                [3_NumeroIngresoContenedor]
-            FROM Panel_110_70611
-            WHERE [_ElementID] = @IdPanel110
-              AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
 
 
         /* Cursor */
