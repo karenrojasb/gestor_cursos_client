@@ -1,7 +1,89 @@
-SET STATISTICS TIME ON;
-SET STATISTICS IO ON;
+USE [AuraquanticDev_BPMS]
+GO
+/****** Object:  StoredProcedure [dbo].[SP_Actualizar_NIngresoContenedor]    Script Date: 15/01/2026 9:15:48 a. m. ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[SP_Actualizar_NIngresoContenedor] 
+(
+    @Referencia VARCHAR(255)
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
 
-EXEC dbo.SP_Actualizar_NIngresoContenedor @Referencia = '';
+    DECLARE 
+        @IdProceso INT,
+        @IdPanel110 INT,
+        @TipoServicio VARCHAR(50),
+        @NumeroOrden VARCHAR(100),
+        @NumeroIngreso VARCHAR(100);
 
-SET STATISTICS TIME OFF;
-SET STATISTICS IO OFF;
+    /*  Obtener ID del proceso */
+    SELECT @IdProceso = ID
+    FROM AP__BPM_Procesos
+    WHERE Referencia = @Referencia;
+
+    IF @IdProceso IS NULL
+        RETURN;
+
+    /*  Obtener ID del Panel 110 */
+    SELECT @IdPanel110 = ID
+    FROM Panel_110
+    WHERE [_ElementID] = @IdProceso;
+
+    IF @IdPanel110 IS NULL
+        RETURN;
+
+    /*  Cursor para recorrer todas las líneas */
+    DECLARE curServicios CURSOR LOCAL FAST_FORWARD FOR
+        SELECT 
+            [3_TIPO_PARA_SERV],
+            [3_NumeroOrdenContenedor],
+            [3_NumeroIngresoContenedor]
+        FROM Panel_110_70611
+        WHERE [_ElementID] = @IdPanel110
+          AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
+
+    OPEN curServicios;
+
+    FETCH NEXT FROM curServicios 
+        INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
+
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        /* HOTEL */
+        IF @TipoServicio = 'HOTEL'
+        BEGIN
+            UPDATE Panel_110_70242
+            SET [3_numeroingresoHT] = @NumeroIngreso
+            WHERE [_ElementID] = @IdPanel110
+              AND [3_numeroordendecompra] = @NumeroOrden;
+        END
+
+        /* TIQUETES */
+        ELSE IF @TipoServicio = 'TIQUETES'
+        BEGIN
+            UPDATE Panel_110_69945
+            SET [3_numeroingresoTK] = @NumeroIngreso
+            WHERE [_ElementID] = @IdPanel110
+              AND [3_numeroordenTK] = @NumeroOrden;
+        END
+
+        /* INSCRIPCION */
+        ELSE IF @TipoServicio = 'INSCRIPCION'
+        BEGIN
+            UPDATE Panel_110_70327
+            SET [3_numeroingresocev] = @NumeroIngreso
+            WHERE [_ElementID] = @IdPanel110
+              AND [3_numerodeorden] = @NumeroOrden;
+        END
+
+        FETCH NEXT FROM curServicios 
+            INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
+    END
+
+    CLOSE curServicios;
+    DEALLOCATE curServicios;
+END
