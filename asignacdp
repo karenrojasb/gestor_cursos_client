@@ -1,112 +1,45 @@
-USE AuraquanticDev_BPMS
-ALTER PROCEDURE [dbo].[SP_Actualizar_NIngresoContenedor] 
-(
-    @IdProceso as int,
-    @IdClaseProceso as int,
-    @CodigoObjeto as nvarchar(255),
-    @RefBase as nvarchar(255)
-)
-AS
-BEGIN
-    SET NOCOUNT ON;
+const itemsFijos = [
+             {
+                item: "GV103",
+                cantidad: 1,
+                por_des: 0,
+                usr_descrip_cue: "PASAJES AEREOS NACIONALES",
+                dia_pla: 0,
+                tipoconsulta: "TIQUETE"
+             }, 
+             {
+                item: "CGV106",
+                cantidad: 1,
+                por_des: 0,
+                usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
+                dia_pla: 0,
+                tipoconsulta: "AGENCIA"
+             }
+            ]
+            //Insertar los items variables
+          
+                for(const fijo of itemsFijos)      {
 
-    DECLARE 
-        @Inicio DATETIME2,
-        @Fin DATETIME2,
-        @TiempoMs BIGINT;
+                let cos_uni= fijo.tipoconsulta === "TIQUETE" 
+                ? consultarValorTiquete[0]?.["3_Valortiquete"]
+                : consultarValorAgencia[0]?.["3_Valor Agencia"];
+                
+                cos_uni = cos_uni ?? 0;
 
-    DECLARE 
-        
-        @IdPanel110 INT,
-        @TipoServicio VARCHAR(50),
-        @NumeroOrden VARCHAR(100),
-        @NumeroIngreso VARCHAR(100);
+                const consultacos_uni = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+                                    SELECT 
+                    p.[3_valortiquete],
+                    p.[3_Valor Agencia]
+                FROM Panel_110_69945 p
+                WHERE p.[_ElementID] = (
+                        SELECT pn.[ID]
+                        FROM Panel_110 pn
+                        WHERE pn.[_ElementID] = (
+                                SELECT ap.[ID]
+                                FROM AP__BPM_Procesos ap
+                                WHERE ap.[Referencia] = '${Referencia}'
+                        )
+                )
+                AND p.[2_proveedortiquete/_Fiscal ID] = '${provee}';
 
-    SET @Inicio = SYSDATETIME();
-
-    BEGIN TRY
-
-         IF NOT EXISTS (
-            SELECT 1 
-            FROM AP__BPM_Procesos 
-            WHERE ID = @IdProceso
-        )
-            THROW 50001, 'El IdProceso enviado no existe.', 1;
-
-        /* Obtener ID del Panel 110 */
-        SELECT @IdPanel110 = ID
-        FROM Panel_110
-        WHERE [_ElementID] = @IdProceso;
-
-        IF @IdPanel110 IS NULL
-            THROW 50002, 'No se encontró el Panel 110 para el proceso.', 1;
-
-
-        /* Cursor */
-        DECLARE curServicios CURSOR LOCAL FAST_FORWARD FOR
-            SELECT 
-                [3_TIPO_PARA_SERV],
-                [3_NumeroOrdenContenedor],
-                [3_NumeroIngresoContenedor]
-            FROM Panel_110_70611
-            WHERE [_ElementID] = @IdPanel110
-              AND ISNULL([3_NumeroIngresoContenedor], '') <> '';
-
-        OPEN curServicios;
-
-        FETCH NEXT FROM curServicios 
-            INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
-
-        WHILE @@FETCH_STATUS = 0
-        BEGIN
-            IF @TipoServicio = 'HOTEL'
-            BEGIN
-                UPDATE Panel_110_70242
-                SET [3_numeroingresoHT] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numeroordendecompra] = @NumeroOrden;
-            END
-            ELSE IF @TipoServicio = 'TIQUETES'
-            BEGIN
-                UPDATE Panel_110_69945
-                SET [3_numeroingresoTK] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numeroordenTK] = @NumeroOrden;
-            END
-            ELSE IF @TipoServicio = 'INSCRIPCION'
-            BEGIN
-                UPDATE Panel_110_70327
-                SET [3_numeroingresocev] = @NumeroIngreso
-                WHERE [_ElementID] = @IdPanel110
-                  AND [3_numerodeorden] = @NumeroOrden;
-            END
-
-            FETCH NEXT FROM curServicios 
-                INTO @TipoServicio, @NumeroOrden, @NumeroIngreso;
-        END
-
-        CLOSE curServicios;
-        DEALLOCATE curServicios;
-
-        SET @Fin = SYSDATETIME();
-        SET @TiempoMs = DATEDIFF(MILLISECOND, @Inicio, @Fin);
-
-        /* Resultado final */
-        SELECT 
-            1 AS Exitoso,
-            'Consulta realizada con éxito' AS Mensaje,
-            @TiempoMs AS TiempoEjecucionMs;
-
-    END TRY
-    BEGIN CATCH
-
-        SET @Fin = SYSDATETIME();
-        SET @TiempoMs = DATEDIFF(MILLISECOND, @Inicio, @Fin);
-
-        SELECT 
-            0 AS Exitoso,
-            ERROR_MESSAGE() AS Mensaje,
-            @TiempoMs AS TiempoEjecucionMs;
-
-    END CATCH
-END
+                    `)
