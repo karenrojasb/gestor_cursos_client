@@ -1,45 +1,51 @@
 const itemsFijos = [
-             {
-                item: "GV103",
-                cantidad: 1,
-                por_des: 0,
-                usr_descrip_cue: "PASAJES AEREOS NACIONALES",
-                dia_pla: 0,
-                tipoconsulta: "TIQUETE"
-             }, 
-             {
-                item: "CGV106",
-                cantidad: 1,
-                por_des: 0,
-                usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
-                dia_pla: 0,
-                tipoconsulta: "AGENCIA"
-             }
-            ]
-            //Insertar los items variables
-          
-                for(const fijo of itemsFijos)      {
+    {
+        item: "GV103",
+        cantidad: 1,
+        por_des: 0,
+        usr_descrip_cue: "PASAJES AEREOS NACIONALES",
+        dia_pla: 0,
+        tipoconsulta: "TIQUETE"
+    }, 
+    {
+        item: "CGV106",
+        cantidad: 1,
+        por_des: 0,
+        usr_descrip_cue: "TARIFA ADMINISTRATIVA AGENCIA DE VIAJES",
+        dia_pla: 0,
+        tipoconsulta: "AGENCIA"
+    }
+];
 
-                let cos_uni= fijo.tipoconsulta === "TIQUETE" 
-                ? consultarValorTiquete[0]?.["3_Valortiquete"]
-                : consultarValorAgencia[0]?.["3_Valor Agencia"];
-                
-                cos_uni = cos_uni ?? 0;
+// Consulta UNA sola vez
+const consultacos_uni = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+    SELECT 
+        p.[3_valortiquete],
+        p.[3_Valor Agencia]
+    FROM Panel_110_69945 p
+    WHERE p.[_ElementID] = (
+        SELECT pn.[ID]
+        FROM Panel_110 pn
+        WHERE pn.[_ElementID] = (
+            SELECT ap.[ID]
+            FROM AP__BPM_Procesos ap
+            WHERE ap.[Referencia] = '${Referencia}'
+        )
+    )
+    AND p.[2_proveedortiquete/_Fiscal ID] = '${provee}';
+`);
 
-                const consultacos_uni = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
-                                    SELECT 
-                    p.[3_valortiquete],
-                    p.[3_Valor Agencia]
-                FROM Panel_110_69945 p
-                WHERE p.[_ElementID] = (
-                        SELECT pn.[ID]
-                        FROM Panel_110 pn
-                        WHERE pn.[_ElementID] = (
-                                SELECT ap.[ID]
-                                FROM AP__BPM_Procesos ap
-                                WHERE ap.[Referencia] = '${Referencia}'
-                        )
-                )
-                AND p.[2_proveedortiquete/_Fiscal ID] = '${provee}';
+for (const fijo of itemsFijos) {
 
-                    `)
+    let cos_uni = 0;
+
+    if (consultacos_uni.length > 0) {
+        cos_uni = fijo.tipoconsulta === "TIQUETE"
+            ? consultacos_uni[0]?.["3_valortiquete"]
+            : consultacos_uni[0]?.["3_Valor Agencia"];
+    }
+
+    cos_uni = cos_uni ?? 0;
+
+    // 👉 Aquí continúas con la inserción usando cos_uni
+}
