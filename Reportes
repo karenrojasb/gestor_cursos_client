@@ -121,7 +121,7 @@ FROM Panel_109_68508_83802
       `);
       
 
-//Consulta de facturas
+//Consulta de factura Parcial
       const consulfactura = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
       
       SELECT DISTINCT [2_ART_CON_GAN/TXT_NUM_FACTURA] factura 
@@ -129,6 +129,21 @@ FROM Panel_109_68508_83802
       AND [2_ART_CON_GAN/TXT_NUM_FACTURA] IS NOT NULL
 
       `);
+//Consulta de factura Completo
+      const consulfacturacompleto = await this.prismaAuraquanticService.$queryRawUnsafe<any[]>(`
+            SELECT p68508.[3_numfacturapro]
+FROM Panel_109_68508 p68508
+WHERE p68508.[_ElementID] = (
+    SELECT p109.[ID]
+    FROM Panel_109 p109
+    WHERE p109.[_ElementID] = (
+        SELECT bpm.[ID]
+        FROM AP__BPM_Procesos bpm
+        WHERE bpm.Referencia = '${Referencia}'
+    )
+)
+AND p68508.[3_numeroOrdenCompra] = '${num_o}';
+        `);
       
 
 
@@ -207,10 +222,7 @@ WHERE   CAB.ano_doc = @ano_o
     .replace(/\s+/g, '')  
     .toUpperCase();
 
-// Set de facturas válidas (O(1))
-const facturasValidas = new Set(
-  consulfactura.map(f => (f.factura || '').trim().toUpperCase())
-);
+
 
 // Mapa de items Nova por código (evita filter N²)
 const mapaItems = new Map<string, any[]>();
