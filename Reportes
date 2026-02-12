@@ -1,46 +1,19 @@
-ALTER PROCEDURE [dbo].[rolcontacto]
-@IdProceso as int,
-@IdClaseProceso as int,
-@CodigoObjeto as nvarchar(255),
-@RefBase as nvarchar(255)
+DECLARE @Buscar NVARCHAR(100) = 'Katerin.rojas'
+DECLARE @SQL NVARCHAR(MAX) = ''
 
+SELECT @SQL = @SQL + '
+SELECT 
+    ''' + TABLE_SCHEMA + '.' + TABLE_NAME + ''' AS Tabla,
+    ''' + COLUMN_NAME + ''' AS Columna,
+    ' + QUOTENAME(COLUMN_NAME) + ' AS ValorEncontrado
+FROM ' + QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME) + '
+WHERE ' + QUOTENAME(COLUMN_NAME) + ' LIKE ''%' + @Buscar + '%''
+UNION ALL
+'
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE DATA_TYPE IN ('varchar','nvarchar','char','nchar','text','ntext')
 
-AS
-begin
+-- Quitar el último UNION ALL
+SET @SQL = LEFT(@SQL, LEN(@SQL) - 10)
 
-declare @idtipo int,@idcuenta int,@res int
-
-select @idcuenta=e.IdElementoEnlazado,@idtipo=p.[3_Tipo de Contacto] from ap__enlaces as e
-inner join ap__campostabla as c on e.IdTipoEnlace=c.id
-inner join panel_42 as p on e.IdElementoOrigen=p._ElementID
-where c.Nombre='Contacto' and NombreTabla='panel_42' and c.TipoCampo=7 and p._ElementID=@IdProceso
-
-if @idtipo=387      --Comercial
-  begin
-    set @res=(
-      case
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=27) then 27 --Comercial1
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol= 3) then  3 --Comercial2
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=28) then 28 --Comercial3
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=42) then 42 --Comercial4
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=43) then 43 --Comercial5
-       else -1
-      end)
-  end
-else if @idtipo=388 --Tecnico  
-  begin
-    set @res=(
-      case
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=44) then 44 --Tecnico1
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=45) then 45 --Tecnico2
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=46) then 46 --Tecnico3
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=47) then 47 --Tecnico4
-        when not exists (select * from dbo.AP__RolesCuenta_Asignados where IdCuenta=@idCuenta and IdRol=48) then 48 --Tecnico5
-       else -1
-      end)
-  end
-
-
-update panel_42 set [3_IdRol]=@res where _ElementID=@idproceso
-
-end
+EXEC sp_executesql @SQL
