@@ -1,58 +1,86 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+}
 
-"use client";
-import { useState } from "react";
-import Image from "next/image";
+/* Contenedor general */
+.container {
+  text-align: center;
+}
 
-export default function Home() {
-  const [open, setOpen] = useState<string | null>(null);
+/* Imagen superior */
+.imageContainer {
+  width: 100%;
+  overflow: hidden;
+}
 
-  const toggleMenu = (menu: string) => {
-    setOpen(open === menu ? null : menu);
-  };
+.Preciso {
+  width: 100%;
+  height: auto;
+  border-bottom: 5px solid #990000;
+}
 
-  return (
-    <div className="container">
-      
-      {/* Imagen superior */}
-      <div className="imageContainer">
-        <Image 
-          src="\public\imagenes\PrecisoIMG.png"
-          alt="Imagen principal"
-          width={1200}
-          height={400}
-          className="Preciso"
-        />
-      </div>
+/* Menú */
+.menu {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+}
 
-      {/* Botones desplegables */}
-      <div className="menu">
+/* Botones principales */
+.button {
+  background-color: #990000;
+  color: white;
+  padding: 15px 35px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0px 6px 15px rgba(0,0,0,0.2);
+}
 
-        <div className="dropdown">
-          <button onClick={() => toggleMenu("menu1")} className="button">
-            Servicios
-          </button>
-          {open === "menu1" && (
-            <div className="dropdownContent">
-              <a href="https://google.com" target="_blank">Opción 1</a>
-              <a href="https://facebook.com" target="_blank">Opción 2</a>
-            </div>
-          )}
-        </div>
+.button:hover {
+  background-color: #cc0000;
+  transform: translateY(-3px);
+}
 
-        <div className="dropdown">
-          <button onClick={() => toggleMenu("menu2")} className="button">
-            Productos
-          </button>
-          {open === "menu2" && (
-            <div className="dropdownContent">
-              <a href="#">Producto A</a>
-              <a href="#">Producto B</a>
-            </div>
-          )}
-        </div>
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
 
-      </div>
+/* Contenido desplegable */
+.dropdownContent {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  background-color: white;
+  min-width: 220px;
+  border-radius: 12px;
+  box-shadow: 0px 10px 20px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-in-out;
+}
 
-    </div>
-  );
+.dropdownContent a {
+  display: block;
+  padding: 15px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.dropdownContent a:hover {
+  background-color: #990000;
+  color: white;
+}
+
+/* Animación */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
