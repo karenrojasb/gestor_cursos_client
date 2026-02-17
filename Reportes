@@ -1,11 +1,12 @@
+
 "use client";
 import { useState } from "react";
 import Image from "next/image";
 
 export default function Home() {
-  const [open, setOpen] = useState(null);
+  const [open, setOpen] = useState<string | null>(null);
 
-  const toggleMenu = (menu) => {
+  const toggleMenu = (menu: string) => {
     setOpen(open === menu ? null : menu);
   };
 
@@ -15,11 +16,11 @@ export default function Home() {
       {/* Imagen superior */}
       <div className="imageContainer">
         <Image 
-          src="/banner.jpg"
+          src="\public\imagenes\PrecisoIMG.png"
           alt="Imagen principal"
           width={1200}
           height={400}
-          className="banner"
+          className="Preciso"
         />
       </div>
 
