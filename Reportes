@@ -9,13 +9,145 @@ export default function Home() {
     setOpen(open === menu ? null : menu);
   };
 
-  const botonesIzquierda = Array.from({ length: 8 }, (_, i) => `menuIzq${i}`);
-  const botonesDerecha = Array.from({ length: 8 }, (_, i) => `menuDer${i}`);
+  const botones = [
+    {
+      id: "b1",
+      titulo: "Servicios",
+      opciones: [
+        { nombre: "Diseño Web", link: "#" },
+        { nombre: "Desarrollo", link: "#" },
+      ],
+    },
+    {
+      id: "b2",
+      titulo: "Productos",
+      opciones: [
+        { nombre: "Producto A", link: "#" },
+        { nombre: "Producto B", link: "#" },
+      ],
+    },
+    {
+      id: "b3",
+      titulo: "Clientes",
+      opciones: [
+        { nombre: "Empresas", link: "#" },
+        { nombre: "Personas", link: "#" },
+      ],
+    },
+    {
+      id: "b4",
+      titulo: "Contacto",
+      opciones: [
+        { nombre: "WhatsApp", link: "#" },
+        { nombre: "Correo", link: "#" },
+      ],
+    },
+    {
+      id: "b5",
+      titulo: "Proyectos",
+      opciones: [
+        { nombre: "Proyecto 1", link: "#" },
+        { nombre: "Proyecto 2", link: "#" },
+      ],
+    },
+    {
+      id: "b6",
+      titulo: "Nosotros",
+      opciones: [
+        { nombre: "Misión", link: "#" },
+        { nombre: "Visión", link: "#" },
+      ],
+    },
+    {
+      id: "b7",
+      titulo: "Soporte",
+      opciones: [
+        { nombre: "FAQ", link: "#" },
+        { nombre: "Ayuda", link: "#" },
+      ],
+    },
+    {
+      id: "b8",
+      titulo: "Blog",
+      opciones: [
+        { nombre: "Noticias", link: "#" },
+        { nombre: "Artículos", link: "#" },
+      ],
+    },
+
+    // 🔴 LADO DERECHO
+    {
+      id: "b9",
+      titulo: "Galería",
+      opciones: [
+        { nombre: "Fotos", link: "#" },
+        { nombre: "Videos", link: "#" },
+      ],
+    },
+    {
+      id: "b10",
+      titulo: "Tienda",
+      opciones: [
+        { nombre: "Comprar", link: "#" },
+        { nombre: "Carrito", link: "#" },
+      ],
+    },
+    {
+      id: "b11",
+      titulo: "Eventos",
+      opciones: [
+        { nombre: "Próximos", link: "#" },
+        { nombre: "Pasados", link: "#" },
+      ],
+    },
+    {
+      id: "b12",
+      titulo: "Equipo",
+      opciones: [
+        { nombre: "Integrantes", link: "#" },
+        { nombre: "Trabaja con nosotros", link: "#" },
+      ],
+    },
+    {
+      id: "b13",
+      titulo: "Alianzas",
+      opciones: [
+        { nombre: "Empresas", link: "#" },
+        { nombre: "Convenios", link: "#" },
+      ],
+    },
+    {
+      id: "b14",
+      titulo: "Descargas",
+      opciones: [
+        { nombre: "PDF", link: "#" },
+        { nombre: "Documentos", link: "#" },
+      ],
+    },
+    {
+      id: "b15",
+      titulo: "Noticias",
+      opciones: [
+        { nombre: "Actualidad", link: "#" },
+        { nombre: "Comunicados", link: "#" },
+      ],
+    },
+    {
+      id: "b16",
+      titulo: "Redes Sociales",
+      opciones: [
+        { nombre: "Instagram", link: "#" },
+        { nombre: "Facebook", link: "#" },
+      ],
+    },
+  ];
+
+  const izquierda = botones.slice(0, 8);
+  const derecha = botones.slice(8, 16);
 
   return (
     <div className="container">
 
-      {/* Imagen centrada */}
       <div className="imageContainer">
         <Image
           src="/imagenes/PrecisoIMG.png"
@@ -26,20 +158,26 @@ export default function Home() {
         />
       </div>
 
-      {/* Sección de botones */}
       <div className="menuContainer">
 
         {/* Columna izquierda */}
         <div className="column">
-          {botonesIzquierda.map((menu) => (
-            <div key={menu} className="dropdown">
-              <button onClick={() => toggleMenu(menu)} className="button">
-                Botón {menu}
+          {izquierda.map((boton) => (
+            <div key={boton.id} className="dropdown">
+              <button
+                onClick={() => toggleMenu(boton.id)}
+                className="button"
+              >
+                {boton.titulo}
               </button>
-              {open === menu && (
+
+              {open === boton.id && (
                 <div className="dropdownContent">
-                  <a href="#">Opción A</a>
-                  <a href="#">Opción B</a>
+                  {boton.opciones.map((opcion, index) => (
+                    <a key={index} href={opcion.link}>
+                      {opcion.nombre}
+                    </a>
+                  ))}
                 </div>
               )}
             </div>
@@ -48,15 +186,22 @@ export default function Home() {
 
         {/* Columna derecha */}
         <div className="column">
-          {botonesDerecha.map((menu) => (
-            <div key={menu} className="dropdown">
-              <button onClick={() => toggleMenu(menu)} className="button">
-                Botón {menu}
+          {derecha.map((boton) => (
+            <div key={boton.id} className="dropdown">
+              <button
+                onClick={() => toggleMenu(boton.id)}
+                className="button"
+              >
+                {boton.titulo}
               </button>
-              {open === menu && (
+
+              {open === boton.id && (
                 <div className="dropdownContent">
-                  <a href="#">Opción A</a>
-                  <a href="#">Opción B</a>
+                  {boton.opciones.map((opcion, index) => (
+                    <a key={index} href={opcion.link}>
+                      {opcion.nombre}
+                    </a>
+                  ))}
                 </div>
               )}
             </div>
@@ -64,7 +209,6 @@ export default function Home() {
         </div>
 
       </div>
-
     </div>
   );
 }
