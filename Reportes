@@ -1,5 +1,9 @@
-CAST(GC.[3_Horas_Extras] AS DECIMAL(10,1)) AS [Horas Solicitadas],
-CAST(ISNULL(GC.[3_Horas_RH],0) AS DECIMAL(10,1)) AS [Horas aprobadas por RRHH],
+Actualmente en mi historial académico aparecen 71 créditos aprobados de un total de 144 créditos del programa de Ingeniería de Software.
 
-ROUND(GC.[3_Horas_Extras],1) AS [Horas Solicitadas],
-ROUND(ISNULL(GC.[3_Horas_RH],0),1) AS [Horas aprobadas por RRHH],
+Según el plan de estudios, se contemplan 18 créditos por semestre. Sin embargo, al revisar la malla curricular y mi historial académico, en los semestres quinto, sexto y séptimo aparecen registrados 24 créditos, lo cual me genera dudas frente a la distribución real de los créditos por período académico.
+
+Por lo anterior, me gustaría recibir mayor información y orientación sobre cómo se está realizando la asignación y contabilización de los créditos en estos semestres, con el fin de tener claridad sobre mi avance académico.
+
+
+
+
