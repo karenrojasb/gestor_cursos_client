@@ -1,9 +1,57 @@
-Actualmente en mi historial académico aparecen 71 créditos aprobados de un total de 144 créditos del programa de Ingeniería de Software.
+"use client";
+import { useState } from "react";
+import Image from "next/image";
 
-Según el plan de estudios, se contemplan 18 créditos por semestre. Sin embargo, al revisar la malla curricular y mi historial académico, en los semestres quinto, sexto y séptimo aparecen registrados 24 créditos, lo cual me genera dudas frente a la distribución real de los créditos por período académico.
+export default function Home() {
+  const [open, setOpen] = useState(null);
 
-Por lo anterior, me gustaría recibir mayor información y orientación sobre cómo se está realizando la asignación y contabilización de los créditos en estos semestres, con el fin de tener claridad sobre mi avance académico.
+  const toggleMenu = (menu) => {
+    setOpen(open === menu ? null : menu);
+  };
 
+  return (
+    <div className="container">
+      
+      {/* Imagen superior */}
+      <div className="imageContainer">
+        <Image 
+          src="/banner.jpg"
+          alt="Imagen principal"
+          width={1200}
+          height={400}
+          className="banner"
+        />
+      </div>
 
+      {/* Botones desplegables */}
+      <div className="menu">
 
+        <div className="dropdown">
+          <button onClick={() => toggleMenu("menu1")} className="button">
+            Servicios
+          </button>
+          {open === "menu1" && (
+            <div className="dropdownContent">
+              <a href="https://google.com" target="_blank">Opción 1</a>
+              <a href="https://facebook.com" target="_blank">Opción 2</a>
+            </div>
+          )}
+        </div>
 
+        <div className="dropdown">
+          <button onClick={() => toggleMenu("menu2")} className="button">
+            Productos
+          </button>
+          {open === "menu2" && (
+            <div className="dropdownContent">
+              <a href="#">Producto A</a>
+              <a href="#">Producto B</a>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
