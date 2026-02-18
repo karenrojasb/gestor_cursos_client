@@ -6,20 +6,24 @@ body {
 
 /* Contenedor principal */
 .container {
+
   text-align: center;
-  padding: 20px;
+  padding: 0px;
 }
 
 /* Imagen */
 .imageContainer {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 40px;
+  position: relative;
+  width: 100%;
+  max-width: 1700px; 
+  height: 350px;     
+  margin: 0 auto 30px auto;
 }
 
 .imagen {
-  border-radius: 12px;
-  border: 4px solid #990000;
+
+  object-fit: contain; 
+  
 }
 
 /* Contenedor de columnas */
@@ -38,20 +42,75 @@ body {
 
 /* Botones */
 .button {
-  background-color: #990000;
-  color: white;
-  padding: 12px 25px;
+  background-color: #e6e6e6;
+  color: black;
+  padding: 10px 25px;
   font-size: 16px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
-  width: 200px;
+  width: 420px;
+  min-height: 45px;
+  text-align: left;
+  line-height: 1.4;
+  word-wrap: break-word;
 }
 
+.button.gooey {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.button.gooey .text,
+.button.gooey .icon {
+  position: relative;
+  z-index: 2;
+}
+
+.button.gooey .blobs {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  filter: url(#goo);
+}
+
+.button.gooey .blobs span {
+  position: absolute;
+  width: 35%;
+  height: 100%;
+  background: #990000; /* mismo color hover que ya usas */
+  border-radius: 100%;
+  transform: translateY(125%) scale(1.4);
+  transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.button.gooey .blobs span:nth-child(1) {
+  left: -5%;
+}
+
+.button.gooey .blobs span:nth-child(2) {
+  left: 30%;
+  transition-delay: 0.05s;
+}
+
+.button.gooey .blobs span:nth-child(3) {
+  left: 65%;
+  transition-delay: 0.1s;
+}
+
+.button.gooey:hover {
+  color: white;
+}
+
+.button.gooey:hover .blobs span {
+  transform: translateY(0) scale(1.4);
+}
 .button:hover {
-  background-color: #cc0000;
-  transform: scale(1.05);
+  background-color: #990000;
+  transform: scale(1.07);
+  color: white;
 }
 
 /* Dropdown */
@@ -60,7 +119,7 @@ body {
 }
 
 .dropdownContent {
-  position: absolute;
+  position: relative;
   background: white;
   width: 100%;
   border-radius: 10px;
@@ -68,7 +127,9 @@ body {
   margin-top: 5px;
   overflow: hidden;
   animation: fadeIn 0.3s ease;
+  text-align: left;
   z-index: 10;
+  
 }
 
 .dropdownContent a {
@@ -76,6 +137,7 @@ body {
   padding: 10px;
   text-decoration: none;
   color: #333;
+  text-align: left;
   transition: 0.3s;
 }
 
