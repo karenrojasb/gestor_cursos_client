@@ -1,6 +1,13 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import { FaCartArrowDown, FaCartPlus, FaUserFriends, FaChalkboardTeacher,
+         FaLaptopCode , FaBiohazard, FaClipboard, FaBuilding ,
+         FaUsers , FaUserTie , FaKeyboard } from "react-icons/fa";
+  import { FaBookOpenReader, FaHandshakeSimple } from "react-icons/fa6";
+  import { BsClipboard2CheckFill } from "react-icons/bs";
+  import { HiPencilSquare } from "react-icons/hi2";
+  import { PiUsersFourFill } from "react-icons/pi";
 
 export default function Home() {
   const [open, setOpen] = useState<string | null>(null);
@@ -12,132 +19,156 @@ export default function Home() {
   const botones = [
     {
       id: "b1",
-      titulo: "Servicios",
+      titulo: "Reportes de Monitores",
+      icono: <FaUserFriends />,
       opciones: [
-        { nombre: "Diseño Web", link: "#" },
-        { nombre: "Desarrollo", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b2",
-      titulo: "Productos",
+      titulo: "Reportes Gestion de Contratos",
+      icono: <FaCartArrowDown />,
       opciones: [
-        { nombre: "Producto A", link: "#" },
-        { nombre: "Producto B", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b3",
-      titulo: "Clientes",
+      titulo: "Reportes Gestión de Compras",
+      icono: <FaCartPlus />,
       opciones: [
-        { nombre: "Empresas", link: "#" },
-        { nombre: "Personas", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b4",
-      titulo: "Contacto",
+      titulo: "Reportes de Capacitaciones, Eventos y Viajes",
+      icono: <FaChalkboardTeacher />,
       opciones: [
-        { nombre: "WhatsApp", link: "#" },
-        { nombre: "Correo", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b5",
-      titulo: "Proyectos",
+      titulo: "Reportes de OSIRIS",
+      icono: <FaLaptopCode />,
       opciones: [
-        { nombre: "Proyecto 1", link: "#" },
-        { nombre: "Proyecto 2", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b6",
-      titulo: "Nosotros",
+      titulo: "Reportes de Biblioteca",
+      icono: <FaBookOpenReader />,
       opciones: [
-        { nombre: "Misión", link: "#" },
-        { nombre: "Visión", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b7",
-      titulo: "Soporte",
+      titulo: "Reporte Sicoq",
+      icono: <FaBiohazard />,
       opciones: [
-        { nombre: "FAQ", link: "#" },
-        { nombre: "Ayuda", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b8",
-      titulo: "Blog",
+      titulo: "Reportes Planta Física",
+      icono: <FaClipboard />,
       opciones: [
-        { nombre: "Noticias", link: "#" },
-        { nombre: "Artículos", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
 
-    // 🔴 LADO DERECHO
+    
     {
       id: "b9",
-      titulo: "Galería",
+      titulo: "Reportes Compras - Gestión de Infraestructura",
+      icono: <FaBuilding />,
       opciones: [
-        { nombre: "Fotos", link: "#" },
-        { nombre: "Videos", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b10",
-      titulo: "Tienda",
+      titulo: "Reportes Contratos - Gestión de Infraestructura",
+      icono: <FaHandshakeSimple  />,
       opciones: [
-        { nombre: "Comprar", link: "#" },
-        { nombre: "Carrito", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b11",
-      titulo: "Eventos",
+      titulo: "Reportes de Presupuesto en prueba",
+      icono: <BsClipboard2CheckFill />,
       opciones: [
-        { nombre: "Próximos", link: "#" },
-        { nombre: "Pasados", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b12",
-      titulo: "Equipo",
+      titulo: "Reporte de Empleados",
+      icono: <FaUsers  />,
       opciones: [
-        { nombre: "Integrantes", link: "#" },
-        { nombre: "Trabaja con nosotros", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b13",
-      titulo: "Alianzas",
+      titulo: "Reporte de Proveedores",
+      icono: <FaUserTie  />,
       opciones: [
-        { nombre: "Empresas", link: "#" },
-        { nombre: "Convenios", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b14",
-      titulo: "Descargas",
+      titulo: "Reporte UIP",
+      icono: <FaKeyboard  />,
       opciones: [
-        { nombre: "PDF", link: "#" },
-        { nombre: "Documentos", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b15",
-      titulo: "Noticias",
+      titulo: "Consultar Ítem en rubro presupuestal",
+      icono: <HiPencilSquare  />,
       opciones: [
-        { nombre: "Actualidad", link: "#" },
-        { nombre: "Comunicados", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
       ],
     },
     {
       id: "b16",
-      titulo: "Redes Sociales",
+      titulo: "Reportes de Recursos Humanos",
+      icono: <PiUsersFourFill/>,
       opciones: [
-        { nombre: "Instagram", link: "#" },
-        { nombre: "Facebook", link: "#" },
+        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Anticipo Nomina Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Cambio de cuenta pago de nómina Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Certificados laborales Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Disminución Retención en la Fuente Versión 1 (RRH-100.1)", link: "#" },
+        { nombre: "Reporte Gestión de Contratos versión 3 (SCM-38.3)", link: "#" },
+        { nombre: "Reporte carga academica profesores catedraticos RCA-121.1", link: "#" },
+        { nombre: "Reporte correcciones carga academica profesores catedraticos RCA-121.1", link: "#" },
+
       ],
     },
   ];
@@ -150,13 +181,32 @@ export default function Home() {
 
       <div className="imageContainer">
         <Image
-          src="/imagenes/PrecisoIMG.png"
+          src="/imagenes/Preciso.png"
           alt="Imagen principal"
-          width={900}
-          height={250}
+          width={1000}
+          height={350}
           className="imagen"
         />
       </div>
+
+      <svg style={{ display: "none" }}>
+        <defs>
+          <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values="
+                1 0 0 0 0  
+                0 1 0 0 0  
+                0 0 1 0 0  
+                0 0 0 18 -7"
+              result="goo"
+            />
+            <feBlend in="SourceGraphic" in2="goo" />
+          </filter>
+        </defs>
+      </svg>
 
       <div className="menuContainer">
 
@@ -166,10 +216,17 @@ export default function Home() {
             <div key={boton.id} className="dropdown">
               <button
                 onClick={() => toggleMenu(boton.id)}
-                className="button"
-              >
-                {boton.titulo}
-              </button>
+               className="button gooey"
+            >
+              <span className="icon">{boton.icono}</span>
+              <span className="text">{boton.titulo}</span>
+
+              <span className="blobs">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </button>
 
               {open === boton.id && (
                 <div className="dropdownContent">
@@ -190,10 +247,17 @@ export default function Home() {
             <div key={boton.id} className="dropdown">
               <button
                 onClick={() => toggleMenu(boton.id)}
-                className="button"
-              >
-                {boton.titulo}
-              </button>
+                className="button gooey"
+            >
+              <span className="icon">{boton.icono}</span>
+              <span className="text">{boton.titulo}</span>
+
+              <span className="blobs">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </button>
 
               {open === boton.id && (
                 <div className="dropdownContent">
@@ -211,4 +275,5 @@ export default function Home() {
       </div>
     </div>
   );
+  
 }
