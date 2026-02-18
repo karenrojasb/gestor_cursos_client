@@ -1,279 +1,291 @@
-"use client";
-import { useState } from "react";
-import Image from "next/image";
-import { FaCartArrowDown, FaCartPlus, FaUserFriends, FaChalkboardTeacher,
-         FaLaptopCode , FaBiohazard, FaClipboard, FaBuilding ,
-         FaUsers , FaUserTie , FaKeyboard } from "react-icons/fa";
-  import { FaBookOpenReader, FaHandshakeSimple } from "react-icons/fa6";
-  import { BsClipboard2CheckFill } from "react-icons/bs";
-  import { HiPencilSquare } from "react-icons/hi2";
-  import { PiUsersFourFill } from "react-icons/pi";
+import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
+import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
+import { GenerarOrdenDto } from "./dto/generarorden.dto";
+import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
+import { Console } from "console";
 
-export default function Home() {
-  const [open, setOpen] = useState<string | null>(null);
 
-  const toggleMenu = (menu: string) => {
-    setOpen(open === menu ? null : menu);
-  };
+@Injectable()
+export class generarOrdenService {
+    constructor(
+        private readonly prismaNovasoftService: PrismaNovasoftService,
 
-  const botones = [
-    {
-      id: "b1",
-      titulo: "Reportes de Monitores",
-      icono: <FaUserFriends />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b2",
-      titulo: "Reportes Gestion de Contratos",
-      icono: <FaCartArrowDown />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b3",
-      titulo: "Reportes Gestión de Compras",
-      icono: <FaCartPlus />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b4",
-      titulo: "Reportes de Capacitaciones, Eventos y Viajes",
-      icono: <FaChalkboardTeacher />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b5",
-      titulo: "Reportes de OSIRIS",
-      icono: <FaLaptopCode />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b6",
-      titulo: "Reportes de Biblioteca",
-      icono: <FaBookOpenReader />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b7",
-      titulo: "Reporte Sicoq",
-      icono: <FaBiohazard />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b8",
-      titulo: "Reportes Planta Física",
-      icono: <FaClipboard />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
+    ) { }
 
-    
-    {
-      id: "b9",
-      titulo: "Reportes Compras - Gestión de Infraestructura",
-      icono: <FaBuilding />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b10",
-      titulo: "Reportes Contratos - Gestión de Infraestructura",
-      icono: <FaHandshakeSimple  />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b11",
-      titulo: "Reportes de Presupuesto en prueba",
-      icono: <BsClipboard2CheckFill />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b12",
-      titulo: "Reporte de Empleados",
-      icono: <FaUsers  />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b13",
-      titulo: "Reporte de Proveedores",
-      icono: <FaUserTie  />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b14",
-      titulo: "Reporte UIP",
-      icono: <FaKeyboard  />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b15",
-      titulo: "Consultar Ítem en rubro presupuestal",
-      icono: <HiPencilSquare  />,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-      ],
-    },
-    {
-      id: "b16",
-      titulo: "Reportes de Recursos Humanos",
-      icono: <PiUsersFourFill/>,
-      opciones: [
-        { nombre: "Reporte Vacaciones Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Horas Extras Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Anticipo Nomina Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Cambio de cuenta pago de nómina Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Certificados laborales Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Disminución Retención en la Fuente Versión 1 (RRH-100.1)", link: "#" },
-        { nombre: "Reporte Gestión de Contratos versión 3 (SCM-38.3)", link: "#" },
-        { nombre: "Reporte carga academica profesores catedraticos RCA-121.1", link: "#" },
-        { nombre: "Reporte correcciones carga academica profesores catedraticos RCA-121.1", link: "#" },
+    async GenerarOrden(data: GenerarOrdenDto) {
+        const { item, num_cdp, provee, Articulos } = data;
+        try{
+        // Variables
+        const vendedor = '0';
+        const cod_cl2 = '0';
+        const cod_cl3 = '0';
+        const asig_num = 1;
+        const ind_refac = 0;
+        const conv_cco = '0';
+        const conv_cl1 = '0';
+        const conv_cl2 = '0';
+        const conv_cl3 = '0';
+        const por_adm = 0;
+        const por_imp = 0;
+        const cliente = '0';
+        const bod_des = '0';
+        const lista = '0';
+        const ind_mp = '00';
+        const tasa = 0;
+        const fac_pro = '0';
+        const cod_caja = '0';
+        const tip_doc = '007';
+        const cant_uni = 0;
+        const alterno = '0';
+        const trans = '32001';
+        const fac_con = '0';
+        const por_com = 0;
+        const suc_des = 0;
+        const cod_conv = '0';
+        const conv_suc = '0';
+        const por_uti = 0;
+        const mon_adm = 0;
+        const mon_imp = 0;
+        const mon_uti = 0;
+        const usr_ano_ped = '0';
+        const usr_per_ped = '0';
+        const usr_sub_ped = '0';
+        const usr_pedido = '0';
+        const usr_reg_ped = 0;
+        const sub_cdp = 'U726';
+        
 
-      ],
-    },
-  ];
+        const num_cdp_form = String(num_cdp).padStart(10, '0');
+ 
 
-  const izquierda = botones.slice(0, 8);
-  const derecha = botones.slice(8, 16);
+        // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
+        const sucursalInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+           SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = '${data.cod_cl1}'
+            `);
 
-  return (
-    <div className="container">
+        if (sucursalInfo.length === 0) {
+            throw new BadRequestException(`El código de sucursal ${data.cod_cl1} no existe`);
+        }
 
-      <div className="imageContainer">
-        <Image
-          src="/imagenes/Preciso.png"
-          alt="Imagen principal"
-          width={1000}
-          height={350}
-          className="imagen"
-        />
-      </div>
+        const cod_suc = sucursalInfo[0].usr_sucursal;
 
-      <svg style={{ display: "none" }}>
-        <defs>
-          <filter id="goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              values="
-                1 0 0 0 0  
-                0 1 0 0 0  
-                0 0 1 0 0  
-                0 0 0 18 -7"
-              result="goo"
-            />
-            <feBlend in="SourceGraphic" in2="goo" />
-          </filter>
-        </defs>
-      </svg>
+        function limpiarProveedor(provee?: string): string {
+        if (!provee) return '';
 
-      <div className="menuContainer">
+        const partes = provee.split('-');
 
-        {/* Columna izquierda */}
-        <div className="column">
-          {izquierda.map((boton) => (
-            <div key={boton.id} className="dropdown">
-              <button
-                onClick={() => toggleMenu(boton.id)}
-               className="button gooey"
-            >
-              <span className="icon">{boton.icono}</span>
-              <span className="text">{boton.titulo}</span>
+        if (partes.length === 2) {
+            return partes[0].length >= partes[1].length
+            ? partes[0]
+            : partes[1];
+        }
 
-              <span className="blobs">
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
-            </button>
+        return provee;
+        }
 
-              {open === boton.id && (
-                <div className="dropdownContent">
-                  {boton.opciones.map((opcion, index) => (
-                    <a key={index} href={opcion.link}>
-                      {opcion.nombre}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+const proveeLimpio = limpiarProveedor(provee)
+               //Validar que el NIT exista
+        const proveedorInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu
+        from cxp_provee 
+        WHERE provee = '${proveeLimpio}'`);
 
-        {/* Columna derecha */}
-        <div className="column">
-          {derecha.map((boton) => (
-            <div key={boton.id} className="dropdown">
-              <button
-                onClick={() => toggleMenu(boton.id)}
-                className="button gooey"
-            >
-              <span className="icon">{boton.icono}</span>
-              <span className="text">{boton.titulo}</span>
+        if (proveedorInfo.length === 0) {
+            throw new BadRequestException(`El NIT ${proveeLimpio}, no existe`)
+            ;
+        }
 
-              <span className="blobs">
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
-            </button>
+        const { ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu } = proveedorInfo[0];
+        const pai_doc = `${cod_pai}`;
+        const dep_doc = `${cod_dep}`;
+        const ciu_doc = `${ciu}`;
+        const tar_rii = `${ret_iva}`;
+        const tar_rii_ng = `${ret_iva_ng}`;
 
-              {open === boton.id && (
-                <div className="dropdownContent">
-                  {boton.opciones.map((opcion, index) => (
-                    <a key={index} href={opcion.link}>
-                      {opcion.nombre}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
 
-      </div>
-    </div>
-  );
-  
-}
+        // Obtener el consecutivo num_doc
+        const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+          SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
+          FROM inv_inf_inv
+             `);
+        const num_doc = consecutivo[0].numDoc;
+
+
+
+        //Obtener la información del item
+        const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
+        FROM inv_items
+        WHERE cod_item = '${item}'
+        `);
+
+        const infoItem = itemInfo[0] || {};
+
+ //Validar que el CDP no exista
+        const cdpExistente = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        SELECT  TOP 1 num_cdp
+        FROM inv_inf_inv
+        WHERE num_cdp = '${num_cdp_form}'
+        `);
+
+        if (cdpExistente.length > 0) {
+            throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp_form} ya existe`)
+        }
+await this.prismaNovasoftService.$transaction(async (tx) =>{
+        for (let i = 0; i < Articulos.length; i++) {
+            //Validar que el item exista
+
+        
+    const { item: itemArticulo, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+
+            const usrDescripCueLimitado = usr_descrip_cue
+            ? usr_descrip_cue.substring(0, 200)
+            : '';
+
+            const itemLimpio = itemArticulo.split(';')[0].trim();
+            console.log(itemLimpio)
+            // Validar info del item
+            const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                SELECT cod_est, cod_ret_com, por_ret, por_iva, por_iva_ng
+                FROM inv_items
+                WHERE cod_item = '${itemLimpio}'
+            `);
+
+            if (itemInfo.length === 0) {
+                throw new BadRequestException(`El item ${itemLimpio} no existe`);
+            }
+            const estadoItem = itemInfo[0].cod_est;
+
+            if (estadoItem !== true) {
+                throw new BadRequestException(`El item ${itemLimpio} no está activo`);
+            }
+
+            const { cod_ret_com, por_ret, por_iva, por_iva_ng } = itemInfo[0];
+            const cod_ret = `${cod_ret_com}`;;
+
+            
+            
+
+            const infoItem = itemInfo[0] || {};
+
+          
+            
+
+            const terceroInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT TOP 1 ter_nit
+            FROM gen_terceros
+            WHERE ter_nit = '${data.usr_tercero}'
+            `);
+
+            if (terceroInfo.length == 0) {
+                throw new BadRequestException(`El usr_tercero ${data.usr_tercero},  no es válido`)
+            }
+
+            
+
+            //Obtener la información de CDP 
+            const cdpInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+                SELECT ano_doc AS ano_cdp, per_doc AS per_cdp
+                FROM PRE_cuedoc
+                WHERE num_cdp = '${num_cdp_form}'
+            `);
+
+            const ano_cdp = cdpInfo[0]?.ano_cdp || getNowDate().getFullYear();
+            const per_cdp = cdpInfo[0]?.per_cdp || getCurrentMonth();
+
+            const reg_doc = i +1
+
+ 
+            const cos_unai = cos_uni;
+            const pre_vta = cos_uni
+
+            //Insertar la orden
+            await tx.$executeRawUnsafe(`
+            INSERT INTO inv_inf_inv (
+            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
+            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
+            cliente, provee, lista, ind_mp, fec_tas, tasa, obs_orc,
+            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
+            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
+            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
+            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
+            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
+            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
+            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
+            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
+            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc, dia_pla)
+
+            VALUES (
+            '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${data.sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
+            '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
+            '${cliente}', '${proveeLimpio}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
+            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${itemLimpio}', '${alterno}',
+            '${trans}', '${cantidad}', '${fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
+            '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${formatoDateToDDMMYYYY()}',
+            '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
+            '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
+            '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
+            '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
+            '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${num_cdp_form}','${data.cod_rubro}',
+            '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${dia_pla}'
+            )
+            `)
+            
+        }
+
+        
+       
+            
+          const resultadoSP =  await this.prismaNovasoftService.$transaction(tx => tx.$queryRawUnsafe<any[]>(`
+                EXEC dbo.USR_sp_gen_afeinv_preciso 
+                    @iano_doc = '${getNowDate().getFullYear()}',
+                    @fano_doc = '${getNowDate().getFullYear()}',
+                    @iper_doc = '${getCurrentMonth()}',
+                    @fper_doc = '${getCurrentMonth()}',
+                    @isub_tip = '${data.sub_tip}',
+                    @fsub_tip = '${data.sub_tip}',
+                    @inum_doc = '${num_doc}',
+                    @fnum_doc = '${num_doc}',
+                    @ifec_doc = '${formatoDateToDDMMYYYY()}',
+                    @ffec_doc = '${formatoDateToDDMMYYYY()}',
+                    @indver = 0
+            `));
+            if (! resultadoSP) {
+                throw new BadRequestException(`ERROR: No se pudo generar la orden para el CDP ${num_cdp}`);
+            }
+
+             //Obtener el asig_numero
+        const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            SELECT DISTINCT asig_numero
+            FROM inv_inf_inv
+            WHERE ind_tra = 'X'
+              AND ano_doc = ${getNowDate().getFullYear()}
+              AND per_doc = '${getCurrentMonth()}'
+              AND sub_tip = '${data.sub_tip}'
+              AND tip_doc = '${tip_doc}'
+              AND num_doc = ${num_doc}
+        `);
+        
+        // Si no encuentra nada, dejar en blanco
+        const asig_numero = asigNumeroResult.length > 0
+            ? asigNumeroResult[0].asig_numero
+            : '';
+
+        return {
+            Codigo: `200`,
+            Mensaje: `Consulta realiza con éxito`,
+            asig_numero
+        }; })
+
+    } catch(error) {
+        console.error("Error al generar la orden:", error.menssaje ?? error);
+        if (error instanceof HttpException) throw error;
+
+        console.log('Error al reasignar el cdp', error);
+        throw new InternalServerErrorException('Error al generar la consulta')
+
+    }
+
+
+
+}}
