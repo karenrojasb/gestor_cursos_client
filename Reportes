@@ -131,12 +131,12 @@ const proveeLimpio = limpiarProveedor(provee)
         if (cdpExistente.length > 0) {
             throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp_form} ya existe`)
         }
-await this.prismaNovasoftService.$transaction(async (tx) =>{
+        await this.prismaNovasoftService.$transaction(async (tx) =>{
         for (let i = 0; i < Articulos.length; i++) {
             //Validar que el item exista
 
         
-    const { item: itemArticulo, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
+        const { item: itemArticulo, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
 
             const usrDescripCueLimitado = usr_descrip_cue
             ? usr_descrip_cue.substring(0, 200)
@@ -145,7 +145,7 @@ await this.prismaNovasoftService.$transaction(async (tx) =>{
             const itemLimpio = itemArticulo.split(';')[0].trim();
             console.log(itemLimpio)
             // Validar info del item
-            const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            const itemInfo = await tx.$queryRawUnsafe<any[]>(`
                 SELECT cod_est, cod_ret_com, por_ret, por_iva, por_iva_ng
                 FROM inv_items
                 WHERE cod_item = '${itemLimpio}'
@@ -168,10 +168,7 @@ await this.prismaNovasoftService.$transaction(async (tx) =>{
 
             const infoItem = itemInfo[0] || {};
 
-          
-            
-
-            const terceroInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            const terceroInfo = await tx.$queryRawUnsafe<any[]>(`
             SELECT TOP 1 ter_nit
             FROM gen_terceros
             WHERE ter_nit = '${data.usr_tercero}'
@@ -181,10 +178,9 @@ await this.prismaNovasoftService.$transaction(async (tx) =>{
                 throw new BadRequestException(`El usr_tercero ${data.usr_tercero},  no es válido`)
             }
 
-            
 
             //Obtener la información de CDP 
-            const cdpInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+            const cdpInfo = await tx.$queryRawUnsafe<any[]>(`
                 SELECT ano_doc AS ano_cdp, per_doc AS per_cdp
                 FROM PRE_cuedoc
                 WHERE num_cdp = '${num_cdp_form}'
@@ -233,8 +229,6 @@ await this.prismaNovasoftService.$transaction(async (tx) =>{
             
         }
 
-        
-       
             
           const resultadoSP =  await tx.$queryRawUnsafe<any[]>(`
                 EXEC dbo.USR_sp_gen_afeinv_preciso 
@@ -255,7 +249,7 @@ await this.prismaNovasoftService.$transaction(async (tx) =>{
             }
 
              //Obtener el asig_numero
-        const asigNumeroResult = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
+        const asigNumeroResult = await tx.$queryRawUnsafe<any[]>(`
             SELECT DISTINCT asig_numero
             FROM inv_inf_inv
             WHERE ind_tra = 'X'
