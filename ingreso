@@ -1,37 +1,26 @@
-en los items que le quita despues o deja solo hasta el # UP124;;;2020;;;BANDA DE CAUCHO #22 CJ*25G 90MM*2MM;;;534,00;;;#UP124 tengo el anterior ejemplo que tiene dos # entonces solo quiero que tome despues del ultimo
+ async reasignacdp(reasignacdpDto: ReasignacdpDto) {
+        const { numerocdp, valorcdp, estadoasig, CentroOperativo, Codigorubro, solicitante } = reasignacdpDto;
 
-    SELECT 
-    P.[Referencia],
-    A.[Name] AS [Centro Operativo],
-    P109.[2_RubroPresupuestal/] AS [Rubro],
-    SUBSTRING(P68683.[1_Articulo_ERP],
-      CHARINDEX('#', P68683.[1_Articulo_ERP]) + 1,
-      LEN(P68683.[1_Articulo_ERP])
-    ) AS [Codigo],
-    P68683.[2_Articulo_ERP/Nombre] AS [Nombre Item],
-    P68683.[3_DESCRIPCION ITEM] AS [Descripción],
-    CAST(ROUND(P68683.[3_CantidadDecimal], 1) AS DECIMAL(18,1)) AS [Cantidad],
-    D.Opcion AS [Unidad],
-    P.[FechaInicio] AS [Fecha Creación]
-FROM AP__BPM_Procesos P
-INNER JOIN Panel_109 P109 ON P109.[_ElementID] = P.[ID]
-INNER JOIN Panel_109_68683 P68683 ON P68683.[_ElementID] = P109.[ID]
-OUTER APPLY (SELECT TOP 1 Opcion FROM AP__Diccionario_Terminos_Opciones WHERE id = P68683.[3_Unidad]
-) D
-OUTER APPLY ( SELECT TOP 1 Name FROM AP__Area WHERE ERPCode = P109.[2_CentroCosto/CodigoERP]
-) A
-WHERE P.[FechaInicio] LIKE '%2026%' 
-    AND P109.[2_RubroPresupuestal/] IS NOT NULL
-    AND P68683.[1_Articulo_ERP] IS NOT NULL
-    AND P68683.[2_Articulo_ERP/Nombre] IS NOT NULL
-    AND P68683.[3_CantidadDecimal] IS NOT NULL
-    AND EXISTS (SELECT 1 FROM AP__BPM_Monitorizacion_Rastreo MR
-        WHERE MR.IdProceso = P.ID AND MR.IdObjeto = '9124'
-         )
-        AND EXISTS (
-        SELECT 1 FROM AP__BPM_TareaPersonal TP
-        WHERE TP.IdProceso = P.ID
-            AND TP.IdClaseTarea = '1656'
-            AND TP.IdEstado = '1'
-            
-    );
+        let executeProcedureReasignaCdp: any[];
+
+        const newEstadoCdp = this.validateEstadoCdp(estadoasig);
+
+        const num_cdp_result = await this.numDocResult(Codigorubro, CentroOperativo, solicitante, numerocdp);
+
+        try {
+            executeProcedureReasignaCdp = await this.prismaNovasoftService.$queryRaw`
+                EXEC usr_sp_pre_modifica_cdp ${getNowDate().getFullYear()}, ${num_cdp_result}, ${valorcdp}, ${newEstadoCdp}
+            `;
+        } catch (error) {
+            console.log('Error al reasignar el cdp', error);
+            throw new InternalServerErrorException('Error al generar la consulta');
+        }
+
+        if (executeProcedureReasignaCdp[0].respuesta == 'CDP NO EXISTE')
+            throw new NotFoundException('El cdp no existe');
+
+        return {
+            Codigo: "200",
+            Mensaje: "Consulta realizada Con éxito"
+        }
+    }
