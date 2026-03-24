@@ -1,55 +1,116 @@
-export async function obtenerCuadroComparativo(referencia: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cuadro-comparativo`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ referencia })
-  });
+'use client'; // indica que es un componente client-side si quieres usar hooks
 
-  if (!res.ok) {
-    throw new Error('Error al obtener los datos');
-  }
+import { useState } from 'react';
+import { obtenerCuadroComparativo } from '../lib/cuadroComparativo';
 
-  return res.json();
+export default function HomePage() {
+  const [referencia, setReferencia] = useState('');
+  const [datos, setDatos] = useState<Record<string, any[]>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const resultado = await obtenerCuadroComparativo(referencia);
+      setDatos(resultado.agrupado || {});
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h1>Cuadro Comparativo</h1>
+
+      <form onSubmit={handleSubmit} style={{ marginBottom: '1rem' }}>
+        <input
+          type="text"
+          value={referencia}
+          onChange={(e) => setReferencia(e.target.value)}
+          placeholder="Ingrese referencia"
+          style={{ padding: '0.5rem', marginRight: '0.5rem' }}
+        />
+        <button type="submit" style={{ padding: '0.5rem 1rem' }}>Buscar</button>
+      </form>
+
+      {loading && <p>Cargando...</p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {Object.keys(datos).map((proveedor) => (
+        <div key={proveedor} style={{ marginBottom: '2rem' }}>
+          <h2>Proveedor: {proveedor}</h2>
+          <table border={1} cellPadding={5}>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Cantidad</th>
+                <th>Unidad</th>
+                <th>Descripción</th>
+                <th>Valor Unitario</th>
+                <th>Descuento</th>
+                <th>IVA</th>
+                <th>Valor Cotizado</th>
+                <th>Días de Entrega</th>
+                <th>Forma de Pago</th>
+                <th>Observaciones</th>
+                <th>Fecha Cotización</th>
+                <th>TRM</th>
+                <th>Valor Total COP</th>
+                <th>Proveedor Ganador</th>
+              </tr>
+            </thead>
+            <tbody>
+              {datos[proveedor].map((item, idx) => (
+                <tr key={idx}>
+                  <td>{item.Nombre}</td>
+                  <td>{item.Cantidad}</td>
+                  <td>{item.Unidad}</td>
+                  <td>{item.Descripcion}</td>
+                  <td>{item.Valor_Unitario}</td>
+                  <td>{item.Descuento}</td>
+                  <td>{item.IVA}</td>
+                  <td>{item.Valor_Cotizado_Proveedor}</td>
+                  <td>{item.Dias_Entrega}</td>
+                  <td>{item.Forma_Pago}</td>
+                  <td>{item.Observaciones}</td>
+                  <td>{item.Fecha_Cotizacion}</td>
+                  <td>{item.TRM}</td>
+                  <td>{item.Valor_Total_COP}</td>
+                  <td>{item.Proveedor_Ganador}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 
 
 
 
-import { useState } from 'react';
-import { obtenerCuadroComparativo } from '../services/cuadroComparativo';
 
-export default function CuadroComparativoPage() {
-  const [referencia, setReferencia] = useState('');
-  const [datos, setDatos] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleBuscar = async () => {
-    setLoading(true);
-    try {
-      const res = await obtenerCuadroComparativo(referencia);
-      setDatos(res);
-    } catch (e) {
-      console.error(e);
-      alert('Error al consultar los datos');
-    }
-    setLoading(false);
-  };
 
-  return (
-    <div>
-      <h1>Cuadro Comparativo</h1>
-      <input
-        type="text"
-        value={referencia}
-        onChange={(e) => setReferencia(e.target.value)}
-        placeholder="Ingrese referencia"
-      />
-      <button onClick={handleBuscar} disabled={loading}>
-        {loading ? 'Cargando...' : 'Buscar'}
-      </button>
 
-      <pre>{datos ? JSON.stringify(datos, null, 2) : 'No hay datos'}</pre>
-    </div>
-  );
+// lib/cuadroComparativo.ts
+export async function obtenerCuadroComparativo(referencia: string) {
+  const res = await fetch('http://192.168.1.10:3000/auraquantic/cuadro-comparativo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ referencia }),
+    cache: 'no-store' // para Next.js 13 y fetch server-side
+  });
+
+  if (!res.ok) throw new Error('Error al obtener datos');
+
+  return res.json();
 }
