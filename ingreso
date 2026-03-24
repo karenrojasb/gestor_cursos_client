@@ -1,25 +1,50 @@
+PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> npm run start:dev
 
-[Nest] 6448  - 24/03/2026, 11:55:31 a. m.    WARN [AuraQuantic] App running in port 3000
-C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@prisma\client\runtime\library.js:112
-You may have to run ${qe("prisma generate")} for your changes to take effect.`,this.config.clientVersion);return t}}parseEngineResponse(t){if(!t)throw new B("Response from the Engine was empty",{clientVersion:this.config.clientVersion});try{return JSON.parse(t)}catch{throw new B("Unable to JSON.parse response from engine",{clientVersion:this.config.clientVersion})}}async loadEngine(){if(!this.engine){this.QueryEngineConstructor||(this.library=await this.libraryLoader.loadLibrary(this.config),this.QueryEngineConstructor=this.library.QueryEngine);try{let t=new WeakRef(this),{adapter:r}=this.config;r&&Ae("Using driver adapter: %O",r),this.engine=new this.QueryEngineConstructor({datamodel:this.datamodel,env:process.env,logQueries:this.config.logQueries??!1,ignoreEnvVarErrors:!0,datasourceOverrides:this.datasourceOverrides??{},logLevel:this.logLevel,configDir:this.config.cwd,engineProtocol:"json"},n=>{t.deref()?.logger(n)},r)}catch(t){let r=t,n=this.parseInitError(r.message);throw typeof n=="string"?r:new R(n.message,this.config.clientVersion,n.error_code)}}}logger(t){let r=this.parseEngineResponse(t);if(r){if("span"in r){this.config.tracingHelper.createEngineSpan(r);return}r.level=r?.level.toLowerCase()??"unknown",fm(r)?this.logEmitter.emit("query",{timestamp:new Date,query:r.query,params:r.params,duration:Number(r.duration_ms),target:r.module_path}):gm(r)?this.loggerRustPanic=new le(lo(this,`${r.message}: ${r.reason} in ${r.file}:${r.line}:${r.column}`),this.config.clientVersion):this.logEmitter.emit(r.level,{timestamp:new Date,message:r.message,target:r.module_path})}}parseInitError(t){try{return JSON.parse(t)}catch{}return t}parseRequestError(t){try{return JSON.parse(t)}catch{}return t}onBeforeExit(){throw new Error('"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.')}async start(){if(await this.libraryInstantiationPromise,await this.libraryStoppingPromise,this.libraryStartingPromise)return Ae(`library already starting, this.libraryStarted: ${this.libraryStarted}`),this.libraryStartingPromise;if(this.libraryStarted)return;let t=async()=>{Ae("library starting");try{let r={traceparent:this.config.tracingHelper.getTraceParent()};await this.engine?.connect(JSON.stringify(r)),this.libraryStarted=!0,Ae("library started")}catch(r){let n=this.parseInitError(r.message);throw typeof n=="string"?r:new R(n.message,this.config.clientVersion,n.error_code)}finally{this.libraryStartingPromise=void 0}};return this.libraryStartingPromise=this.config.tracingHelper.runInChildSpan("connect",t),this.libraryStartingPromise}async stop(){if(await this.libraryStartingPromise,await this.executingQueryPromise,this.libraryStoppingPromise)return Ae("library is already stopping"),this.libraryStoppingPromise;if(!this.libraryStarted)return;let t=async()=>{await new Promise(n=>setTimeout(n,5)),Ae("library stopping");let r={traceparent:this.config.tracingHelper.getTraceParent()};await this.engine?.disconnect(JSON.stringify(r)),this.libraryStarted=!1,this.libraryStoppingPromise=void 0,Ae("library stopped")};return this.libraryStoppingPromise=this.config.tracingHelper.runInChildSpan("disconnect",t),this.libraryStoppingPromise}version(){return this.versionInfo=this.library?.version(),this.versionInfo?.version??"unknown"}debugPanic(t){return this.library?.debugPanic(t)}async request(t,{traceparent:r,interactiveTransaction:n}){Ae(`sending request, this.libraryStarted: ${this.libraryStarted}`);let i=JSON.stringify({traceparent:r}),o=JSON.stringify(t);try{await this.start(),this.executingQueryPromise=this.engine?.query(o,i,n?.id),this.lastQuery=o;let s=this.parseEngineResponse(await this.executingQueryPromise);if(s.errors)throw s.errors.length===1?this.buildQueryError(s.errors[0]):new B(JSON.stringify(s.errors),{clientVersion:this.config.clientVersion});if(this.loggerRustPanic)throw this.loggerRustPanic;return{data:s,elapsed:0}}catch(s){if(s instanceof R)throw s;if(s.code==="GenericFailure"&&s.message?.startsWith("PANIC:"))throw new le(lo(this,s.message),this.config.clientVersion);let a=this.parseRequestError(s.message);throw typeof a=="string"?s:new B(`${a.message}
-                                                                                                                                                                                                    
-                                                                                                                                                                                                    
-                                                                                                                                                                                                    
-                                                                                                                                                                                                    
-                                                                                                                                                                                                    
+> cuadro-comparativo-auraquantic-api@0.0.1 start:dev
+> nest start --watch
 
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
 
-PrismaClientInitializationError: The provided database string is invalid. Error parsing connection string: Conversion error: Invalid JDBC token `Ñ` in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
-    at t (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@prisma\client\runtime\library.js:112:2488)
-    at async Proxy.onModuleInit (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\src\prisma\prisma.service.ts:7:9)
-    at async Promise.all (index 0)
-    at async callModuleInitHook (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\hooks\on-module-init.hook.js:43:5)
-    at async NestApplication.callInitHook (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\nest-application-context.js:252:13)
-    at async NestApplication.init (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\nest-application.js:103:9)
-    at async NestApplication.listen (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\nest-application.js:175:13)
-    at async bootstrap (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\src\main.ts:48:3) {
-  clientVersion: '5.22.0',
-  errorCode: 'P1013'
+Error: Cannot find module 'defaults'
+Require stack:
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\wcwidth\index.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\ora\index.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\lib\package-managers\abstract.package-manager.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\lib\package-managers\npm.package-manager.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\lib\package-managers\package-manager.factory.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\lib\package-managers\index.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\actions\info.action.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\actions\index.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\commands\command.loader.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\commands\index.js
+- C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\cli\bin\nest.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\wcwidth\index.js:3:16)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\wcwidth\\index.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\ora\\index.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\lib\\package-managers\\abstract.package-manager.js',      
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\lib\\package-managers\\npm.package-manager.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\lib\\package-managers\\package-manager.factory.js',       
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\lib\\package-managers\\index.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\actions\\info.action.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\actions\\index.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\commands\\command.loader.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\commands\\index.js',
+    'C:\\Users\\karen.rojas-b\\Documents\\GitHub\\cuadro-comparativo-auraquantic-api\\node_modules\\@nestjs\\cli\\bin\\nest.js'
+  ]
 }
 
 Node.js v22.20.0
+PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> 
