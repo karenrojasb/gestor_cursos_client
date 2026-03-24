@@ -1,224 +1,26 @@
 
-PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> npx prisma db pull
-Prisma schema loaded from prisma\schema.prisma
-Environment variables loaded from .env
-Datasource "db": SQL Server database
-
-✔ Introspected 1375 models and wrote them into prisma\schema.prisma in 78.24s
-
-*** WARNING ***
-
-The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-  - "A_TempFields"
-  - "AAPC_DatosLista_1487"
-  - "AAPC_DatosLista_1704"
-  - "AAPC_DatosLista_1704_Primera"
-  - "AP__BPM_Mensajes_1"
-  - "AP__BPM_ProcessClass_Diagram_Backup"
-  - "AP__BPM_ProcessClass_Diagram_BackUp_09092025"
-  - "AP__BPM_ProcessClass_VersionControl"
-  - "AP__SyncNode"
-  - "AP__SyncProcessClassConfig"
-  - "AP__SyncStatusLog"
-  - "Ap__VersionBak"
-  - "ctasxccts"
-  - "Cuentas"
-  - "DATOSP"
-  - "Hoja1_"
-  - "Particulos"
-  - "PEstado"
-  - "PrecisoAsignaturas"
-  - "PrecisoAsignaturas_copia"
-  - "PrecisoEstudiantes_feb_19_25"
-  - "ProcesosACruzar"
-  - "TEMP_TEST"
-  - "tmp_estud"
-  - "tmp_estudiantes"
-  - "usr_pru_vir"
-  - "xAPsup_CheckNumberOfObjects"
-
-Run prisma generate to generate Prisma Client.
-
-┌─────────────────────────────────────────────────────────┐
-│  Update available 5.22.0 -> 7.5.0                       │
-│                                                         │
-│  This is a major update - please follow the guide at    │
-│  https://pris.ly/d/major-version-upgrade                │
-│                                                         │
-│  Run the following to update                            │
-│    npm i --save-dev prisma@latest                       │
-│    npm i @prisma/client@latest                          │
-└─────────────────────────────────────────────────────────┘
-PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> npx prisma generate
-Environment variables loaded from .env
-Prisma schema loaded from prisma\schema.prisma
-Error: Prisma schema validation - (get-dmmf wasm)
-Error code: P1012
-error: Field "Email" is already defined on model "AP_Dyn_Contactos".
-  -->  prisma\schema.prisma:12713
-   | 
-12712 |   Direccion                              String?              @map("-Direccion") @db.NVarChar(255)
-12713 |   Email                                  String?              @map("-Email") @db.NVarChar(255)
-   | 
-error: Field "Cargo" is already defined on model "AP_Dyn_Contactos".
-  -->  prisma\schema.prisma:12945
-   | 
-12944 |   Dependencia                            String?              @db.NVarChar(255)
-12945 |   Cargo                                  String?              @db.NVarChar(255)
-   | 
-error: Field "Proveedores_Transporte__AcRole__Email" is already defined on model "AP_Dyn_Familias_7_84188".
-  -->  prisma\schema.prisma:13468
-   | 
-13467 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/_Email") @db.NVarChar(255)
-13468 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/-Email") @db.NVarChar(255)
-   | 
-error: Field "Proveedor1" is already defined on model "Panel_10".
-  -->  prisma\schema.prisma:14112
-   | 
-14111 |   CentroCosto_Name                                                     String?   @map("1_CentroCosto/Name") @db.NVarChar(255)
-14112 |   Proveedor1                                                           Int?      @map("1_Proveedor1")
-   | 
-error: Field "Proveedor2" is already defined on model "Panel_10".
-  -->  prisma\schema.prisma:14114
-   | 
-14113 |   Proveedor1_Name                                                      String?   @map("1_Proveedor1/Name") @db.NVarChar(255)
-14114 |   Proveedor2                                                           Int?      @map("1_Proveedor2")
-   | 
-error: Field "Proveedor3" is already defined on model "Panel_10".
-  -->  prisma\schema.prisma:14116
-   | 
-14115 |   Proveedor2_Name                                                      String?   @map("1_Proveedor2/Name") @db.NVarChar(255)
-14116 |   Proveedor3                                                           Int?      @map("1_Proveedor3")
-   | 
-error: Field "TipoSolicitud" is already defined on model "Panel_10".
-  -->  prisma\schema.prisma:14122
-   | 
-14121 |   Prestador_del_Servicio_Name                                          String?   @map("1_Prestador del Servicio/Name") @db.NVarChar(255)
-14122 |   TipoSolicitud                                                        Int?      @map("1_TipoSolicitud")
-   | 
-error: Field "Proveedores_Transporte__AcRole__Email" is already defined on model "Panel_109_69347".
-  -->  prisma\schema.prisma:16334
-   | 
-16333 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/_Email") @db.NVarChar(255)
-16334 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/-Email") @db.NVarChar(255)
-   | 
-error: Field "IVA" is already defined on model "Panel_110".
-  -->  prisma\schema.prisma:17870
-   | 
-17869 |   IVA                                                                        Decimal?      @default(0, map: "Default_70206") @map("3_IVA") @db.Decimal(28, 10)     
-17870 |   IVA                                                                        Decimal?      @default(0, map: "Default_70207") @map("3_%IVA") @db.Decimal(28, 10)    
-   | 
-error: Field "TipoSolicitud" is already defined on model "Panel_125".
-  -->  prisma\schema.prisma:21346
-   | 
-21345 |   CancelacionProcesoRegular                                                     Boolean?      @map("3_CancelacionProcesoRegular")
-21346 |   TipoSolicitud                                                                 Int?          @map("1_TipoSolicitud")
-   | 
-error: Field "Proveedores_Transporte__AcRole__Email" is already defined on model "Panel_125_77156".
-  -->  prisma\schema.prisma:22389
-   | 
-22388 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/_Email") @db.NVarChar(255)
-22389 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/-Email") @db.NVarChar(255)
-   | 
-error: Field "TipoSolicitud" is already defined on model "Panel_126".
-  -->  prisma\schema.prisma:23508
-   | 
-23507 |   CancelacionProcesoRegular                                                     Boolean?      @map("3_CancelacionProcesoRegular")
-23508 |   TipoSolicitud                                                                 Int?          @map("1_TipoSolicitud")
-   | 
-error: Field "Proveedores_Transporte__AcRole__Email" is already defined on model "Panel_126_79304".
-  -->  prisma\schema.prisma:24609
-   | 
-24608 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/_Email") @db.NVarChar(255)
-24609 |   Proveedores_Transporte__AcRole__Email            String?   @map("2_Proveedores_Transporte/_AcRole/-Email") @db.NVarChar(255)
-   | 
-error: Field "IVA" is already defined on model "Panel_127".
-  -->  prisma\schema.prisma:25427
-   | 
-25426 |   IVA                                                                        Decimal?      @default(0, map: "Default_80102") @map("3_IVA") @db.Decimal(28, 10)     
-25427 |   IVA                                                                        Decimal?      @default(0, map: "Default_80103") @map("3_%IVA") @db.Decimal(28, 10)    
-   | 
-error: Field "REGISTRO" is already defined on model "Panel_136".
-  -->  prisma\schema.prisma:28015
-   | 
-28014 |   REGISTRO_DE_CUENTA__AcRole           Int?      @map("2_REGISTRO DE CUENTA/_AcRole")
-28015 |   REGISTRO                             Int?      @map("1_REGISTRO")
-   | 
-error: Field "REGISTRO" is already defined on model "Panel_19".
-  -->  prisma\schema.prisma:28200
-   | 
-28199 |   Id_Rol_Cuenta_Name                   String?   @map("1_Id Rol Cuenta/Name") @db.NVarChar(255)
-28200 |   REGISTRO                             Int?      @map("1_REGISTRO")
-   | 
-error: Field "Proveedor1" is already defined on model "Panel_38".
-  -->  prisma\schema.prisma:28869
-   | 
-28868 |   CentroCosto_Name                                                              String?   @map("1_CentroCosto/Name") @db.NVarChar(255)
-28869 |   Proveedor1                                                                    Int?      @map("1_Proveedor1")
-   | 
-error: Field "Proveedor2" is already defined on model "Panel_38".
-  -->  prisma\schema.prisma:28871
-   | 
-28870 |   Proveedor1_Name                                                               String?   @map("1_Proveedor1/Name") @db.NVarChar(255)
-28871 |   Proveedor2                                                                    Int?      @map("1_Proveedor2")
-   | 
-error: Field "Proveedor3" is already defined on model "Panel_38".
-  -->  prisma\schema.prisma:28873
-   | 
-28872 |   Proveedor2_Name                                                               String?   @map("1_Proveedor2/Name") @db.NVarChar(255)
-28873 |   Proveedor3                                                                    Int?      @map("1_Proveedor3")
-   | 
-error: Field "TipoSolicitud" is already defined on model "Panel_38".
-  -->  prisma\schema.prisma:28879
-   | 
-28878 |   Prestador_del_Servicio_Name                                                   String?   @map("1_Prestador del Servicio/Name") @db.NVarChar(255)
-28879 |   TipoSolicitud                                                                 Int?      @map("1_TipoSolicitud")
-   | 
-error: Field "IVA" is already defined on model "Panel_44".
-  -->  prisma\schema.prisma:29916
-   | 
-29915 |   IVA                                                                        Decimal?  @default(0, map: "Panel_44_Default_3_IVA") @map("3_IVA") @db.Decimal(28, 10)
-29916 |   IVA                                                                        Decimal?  @default(0, map: "Panel_44_Default_3_%IVA") @map("3_%IVA") @db.Decimal(28, 10)
-   | 
-error: Field "IVA" is already defined on model "Panel_49".
-  -->  prisma\schema.prisma:30551
-   | 
-30550 |   IVA                                                                        Decimal?  @default(0, map: "Panel_49_Default_3_IVA") @map("3_IVA") @db.Decimal(28, 10)
-30551 |   IVA                                                                        Decimal?  @default(0, map: "Panel_49_Default_3_%IVA") @map("3_%IVA") @db.Decimal(28, 10)
-   | 
-error: Field "IVA" is already defined on model "Panel_57".
-  -->  prisma\schema.prisma:31466
-   | 
-31465 |   IVA                                                                        Decimal?  @default(0, map: "Default_38860") @map("3_IVA") @db.Decimal(28, 10)
-31466 |   IVA                                                                        Decimal?  @default(0, map: "Default_38861") @map("3_%IVA") @db.Decimal(28, 10)        
-   | 
-error: Field "IVA" is already defined on model "Panel_60".
-  -->  prisma\schema.prisma:31987
-   | 
-31986 |   IVA                                                                        Decimal?  @default(0, map: "Default_40066") @map("3_IVA") @db.Decimal(28, 10)
-31987 |   IVA                                                                        Decimal?  @default(0, map: "Default_40067") @map("3_%IVA") @db.Decimal(28, 10)        
-   | 
-error: Field "IVA" is already defined on model "Panel_61".
-  -->  prisma\schema.prisma:32503
-   | 
-32502 |   IVA                                                                        Decimal?  @default(0, map: "Default_40505") @map("3_IVA") @db.Decimal(28, 10)
-32503 |   IVA                                                                        Decimal?  @default(0, map: "Default_40506") @map("3_%IVA") @db.Decimal(28, 10)        
-   | 
-error: Field "TipoSolicitud" is already defined on model "Panel_86".
-  -->  prisma\schema.prisma:34087
-   | 
-34086 |   Prestador_del_Servicio_Name                                                   String?   @map("1_Prestador del Servicio/Name") @db.NVarChar(255)
-34087 |   TipoSolicitud                                                                 Int?      @map("1_TipoSolicitud")
-   | 
-error: Field "IVA" is already defined on model "Panel_87".
-  -->  prisma\schema.prisma:35048
-   | 
-35047 |   IVA                                                                        Decimal?  @default(0, map: "Default_56871") @map("3_IVA") @db.Decimal(28, 10)
-35048 |   IVA                                                                        Decimal?  @default(0, map: "Default_56872") @map("3_%IVA") @db.Decimal(28, 10)        
-   | 
-
-Validation Error Count: 27
-[Context: getDmmf]
-
-Prisma CLI Version : 5.22.0
-PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> 
+SELECT
+    P168582.[1_PREF_GCA_PROP/Name] AS Nombre,
+    ISNULL(P1685.[3_CantidadDecimal], P1685.[2_ART_CON_PROP/CANTIDAD_ART]) AS Cantidad,
+    P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Unidad,
+    P168582.[2_PREF_GCA_PROP/TXM_COND] AS Descripcion,
+	P168582.[2_PREF_GCA_PROP/TXT_PROVEEDOR] AS Proveedor,
+    TM.[Opcion] AS Moneda,
+    P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Valor_Unitario,
+    P168582.[2_PREF_GCA_PROP/Descuento (%)] AS Descuento,
+    P168582.[2_PREF_GCA_PROP/% IVA] AS IVA,
+    P168582.[2_PREF_GCA_PROP/Valor Cotizado Proveedor] AS Valor_Cotizado_Proveedor,
+    P168582.[2_PREF_GCA_PROP/Días de Entrega] AS Dias_Entrega,
+    FP.[Opcion] AS Forma_Pago,
+    P168582.[2_PREF_GCA_PROP/TXM_COND] AS Observaciones,
+    P168582.[2_PREF_GCA_PROP/Fecha de respuesta] AS Fecha_Cotizacion,
+    ISNULL(CAST(P168582.[2_PREF_GCA_PROP/TRM] AS VARCHAR(50)), '') AS TRM,
+    ISNULL(CAST(P168582.[3_DEC_VAL_TOT] AS VARCHAR(50)), '') AS Valor_Total_COP,
+    CASE WHEN P168582.[2_PREF_GCA_PROP/Proveedor Ganador] = 1 THEN 'Si' ELSE '' END AS Proveedor_Ganador FROM AP__BPM_Procesos R
+INNER JOIN Panel_109 PA ON PA._ElementID = R.id
+INNER JOIN Panel_109_68508 P168 ON P168._ElementID = PA.id
+INNER JOIN Panel_109_68683 P1685 ON P1685._ElementID = PA.id
+INNER JOIN Panel_109_68683_82834 P168582 ON P168582._ElementID = P1685.id
+LEFT JOIN AP__Diccionario_Terminos_Opciones TM ON TRY_CAST(P168582.[2_PREF_GCA_PROP/SS_TIPO_MONEDA] AS INT) = TM.id
+LEFT JOIN AP__Diccionario_Terminos_Opciones FP ON TRY_CAST(P168582.[2_PREF_GCA_PROP/Forma de Pago] AS INT) = FP.id
+WHERE R.referencia = @Parametro AND P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] IS NOT NULL
