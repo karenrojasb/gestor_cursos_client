@@ -1,18 +1,16 @@
-nce-loader.js:55:9)
-PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> npx prisma generate
-Environment variables loaded from .env
-Prisma schema loaded from prisma\schema.prisma
-Error: 
-You don't have any models defined in your schema.prisma, so nothing will be generated.
-You can define a model like this:
+[9:24:03 a. m.] Starting compilation in watch mode...
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-}
+[9:24:08 a. m.] Found 0 errors. Watching for file changes.
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-
-PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api> 
+[Nest] 19036  - 24/03/2026, 9:24:10 a. m.     LOG [NestFactory] Starting Nest application...
+[Nest] 19036  - 24/03/2026, 9:24:10 a. m.   ERROR [ExceptionHandler] Error: @prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
+    at new PrismaClient (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\.prisma\client\default.js:43:11)
+    at new PrismaAuraquanticService (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\src\prisma\prisma.service.ts:5:8)
+    at Injector.instantiateClass (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:422:19)
+    at callback (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:70:45)
+    at async Injector.resolveConstructorParams (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:170:24)
+    at async Injector.loadInstance (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:75:13)
+    at async Injector.loadProvider (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:103:9)
+    at async C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:56:13
+    at async Promise.all (index 3)
+    at async InstanceLoader.createInstancesOfProviders (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:55:9)
