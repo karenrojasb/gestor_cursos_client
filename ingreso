@@ -1,16 +1,12 @@
-[9:24:03 a. m.] Starting compilation in watch mode...
+generator client {
+  provider = "prisma-client-js"
+}
 
-[9:24:08 a. m.] Found 0 errors. Watching for file changes.
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
 
-[Nest] 19036  - 24/03/2026, 9:24:10 a. m.     LOG [NestFactory] Starting Nest application...
-[Nest] 19036  - 24/03/2026, 9:24:10 a. m.   ERROR [ExceptionHandler] Error: @prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
-    at new PrismaClient (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\.prisma\client\default.js:43:11)
-    at new PrismaAuraquanticService (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\src\prisma\prisma.service.ts:5:8)
-    at Injector.instantiateClass (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:422:19)
-    at callback (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:70:45)
-    at async Injector.resolveConstructorParams (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:170:24)
-    at async Injector.loadInstance (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:75:13)
-    at async Injector.loadProvider (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:103:9)
-    at async C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:56:13
-    at async Promise.all (index 3)
-    at async InstanceLoader.createInstancesOfProviders (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:55:9)
+model Dummy {
+  id Int @id @default(autoincrement())
+}
