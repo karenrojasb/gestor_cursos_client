@@ -1,26 +1,77 @@
+// cuadro-comparativo.service.ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
-SELECT
-    P168582.[1_PREF_GCA_PROP/Name] AS Nombre,
-    ISNULL(P1685.[3_CantidadDecimal], P1685.[2_ART_CON_PROP/CANTIDAD_ART]) AS Cantidad,
-    P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Unidad,
-    P168582.[2_PREF_GCA_PROP/TXM_COND] AS Descripcion,
-	P168582.[2_PREF_GCA_PROP/TXT_PROVEEDOR] AS Proveedor,
-    TM.[Opcion] AS Moneda,
-    P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Valor_Unitario,
-    P168582.[2_PREF_GCA_PROP/Descuento (%)] AS Descuento,
-    P168582.[2_PREF_GCA_PROP/% IVA] AS IVA,
-    P168582.[2_PREF_GCA_PROP/Valor Cotizado Proveedor] AS Valor_Cotizado_Proveedor,
-    P168582.[2_PREF_GCA_PROP/Días de Entrega] AS Dias_Entrega,
-    FP.[Opcion] AS Forma_Pago,
-    P168582.[2_PREF_GCA_PROP/TXM_COND] AS Observaciones,
-    P168582.[2_PREF_GCA_PROP/Fecha de respuesta] AS Fecha_Cotizacion,
-    ISNULL(CAST(P168582.[2_PREF_GCA_PROP/TRM] AS VARCHAR(50)), '') AS TRM,
-    ISNULL(CAST(P168582.[3_DEC_VAL_TOT] AS VARCHAR(50)), '') AS Valor_Total_COP,
-    CASE WHEN P168582.[2_PREF_GCA_PROP/Proveedor Ganador] = 1 THEN 'Si' ELSE '' END AS Proveedor_Ganador FROM AP__BPM_Procesos R
-INNER JOIN Panel_109 PA ON PA._ElementID = R.id
-INNER JOIN Panel_109_68508 P168 ON P168._ElementID = PA.id
-INNER JOIN Panel_109_68683 P1685 ON P1685._ElementID = PA.id
-INNER JOIN Panel_109_68683_82834 P168582 ON P168582._ElementID = P1685.id
-LEFT JOIN AP__Diccionario_Terminos_Opciones TM ON TRY_CAST(P168582.[2_PREF_GCA_PROP/SS_TIPO_MONEDA] AS INT) = TM.id
-LEFT JOIN AP__Diccionario_Terminos_Opciones FP ON TRY_CAST(P168582.[2_PREF_GCA_PROP/Forma de Pago] AS INT) = FP.id
-WHERE R.referencia = @Parametro AND P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] IS NOT NULL
+@Injectable()
+export class CuadroComparativoService {
+
+  constructor(private prisma: PrismaService) {}
+
+  async obtenerCuadroComparativo(referencia: string) {
+
+    const datos: any[] = await this.prisma.$queryRawUnsafe(`
+      SELECT
+        P168582.[2_PREF_GCA_PROP/Name] AS Nombre,
+        ISNULL(P1685.[3_CantidadDecimal], P1685.[2_ART_CON_PROP/CANTIDAD_ART]) AS Cantidad,
+        P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Unidad,
+        P168582.[2_PREF_GCA_PROP/TXM_COND] AS Descripcion,
+        P168582.[2_PREF_GCA_PROP/TXT_PROVEEDOR] AS Proveedor,
+        TM.[Opcion] AS Moneda,
+        P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Valor_Unitario,
+        P168582.[2_PREF_GCA_PROP/Descuento (%)] AS Descuento,
+        P168582.[2_PREF_GCA_PROP/% IVA] AS IVA,
+        P168582.[2_PREF_GCA_PROP/Valor Cotizado Proveedor] AS Valor_Cotizado_Proveedor,
+        P168582.[2_PREF_GCA_PROP/Días de Entrega] AS Dias_Entrega,
+        FP.[Opcion] AS Forma_Pago,
+        P168582.[2_PREF_GCA_PROP/TXM_COND] AS Observaciones,
+        P168582.[2_PREF_GCA_PROP/Fecha de respuesta] AS Fecha_Cotizacion,
+        ISNULL(CAST(P168582.[2_PREF_GCA_PROP/TRM] AS VARCHAR(50)), '') AS TRM,
+        ISNULL(CAST(P168582.[3_DEC_VAL_TOT] AS VARCHAR(50)), '') AS Valor_Total_COP,
+        CASE WHEN P168582.[2_PREF_GCA_PROP/Proveedor Ganador] = 1 THEN 'Si' ELSE '' END AS Proveedor_Ganador
+      FROM AP__BPM_Procesos R
+      INNER JOIN Panel_109 PA ON PA._ElementID = R.id
+      INNER JOIN Panel_109_68683 P1685 ON P1685._ElementID = PA.id
+      INNER JOIN Panel_109_68683_82834 P168582 ON P168582._ElementID = P1685.id
+      LEFT JOIN AP__Diccionario_Terminos_Opciones TM ON TRY_CAST(P168582.[2_PREF_GCA_PROP/SS_TIPO_MONEDA] AS INT) = TM.id
+      LEFT JOIN AP__Diccionario_Terminos_Opciones FP ON TRY_CAST(P168582.[2_PREF_GCA_PROP/Forma de Pago] AS INT) = FP.id
+      WHERE R.referencia = '${referencia}'
+      AND P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] IS NOT NULL
+    `);
+
+    //AGRUPAR POR PROVEEDOR
+    const agrupado = datos.reduce((acc, item) => {
+      const proveedor = item.Proveedor || 'SIN_PROVEEDOR';
+
+      if (!acc[proveedor]) {
+        acc[proveedor] = [];
+      }
+
+      acc[proveedor].push(item);
+      return acc;
+    }, {});
+
+    return agrupado;
+  }
+}
+
+
+
+
+
+
+
+
+// cuadro-comparativo.controller.ts
+import { Controller, Get, Query } from '@nestjs/common';
+import { CuadroComparativoService } from './cuadro-comparativo.service';
+
+@Controller('cuadro-comparativo')
+export class CuadroComparativoController {
+
+  constructor(private service: CuadroComparativoService) {}
+
+  @Get()
+  obtener(@Query('referencia') referencia: string) {
+    return this.service.obtenerCuadroComparativo(referencia);
+  }
+}
