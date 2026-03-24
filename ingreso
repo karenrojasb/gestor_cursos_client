@@ -1,61 +1,55 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaAuraquanticService } from '../prisma/prisma.service';
-import { CuadroComparativoDto } from './dto/cuadro-comprativo.dto';
+export async function obtenerCuadroComparativo(referencia: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cuadro-comparativo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ referencia })
+  });
 
-@Injectable()
-export class CuadroComparativoService {
-
-  constructor(private prisma: PrismaAuraquanticService) {}
-
-  async obtenerCuadroComparativo(data: CuadroComparativoDto) {
-    const { referencia } = data;
-
-    const datos: any[] = await this.prisma.$queryRawUnsafe(`
-      SELECT
-        P168582.[1_PREF_GCA_PROP/Name] AS Nombre,
-        ISNULL(P1685.[3_CantidadDecimal], P1685.[2_ART_CON_PROP/CANTIDAD_ART]) AS Cantidad,
-        P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Unidad,
-        P168582.[2_PREF_GCA_PROP/TXM_COND] AS Descripcion,
-        P168582.[2_PREF_GCA_PROP/TXT_PROVEEDOR] AS Proveedor,
-        TM.[Opcion] AS Moneda,
-        P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] AS Valor_Unitario,
-        P168582.[2_PREF_GCA_PROP/Descuento (%)] AS Descuento,
-        P168582.[2_PREF_GCA_PROP/% IVA] AS IVA,
-        P168582.[2_PREF_GCA_PROP/Valor Cotizado Proveedor] AS Valor_Cotizado_Proveedor,
-        P168582.[2_PREF_GCA_PROP/Días de Entrega] AS Dias_Entrega,
-        FP.[Opcion] AS Forma_Pago,
-        P168582.[2_PREF_GCA_PROP/TXM_COND] AS Observaciones,
-        P168582.[2_PREF_GCA_PROP/Fecha de respuesta] AS Fecha_Cotizacion,
-        ISNULL(CAST(P168582.[2_PREF_GCA_PROP/TRM] AS VARCHAR(50)), '') AS TRM,
-        ISNULL(CAST(P168582.[3_DEC_VAL_TOT] AS VARCHAR(50)), '') AS Valor_Total_COP,
-        CASE WHEN P168582.[2_PREF_GCA_PROP/Proveedor Ganador] = 1 THEN 'Si' ELSE '' END AS Proveedor_Ganador
-      FROM AP__BPM_Procesos R
-      INNER JOIN Panel_109 PA ON PA._ElementID = R.id
-      INNER JOIN Panel_109_68683 P1685 ON P1685._ElementID = PA.id
-      INNER JOIN Panel_109_68683_82834 P168582 ON P168582._ElementID = P1685.id
-      LEFT JOIN AP__Diccionario_Terminos_Opciones TM ON TRY_CAST(P168582.[2_PREF_GCA_PROP/SS_TIPO_MONEDA] AS INT) = TM.id
-      LEFT JOIN AP__Diccionario_Terminos_Opciones FP ON TRY_CAST(P168582.[2_PREF_GCA_PROP/Forma de Pago] AS INT) = FP.id
-      WHERE R.referencia LIKE '%${referencia}%'
-      AND P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] IS NOT NULL
-    `);
-
-    //AGRUPAR POR PROVEEDOR
-    const agrupado = datos.reduce((acc, item) => {
-      const proveedor = item.Proveedor || 'SIN_PROVEEDOR';
-
-      if (!acc[proveedor]) {
-        acc[proveedor] = [];
-      }
-
-      acc[proveedor].push(item);
-      return acc;
-    }, {});
-
-    return {
-            Codigo: `200`,
-            Mensaje: `Consulta realiza con éxito`,
-            agrupado
-        };
-         
+  if (!res.ok) {
+    throw new Error('Error al obtener los datos');
   }
+
+  return res.json();
+}
+
+
+
+
+
+import { useState } from 'react';
+import { obtenerCuadroComparativo } from '../services/cuadroComparativo';
+
+export default function CuadroComparativoPage() {
+  const [referencia, setReferencia] = useState('');
+  const [datos, setDatos] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleBuscar = async () => {
+    setLoading(true);
+    try {
+      const res = await obtenerCuadroComparativo(referencia);
+      setDatos(res);
+    } catch (e) {
+      console.error(e);
+      alert('Error al consultar los datos');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <h1>Cuadro Comparativo</h1>
+      <input
+        type="text"
+        value={referencia}
+        onChange={(e) => setReferencia(e.target.value)}
+        placeholder="Ingrese referencia"
+      />
+      <button onClick={handleBuscar} disabled={loading}>
+        {loading ? 'Cargando...' : 'Buscar'}
+      </button>
+
+      <pre>{datos ? JSON.stringify(datos, null, 2) : 'No hay datos'}</pre>
+    </div>
+  );
 }
