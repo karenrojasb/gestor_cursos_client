@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaAuraquanticService } from '../prisma/prisma.service';
+import { CuadroComparativoDto } from './dto/cuadro-comprativo.dto';
 
 @Injectable()
 export class CuadroComparativoService {
 
   constructor(private prisma: PrismaAuraquanticService) {}
 
-  async obtenerCuadroComparativo(referencia: string) {
+  async obtenerCuadroComparativo(data: CuadroComparativoDto) {
+    const { referencia } = data;
 
     const datos: any[] = await this.prisma.$queryRawUnsafe(`
       SELECT
@@ -33,7 +35,7 @@ export class CuadroComparativoService {
       INNER JOIN Panel_109_68683_82834 P168582 ON P168582._ElementID = P1685.id
       LEFT JOIN AP__Diccionario_Terminos_Opciones TM ON TRY_CAST(P168582.[2_PREF_GCA_PROP/SS_TIPO_MONEDA] AS INT) = TM.id
       LEFT JOIN AP__Diccionario_Terminos_Opciones FP ON TRY_CAST(P168582.[2_PREF_GCA_PROP/Forma de Pago] AS INT) = FP.id
-      WHERE R.referencia = '${referencia}'
+      WHERE R.referencia LIKE '%${referencia}%'
       AND P168582.[2_PREF_GCA_PROP/DEC_VALOR_UNIT] IS NOT NULL
     `);
 
@@ -49,6 +51,11 @@ export class CuadroComparativoService {
       return acc;
     }, {});
 
-    return agrupado;
+    return {
+            Codigo: `200`,
+            Mensaje: `Consulta realiza con éxito`,
+            agrupado
+        };
+         
   }
 }
