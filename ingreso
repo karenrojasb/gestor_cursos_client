@@ -1,12 +1,42 @@
-generator client {
-  provider = "prisma-client-js"
-}
+[9:26:57 a. m.] Starting compilation in watch mode...
 
-datasource db {
-  provider = "sqlserver"
-  url      = env("DATABASE_URL")
-}
+[9:27:02 a. m.] Found 0 errors. Watching for file changes.
 
-model Dummy {
-  id Int @id @default(autoincrement())
+[Nest] 40980  - 24/03/2026, 9:27:03 a. m.     LOG [NestFactory] Starting Nest application...
+[Nest] 40980  - 24/03/2026, 9:27:04 a. m.     LOG [InstanceLoader] PrismaAuraquanticModule dependencies initialized +379ms
+[Nest] 40980  - 24/03/2026, 9:27:04 a. m.   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the CuadroComparativoService (?). Please make sure that the argument PrismaAuraquanticService at index [0] is available in the CuadroComparativoModule module.
+
+Potential solutions:
+- Is CuadroComparativoModule a valid NestJS module?
+- If PrismaAuraquanticService is a provider, is it part of the current CuadroComparativoModule?
+- If PrismaAuraquanticService is exported from a separate @Module, is that module imported within CuadroComparativoModule?
+  @Module({
+    imports: [ /* the Module containing PrismaAuraquanticService */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+    at Injector.lookupComponentInParentModules (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:290:19)
+    at async resolveParam (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:140:38)
+    at async Promise.all (index 0)
+    at async Injector.resolveConstructorParams (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:169:27)
+    at async Injector.loadInstance (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:75:13)
+    at async Injector.loadProvider (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\injector.js:103:9)       
+    at async C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:56:13
+    at async Promise.all (index 3)
+    at async InstanceLoader.createInstancesOfProviders (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:55:9)
+    at async C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-api\node_modules\@nestjs\core\injector\instance-loader.js:40:13 {
+  type: 'CuadroComparativoService',
+  context: {
+    index: 0,
+    dependencies: [
+      [class PrismaAuraquanticService extends t]
+    ],
+    name: [class PrismaAuraquanticService extends t]
+  },
+  metadata: {
+    id: '81b9ca33d9df10922ac00'
+  },
+  moduleRef: {
+    id: '664fa4c5af6aec487f81b'
+  }
 }
