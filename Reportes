@@ -85,12 +85,13 @@ export default function Home() {
           ><table
             style={{
               width: 'max-content',
-              fontSize: '18px',
+              fontSize: '14px',
               lineHeight: '1.4',
               fontFamily: 'Arial, sans-serif',
               tableLayout: 'auto',
               textAlign: 'left',
-              borderCollapse: 'collapse'
+              borderCollapse: 'collapse',
+              border: '1px solid #ccf'
             }}
           >
          <thead style={{ 
@@ -119,12 +120,12 @@ export default function Home() {
             style={{
               whiteSpace: 'normal',
               wordBreak: 'break-word',
-              maxWidth: '100px',
-              padding: '16px',
+              maxWidth: '50px',
+              padding: '5px',
               fontSize: '20px',
               lineHeight: '1.6',
               background: 'linear-gradient(90deg, #2563eb, #3b82f6)',
-              border: '1px solid #000000ff'
+              
             }}
           >
             {col.proveedor}
@@ -181,10 +182,10 @@ export default function Home() {
                       <td>{info?.Valor_Cotizado_Proveedor || '-'}</td>
                       <td>{info?.Dias_Entrega ?? '-'}</td>
                       <td>{info?.Forma_Pago || '-'}</td>
-                      <td style={{ minWidth: '300px', maxWidth: '1400px' }}>
+                      <td style={{ minWidth: '300px', maxWidth: '1000px' }}>
                       <div
                         style={{
-                          maxHeight: '4.8em', // 3 líneas aprox
+                          maxHeight: '4.0em', // 3 líneas aprox
                           lineHeight: '1.6',
                           overflowY: 'auto',
                           overflowX: 'hidden',
