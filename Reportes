@@ -90,7 +90,8 @@ export default function Home() {
               fontSize: '18px',
               lineHeight: '1.4',
               fontFamily: 'Arial, sans-serif',
-              tableLayout: 'fixed'
+              tableLayout: 'fixed',
+              textAlign: 'left'
             }}
           >
          <thead style={{ 
@@ -98,7 +99,8 @@ export default function Home() {
             top: 0,
             zIndex: 10,
             backgroundColor: '#1e3a8a',
-            color: 'white'
+            color: 'white',
+      
           }}>
             <tr
             style={{fontSize: '20px'}}>
@@ -115,7 +117,7 @@ export default function Home() {
             style={{
               whiteSpace: 'normal',
               wordBreak: 'break-word',
-              maxWidth: '200px',
+              maxWidth: '100px',
               padding: '16px',
               fontSize: '20px',
               lineHeight: '1.6',
@@ -164,12 +166,13 @@ export default function Home() {
           (p: any) => p.Proveedor === col.proveedor
         ) || [];
 
-        // tomar la repetición correcta (0, 1, 2...)
+        
         const info = lista[col.index];
         const cellStyle = {
           padding: '18px 12px',
           lineHeight: '1.8',
-          verticalAlign: 'top',
+          verticalAlign: 'middle',
+          textAlign: 'left',
           fontFamily: 'Arial, sans-serif',
           overflow: 'hidden',
           display: '-webkit-box',
@@ -187,7 +190,9 @@ export default function Home() {
           display: '-webkit-box',
           WebkitLineClamp: 5,
           WebkitBoxOrient: 'vertical',
-          textOverflow: 'ellipsis'
+          textOverflow: 'ellipsis',
+          verticalAlign: 'middle',
+          textAlign: 'left',
         }
         
   return (
@@ -196,12 +201,14 @@ export default function Home() {
         borderLeft: '3px solid #1e3a8a',
         padding: '18px 12px',
         lineHeight: '1.8',
-        verticalAlign: 'top',
+        verticalAlign: 'middle',
+        textAlign: 'left',
         fontFamily: 'Arial, sans-serif',
         whiteSpace: 'normal',
         wordBreak: 'break-word',
         maxWidth: '200px',
         minHeight: '96px'
+
       }}>
         {info?.Proveedor || '-'}
       </td>
