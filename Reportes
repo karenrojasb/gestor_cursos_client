@@ -178,7 +178,7 @@ export default function Home() {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         minWidth: '300px',
-        width: 'auto',
+        maxWidth: '1100px',
         wordBreak: 'break-word'
         }
         
