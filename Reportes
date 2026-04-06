@@ -167,7 +167,29 @@ const columnas = useMemo(() => {
 
   // tomar la repetición correcta (0, 1, 2...)
   const info = lista[col.index];
-
+  const cellStyle = {
+    padding: '18px 12px',
+    lineHeight: '1.8',
+    verticalAlign: 'top',
+    fontFamily: 'Arial, sans-serif',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: 'vertical',
+    wordBreak: 'break-word',
+    maxWidth: '500px'
+    
+  }
+  const observacionesStyle = {
+    ...cellStyle,
+    maxWidth: '500px',
+    minHeight: '300px',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 5,
+    WebkitBoxOrient: 'vertical',
+    textOverflow: 'ellipsis'
+  }
   
   return (
     <React.Fragment key={i}>
@@ -184,6 +206,7 @@ const columnas = useMemo(() => {
 }}>
         {info?.Proveedor || '-'}
       </td>
+      
                       <td>{info?.Moneda || '-'}</td>
                       <td>{info?.Valor_Unitario || '-'}</td>
                       <td>{info?.Descuento || '-'}</td>
@@ -191,7 +214,7 @@ const columnas = useMemo(() => {
                       <td>{info?.Valor_Cotizado_Proveedor || '-'}</td>
                       <td>{info?.Dias_Entrega ?? '-'}</td>
                       <td>{info?.Forma_Pago || '-'}</td>
-                      <td>{info?.Observaciones || '-'}</td>
+                      <td style={observacionesStyle as any}>{info?.Observaciones || '-'}</td>
                       <td>{info?.Fecha_Cotizacion || '-'}</td>
                       <td>{info?.TRM || '-'}</td>
                       <td>{info?.Valor_Total_COP || '-'}</td>
