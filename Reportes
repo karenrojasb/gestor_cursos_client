@@ -1,19 +1,17 @@
 const observacionesStyle = {
-  padding: '12px',
-  fontFamily: 'Arial, sans-serif',
-  textAlign: 'left',
+  padding: '18px 12px',
+  lineHeight: '1.6',
   verticalAlign: 'middle',
+  textAlign: 'left',
+  fontFamily: 'Arial, sans-serif',
 
-  //  TAMAÑO FIJO
-  maxWidth: '350px',
-  minWidth: '250px',
-  height: '80px',
+  minWidth: '300px',
+  maxWidth: '1100px',
 
-  //  SCROLL
-  overflowY: 'auto',
+  height: '80px',       // 👈 ALTURA FIJA (≈ 3 líneas)
+  overflowY: 'auto',    // 👈 SCROLL VERTICAL
   overflowX: 'hidden',
 
-  //  TEXTO
-  wordBreak: 'break-word',
-  whiteSpace: 'normal'
+  whiteSpace: 'normal',
+  wordBreak: 'break-word'
 }
