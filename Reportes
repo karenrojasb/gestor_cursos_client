@@ -1,15 +1,211 @@
-<td style={{ minWidth: '300px', maxWidth: '1100px' }}>
-  <div
-    style={{
-      maxHeight: '4.8em', // 3 líneas aprox
-      lineHeight: '1.6',
-      overflowY: 'auto',
-      overflowX: 'hidden',
-      wordBreak: 'break-word',
-      fontFamily: 'Arial, sans-serif',
-      paddingRight: '5px'
-    }}
-  >
-    {info?.Observaciones || '-'}
-  </div>
-</td>
+'use client';
+
+import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getCuadroComparativo } from '../lib/api';
+
+export default function Home() {
+  const searchParams = useSearchParams();
+  const referencia = searchParams.get('referencia');
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (referencia) consultar(referencia);
+  }, [referencia]);
+
+        const consultar = async (ref: string) => {
+      setLoading(true);
+      try {
+        const res = await getCuadroComparativo(ref);
+        setData(res.resultado);
+      } catch (error) {
+        console.error(error);
+      }
+      setLoading(false);
+    };
+        const maxProveedores = useMemo(() => {
+  return data.reduce((max, grupo) => {
+        return Math.max(max, grupo.Proveedores?.length || 0);
+      }, 0);
+    }, [data]);
+
+        const columnas = useMemo(() => {
+        const contador: Record<string, number> = {};
+
+  // contar máximo de repeticiones por proveedor
+  data.forEach((grupo) => {
+        const temp: Record<string, number> = {};
+
+    grupo.Proveedores?.forEach((p: any) => {
+        const nombre = p.Proveedor;
+            temp[nombre] = (temp[nombre] || 0) + 1;
+          });
+
+          Object.entries(temp).forEach(([nombre, cantidad]) => {
+            contador[nombre] = Math.max(contador[nombre] || 0, cantidad);
+          });
+        });
+
+        // construir columnas globales
+        const resultado: { proveedor: string; index: number }[] = [];
+        Object.entries(contador).forEach(([nombre, cantidad]) => {
+          for (let i = 0; i < cantidad; i++) {
+            resultado.push({
+              proveedor: nombre,
+              index: i
+            });
+          }
+        });
+
+        return resultado;
+      }, [data]);
+
+  return (
+        <div style={{ padding: '20px' }}>
+                <h1 style={{
+            fontSize: '28px',
+            fontWeight: 'bold',
+            color: '#1e3a8a',
+            marginBottom: '10px',
+            fontFamily: 'Arial, sans-serif'
+          }}>
+            Cuadro Comparativo
+          </h1>
+                <p
+                style={{fontFamily: 'Arial, sans-serif'}}
+                ><b>Referencia:</b> {referencia}</p>
+                {loading && <p>Cargando...</p>}
+
+          <div
+            style={{
+              width: '100%',
+              padding: '10px',
+            }}
+          ><table
+            style={{
+              width: 'max-content',
+              borderCollapse: 'separate',
+              borderSpacing: '0',
+              fontSize: '18px',
+              lineHeight: '1.4',
+              fontFamily: 'Arial, sans-serif',
+              tableLayout: 'auto',
+              textAlign: 'left'
+            }}
+          >
+         <thead style={{ 
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            backgroundColor: '#1e3a8a',
+            color: 'white',
+      
+          }}>
+            <tr
+            style={{fontSize: '20px'}}>
+              <th rowSpan={2}>Nombre</th>
+              <th rowSpan={2}>Cantidad</th>
+              <th rowSpan={2}>Unidad</th>
+              <th rowSpan={2}>Descripción</th>
+              
+
+          {columnas.map((col, i) => (
+          <th
+            key={i}
+            colSpan={12}
+            style={{
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              maxWidth: '100px',
+              padding: '16px',
+              fontSize: '20px',
+              lineHeight: '1.6',
+              background: 'linear-gradient(90deg, #2563eb, #3b82f6)',
+              border: '1px solid #1e40af'
+            }}
+          >
+            {col.proveedor}
+          </th>
+          ))}
+                      </tr>
+
+            <tr>
+              {columnas.map((prov, i) => (
+                <React.Fragment key={i}>
+                  
+                  <th>Moneda</th>
+                  <th>Valor Unitario</th>
+                  <th>Descuento</th>
+                  <th>IVA</th>
+                  <th>Valor Cotizado</th>
+                  <th>Días de Entrega</th>
+                  <th>Forma de Pago</th>
+                  <th>Observaciones</th>
+                  <th>Fecha de Cotización</th>
+                  <th>TRM</th>
+                  <th>Valor Total</th>
+                  <th>Ganador</th>
+                </React.Fragment>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.map((grupo: any, index: number) => (
+              <tr key={index} style={{ height: '90px' }}>
+                <td>{grupo.Nombre}</td>
+                <td>{grupo.Cantidad}</td>
+                <td>{grupo.Unidad}</td>
+                <td>{grupo.Descripcion}</td>
+                
+
+    {columnas.map((col, i) => {
+        // filtrar proveedores de este grupo por nombre
+        const lista = grupo.Proveedores?.filter(
+          (p: any) => p.Proveedor === col.proveedor
+        ) || [];        
+        const info = lista[col.index];
+
+        
+  return (
+          <React.Fragment key={i}>
+
+      
+                      <td>{info?.Moneda || '-'}</td>
+                      <td>{info?.Valor_Unitario || '-'}</td>
+                      <td>{info?.Descuento || '-'}</td>
+                      <td>{info?.IVA || '-'}</td>
+                      <td>{info?.Valor_Cotizado_Proveedor || '-'}</td>
+                      <td>{info?.Dias_Entrega ?? '-'}</td>
+                      <td>{info?.Forma_Pago || '-'}</td>
+                      <td style={{ minWidth: '300px', maxWidth: '1400px' }}>
+                      <div
+                        style={{
+                          maxHeight: '4.8em', // 3 líneas aprox
+                          lineHeight: '1.6',
+                          overflowY: 'auto',
+                          overflowX: 'hidden',
+                          wordBreak: 'break-word',
+                          fontFamily: 'Arial, sans-serif',
+                          paddingRight: '5px'
+                        }}
+                      >
+                        {info?.Observaciones || '-'}
+                      </div>
+                    </td>
+                      <td>{info?.Fecha_Cotizacion || '-'}</td>
+                      <td>{info?.TRM || '-'}</td>
+                      <td>{info?.Valor_Total_COP || '-'}</td>
+                      <td>{info?.Proveedor_Ganador || '-'}</td>
+                    </React.Fragment>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
