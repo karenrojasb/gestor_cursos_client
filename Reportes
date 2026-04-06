@@ -90,7 +90,7 @@ export default function Home() {
               fontSize: '18px',
               lineHeight: '1.4',
               fontFamily: 'Arial, sans-serif',
-              tableLayout: 'fixed',
+              tableLayout: 'auto',
               textAlign: 'left'
             }}
           >
@@ -178,7 +178,7 @@ export default function Home() {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         minWidth: '300px',
-        maxWidth: '400px',
+        width: 'auto',
         wordBreak: 'break-word'
         }
         
