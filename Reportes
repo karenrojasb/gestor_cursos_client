@@ -113,7 +113,7 @@ export default function Home() {
           {columnas.map((col, i) => (
           <th
             key={i}
-            colSpan={13}
+            colSpan={12}
             style={{
               whiteSpace: 'normal',
               wordBreak: 'break-word',
@@ -133,7 +133,7 @@ export default function Home() {
             <tr>
               {columnas.map((prov, i) => (
                 <React.Fragment key={i}>
-                  <th>Proveedor</th>
+                  
                   <th>Moneda</th>
                   <th>Valor Unitario</th>
                   <th>Descuento</th>
@@ -184,21 +184,7 @@ export default function Home() {
         
   return (
           <React.Fragment key={i}>
-            <td style={{
-        borderLeft: '3px solid #1e3a8a',
-        padding: '18px 12px',
-        lineHeight: '1.8',
-        verticalAlign: 'middle',
-        textAlign: 'left',
-        fontFamily: 'Arial, sans-serif',
-        whiteSpace: 'normal',
-        wordBreak: 'break-word',
-        maxWidth: '200px',
-        minHeight: '96px'
 
-      }}>
-        {info?.Proveedor || '-'}
-      </td>
       
                       <td>{info?.Moneda || '-'}</td>
                       <td>{info?.Valor_Unitario || '-'}</td>
