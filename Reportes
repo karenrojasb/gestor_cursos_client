@@ -1,285 +1,202 @@
-import { BadRequestException, HttpException, InternalServerErrorException, Injectable } from "@nestjs/common";
-import { PrismaNovasoftService } from "src/prismaNovasoft/prismaNovasoft.service";
-import { GenerarOrdenDto } from "./dto/generarorden.dto";
-import { getCurrentMonth, getNowDate, formatoDateToDDMMYYYY } from 'src/utils/date.util';
-import { Console } from "console";
+'use client';
 
+import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getCuadroComparativo } from '../lib/api';
 
-@Injectable()
-export class generarOrdenService {
-    constructor(
-        private readonly prismaNovasoftService: PrismaNovasoftService,
+export default function Home() {
+  const searchParams = useSearchParams();
+  const referencia = searchParams.get('referencia');
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-    ) { }
+  useEffect(() => {
+    if (referencia) consultar(referencia);
+  }, [referencia]);
 
-    async GenerarOrden(data: GenerarOrdenDto) {
-        const { item, num_cdp, provee, Articulos } = data;
-        try{
-        // Variables
-        const vendedor = '0';
-        const cod_cl2 = '0';
-        const cod_cl3 = '0';
-        const asig_num = 1;
-        const ind_refac = 0;
-        const conv_cco = '0';
-        const conv_cl1 = '0';
-        const conv_cl2 = '0';
-        const conv_cl3 = '0';
-        const por_adm = 0;
-        const por_imp = 0;
-        const cliente = '0';
-        const bod_des = '0';
-        const lista = '0';
-        const ind_mp = '00';
-        const tasa = 0;
-        const fac_pro = '0';
-        const cod_caja = '0';
-        const tip_doc = '007';
-        const cant_uni = 0;
-        const alterno = '0';
-        const trans = '32001';
-        const fac_con = '0';
-        const por_com = 0;
-        const suc_des = 0;
-        const cod_conv = '0';
-        const conv_suc = '0';
-        const por_uti = 0;
-        const mon_adm = 0;
-        const mon_imp = 0;
-        const mon_uti = 0;
-        const usr_ano_ped = '0';
-        const usr_per_ped = '0';
-        const usr_sub_ped = '0';
-        const usr_pedido = '0';
-        const usr_reg_ped = 0;
-        const sub_cdp = 'U726';
-        
-
-        const num_cdp_form = String(num_cdp).padStart(10, '0');
- 
-
-        // Buscar cod_suc en la tabla gen_clasif1 y obtener usr_sucursal
-        const sucursalInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-           SELECT usr_sucursal FROM gen_clasif1 WHERE codigo = '${data.cod_cl1}'
-            `);
-
-        if (sucursalInfo.length === 0) {
-            throw new BadRequestException(`El código de sucursal ${data.cod_cl1} no existe`);
-        }
-
-        const cod_suc = sucursalInfo[0].usr_sucursal;
-
-        function limpiarProveedor(provee?: string): string {
-        if (!provee) return '';
-
-        const partes = provee.split('-');
-
-        if (partes.length === 2) {
-            return partes[0].length >= partes[1].length
-            ? partes[0]
-            : partes[1];
-        }
-
-        return provee;
-        }
-
-const proveeLimpio = limpiarProveedor(provee)
-               //Validar que el NIT exista
-        const proveedorInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT provee, ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu
-        from cxp_provee 
-        WHERE provee = '${proveeLimpio}'`);
-
-        if (proveedorInfo.length === 0) {
-            throw new BadRequestException(`El NIT ${proveeLimpio}, no existe`)
-            ;
-        }
-
-        const { ret_iva, ret_iva_ng, cod_pai, cod_dep, ciu } = proveedorInfo[0];
-        const pai_doc = `${cod_pai}`;
-        const dep_doc = `${cod_dep}`;
-        const ciu_doc = `${ciu}`;
-        const tar_rii = `${ret_iva}`;
-        const tar_rii_ng = `${ret_iva_ng}`;
-
-
-        // Obtener el consecutivo num_doc
-        const consecutivo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-          SELECT ISNULL(MAX(CONVERT(INT, num_doc)), 0) + 1 AS numDoc 
-          FROM inv_inf_inv
-             `);
-        const num_doc = consecutivo[0].numDoc;
-
-
-
-        //Obtener la información del item
-        const itemInfo = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT cod_ret_com, por_ret, por_iva, por_iva_ng
-        FROM inv_items
-        WHERE cod_item = '${item}'
-        `);
-
-        const infoItem = itemInfo[0] || {};
-
- //Validar que el CDP no exista
-        const cdpExistente = await this.prismaNovasoftService.$queryRawUnsafe<any[]>(`
-        SELECT  TOP 1 num_cdp
-        FROM inv_inf_inv
-        WHERE num_cdp = '${num_cdp_form}'
-        `);
-
-        if (cdpExistente.length > 0) {
-            throw new BadRequestException(`No se puede generar la orden, el CDP ${num_cdp_form} ya existe`)
-        }
-        await this.prismaNovasoftService.$transaction(async (tx) =>{
-        for (let i = 0; i < Articulos.length; i++) {
-            //Validar que el item exista
-
-        
-        const { item: itemArticulo, cantidad, cos_uni, por_des, bodega, usr_descrip_cue, dia_pla } = Articulos[i];
-
-            const usrDescripCueLimitado = usr_descrip_cue
-            ? usr_descrip_cue.substring(0, 200)
-            : '';
-
-            const itemLimpio = itemArticulo.split(';')[0].trim();
-            console.log(itemLimpio)
-            // Validar info del item
-            const itemInfo = await tx.$queryRawUnsafe<any[]>(`
-                SELECT cod_est, cod_ret_com, por_ret, por_iva, por_iva_ng
-                FROM inv_items
-                WHERE cod_item = '${itemLimpio}'
-            `);
-
-            if (itemInfo.length === 0) {
-                throw new BadRequestException(`El item ${itemLimpio} no existe`);
-            }
-            const estadoItem = itemInfo[0].cod_est;
-
-            if (estadoItem !== true) {
-                throw new BadRequestException(`El item ${itemLimpio} no está activo`);
-            }
-
-            const { cod_ret_com, por_ret, por_iva, por_iva_ng } = itemInfo[0];
-            const cod_ret = `${cod_ret_com}`;;
-
-            
-            
-
-            const infoItem = itemInfo[0] || {};
-
-            const terceroInfo = await tx.$queryRawUnsafe<any[]>(`
-            SELECT TOP 1 ter_nit
-            FROM gen_terceros
-            WHERE ter_nit = '${data.usr_tercero}'
-            `);
-
-            if (terceroInfo.length == 0) {
-                throw new BadRequestException(`El usr_tercero ${data.usr_tercero},  no es válido`)
-            }
-
-
-            //Obtener la información de CDP 
-            const cdpInfo = await tx.$queryRawUnsafe<any[]>(`
-                SELECT ano_doc AS ano_cdp, per_doc AS per_cdp
-                FROM PRE_cuedoc
-                WHERE num_cdp = '${num_cdp_form}'
-            `);
-
-            const ano_cdp = cdpInfo[0]?.ano_cdp || getNowDate().getFullYear();
-            const per_cdp = cdpInfo[0]?.per_cdp || getCurrentMonth();
-
-            const reg_doc = i +1
-
- 
-            const cos_unai = cos_uni;
-            const pre_vta = cos_uni
-
-            //Insertar la orden
-            await tx.$executeRawUnsafe(`
-            INSERT INTO inv_inf_inv (
-            ano_doc, per_doc, sub_tip, tip_doc, num_doc, reg_doc, fecha,
-            vendedor, cod_suc, cod_cco, cod_cl1, cod_cl2, cod_cl3,
-            cliente, provee, lista, ind_mp, fec_tas, tasa, obs_orc,
-            bodega, bod_des, fac_pro, cod_caja, cant_uni, item, alterno,
-            trans, cantidad, fac_con, cos_uni, pre_vta, por_des, por_iva,
-            por_iva_ng, cod_ret, por_ret, por_com, cos_unai, fec_ent,
-            suc_des, ind_tra, asig_num, ind_refac, cod_conv, conv_suc,
-            conv_cco, conv_cl1, conv_cl2, conv_cl3, num_fact, ord_fact,
-            por_adm, por_imp, por_uti, mon_adm, mon_imp, mon_uti,
-            usr_ano_ped, usr_per_ped, usr_sub_ped,  usr_pedido, usr_reg_ped,
-            usr_tercero, ano_cdp, per_cdp, sub_cdp, num_cdp, cod_rubro,
-            usr_descrip_cue, tar_rii, tar_rii_ng, pai_doc, dep_doc, ciu_doc, dia_pla)
-
-            VALUES (
-            '${getNowDate().getFullYear()}', '${getCurrentMonth()}', '${data.sub_tip}', '${tip_doc}','${num_doc}', '${reg_doc}', '${formatoDateToDDMMYYYY()}',
-            '${vendedor}', '${cod_suc}', '${data.cod_cco}', '${data.cod_cl1}', '${cod_cl2}', '${cod_cl3}', 
-            '${cliente}', '${proveeLimpio}', '${lista}', '${ind_mp}', '${formatoDateToDDMMYYYY()}', '${tasa}', '${data.obs_orc}',
-            '${bodega}', '${bod_des}', '${fac_pro}', '${cod_caja}', '${cant_uni}', '${itemLimpio}', '${alterno}',
-            '${trans}', '${cantidad}', '${fac_con}', '${cos_uni}', '${pre_vta}', '${por_des}', '${por_iva}',
-            '${por_iva_ng}','${cod_ret}', '${por_ret}', '${por_com}', '${cos_unai}', '${formatoDateToDDMMYYYY()}',
-            '${suc_des}', '', '${asig_num}', '${ind_refac}', '${cod_conv}', '${conv_suc}',
-            '${conv_cco}', '${conv_cl1}', '${conv_cl2}', '${conv_cl3}', NULL, NULL,
-            '${por_adm}', '${por_imp}', '${por_uti}', '${mon_adm}', '${mon_imp}', '${mon_uti}',
-            '${usr_ano_ped}', '${usr_per_ped}', '${usr_sub_ped}', '${usr_pedido}', '${usr_reg_ped}',
-            '${data.usr_tercero}', '${ano_cdp}', '${per_cdp}', '${sub_cdp}', '${num_cdp_form}','${data.cod_rubro}',
-            '${usrDescripCueLimitado}', '${tar_rii}', '${tar_rii_ng}', '${pai_doc}', '${dep_doc}', '${ciu_doc}', '${dia_pla}'
-            )
-            `)
-            
-        }
-
-            
-          const resultadoSP =  await tx.$queryRawUnsafe<any[]>(`
-                EXEC dbo.USR_sp_gen_afeinv_preciso 
-                    @iano_doc = '${getNowDate().getFullYear()}',
-                    @fano_doc = '${getNowDate().getFullYear()}',
-                    @iper_doc = '${getCurrentMonth()}',
-                    @fper_doc = '${getCurrentMonth()}',
-                    @isub_tip = '${data.sub_tip}',
-                    @fsub_tip = '${data.sub_tip}',
-                    @inum_doc = '${num_doc}',
-                    @fnum_doc = '${num_doc}',
-                    @ifec_doc = '${formatoDateToDDMMYYYY()}',
-                    @ffec_doc = '${formatoDateToDDMMYYYY()}',
-                    @indver = 0
-            `);
-            if (! resultadoSP) {
-                throw new BadRequestException(`ERROR: No se pudo generar la orden para el CDP ${num_cdp}`);
-            }
-
-             //Obtener el asig_numero
-        const asigNumeroResult = await tx.$queryRawUnsafe<any[]>(`
-            SELECT DISTINCT asig_numero
-            FROM inv_inf_inv
-            WHERE ind_tra = 'X'
-              AND ano_doc = ${getNowDate().getFullYear()}
-              AND per_doc = '${getCurrentMonth()}'
-              AND sub_tip = '${data.sub_tip}'
-              AND tip_doc = '${tip_doc}'
-              AND num_doc = ${num_doc}
-        `);
-        
-        // Si no encuentra nada, dejar en blanco
-        const asig_numero = asigNumeroResult.length > 0
-            ? asigNumeroResult[0].asig_numero
-            : '';
-
-        return {
-            Codigo: `200`,
-            Mensaje: `Consulta realiza con éxito`,
-            asig_numero
-        }; })
-
-    } catch(error) {
-        console.error("Error al generar la orden:", error.menssaje ?? error);
-        if (error instanceof HttpException) throw error;
-
-        console.log('Error al reasignar el cdp', error);
-        throw new InternalServerErrorException('Error al generar la consulta')
-
+  const consultar = async (ref: string) => {
+    setLoading(true);
+    try {
+      const res = await getCuadroComparativo(ref);
+      setData(res.resultado);
+    } catch (error) {
+      console.error(error);
     }
+    setLoading(false);
+  };
+const maxProveedores = useMemo(() => {
+  return data.reduce((max, grupo) => {
+    return Math.max(max, grupo.Proveedores?.length || 0);
+  }, 0);
+}, [data]);
 
+const columnas = useMemo(() => {
+  const contador: Record<string, number> = {};
 
+  // contar máximo de repeticiones por proveedor
+  data.forEach((grupo) => {
+    const temp: Record<string, number> = {};
 
-}}
+    grupo.Proveedores?.forEach((p: any) => {
+      const nombre = p.Proveedor;
+      temp[nombre] = (temp[nombre] || 0) + 1;
+    });
+
+    Object.entries(temp).forEach(([nombre, cantidad]) => {
+      contador[nombre] = Math.max(contador[nombre] || 0, cantidad);
+    });
+  });
+
+  // construir columnas globales
+  const resultado: { proveedor: string; index: number }[] = [];
+
+  Object.entries(contador).forEach(([nombre, cantidad]) => {
+    for (let i = 0; i < cantidad; i++) {
+      resultado.push({
+        proveedor: nombre,
+        index: i
+      });
+    }
+  });
+
+  return resultado;
+}, [data]);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1 style={{
+  fontSize: '28px',
+  fontWeight: 'bold',
+  color: '#1e3a8a',
+  marginBottom: '10px',
+  fontFamily: 'Arial, sans-serif'
+}}>
+  Cuadro Comparativo
+</h1>
+      <p
+      style={{fontFamily: 'Arial, sans-serif'}}
+      ><b>Referencia:</b> {referencia}</p>
+      {loading && <p>Cargando...</p>}
+
+<div
+  style={{
+    width: '100%',
+    padding: '10px',
+  }}
+><table
+  style={{
+    width: 'max-content',
+    borderCollapse: 'separate',
+    borderSpacing: '0',
+    fontSize: '18px',
+    lineHeight: '1.4',
+    fontFamily: 'Arial, sans-serif'
+    
+  }}
+>
+         <thead style={{ 
+  position: 'sticky',
+  top: 0,
+  zIndex: 10,
+  backgroundColor: '#1e3a8a',
+  color: 'white'
+}}>
+            <tr
+            style={{fontSize: '20px'}}>
+              <th rowSpan={2}>Nombre</th>
+              <th rowSpan={2}>Cantidad</th>
+              <th rowSpan={2}>Unidad</th>
+              <th rowSpan={2}>Descripción</th>
+              
+
+{columnas.map((col, i) => (
+ <th
+  key={i}
+  colSpan={13}
+  style={{
+    padding: '16px',
+    fontSize: '20px',
+    lineHeight: '1.6',
+    background: 'linear-gradient(90deg, #2563eb, #3b82f6)',
+    border: '1px solid #1e40af'
+  }}
+>
+  {col.proveedor}
+</th>
+))}
+            </tr>
+
+            <tr>
+              {columnas.map((prov, i) => (
+                <React.Fragment key={i}>
+                  <th>Proveedor</th>
+                  <th>Moneda</th>
+                  <th>Valor Unitario</th>
+                  <th>Descuento</th>
+                  <th>IVA</th>
+                  <th>Valor Cotizado</th>
+                  <th>Días de Entrega</th>
+                  <th>Forma de Pago</th>
+                  <th>Observaciones</th>
+                  <th>Fecha de Cotización</th>
+                  <th>TRM</th>
+                  <th>Valor Total</th>
+                  <th>Ganador</th>
+                </React.Fragment>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {data.map((grupo: any, index: number) => (
+              <tr key={index}>
+                <td>{grupo.Nombre}</td>
+                <td>{grupo.Cantidad}</td>
+                <td>{grupo.Unidad}</td>
+                <td>{grupo.Descripcion}</td>
+                
+
+{columnas.map((col, i) => {
+  // filtrar proveedores de este grupo por nombre
+  const lista = grupo.Proveedores?.filter(
+    (p: any) => p.Proveedor === col.proveedor
+  ) || [];
+
+  // tomar la repetición correcta (0, 1, 2...)
+  const info = lista[col.index];
+
+  
+  return (
+    <React.Fragment key={i}>
+      <td style={{
+  borderLeft: '3px solid #1e3a8a',
+  padding: '18px 12px',
+  lineHeight: '1.8',
+  verticalAlign: 'top',
+  fontFamily: 'Arial, sans-serif'
+}}>
+        {info?.Proveedor || '-'}
+      </td>
+                      <td>{info?.Moneda || '-'}</td>
+                      <td>{info?.Valor_Unitario || '-'}</td>
+                      <td>{info?.Descuento || '-'}</td>
+                      <td>{info?.IVA || '-'}</td>
+                      <td>{info?.Valor_Cotizado_Proveedor || '-'}</td>
+                      <td>{info?.Dias_Entrega ?? '-'}</td>
+                      <td>{info?.Forma_Pago || '-'}</td>
+                      <td>{info?.Observaciones || '-'}</td>
+                      <td>{info?.Fecha_Cotizacion || '-'}</td>
+                      <td>{info?.TRM || '-'}</td>
+                      <td>{info?.Valor_Total_COP || '-'}</td>
+                      <td>{info?.Proveedor_Ganador || '-'}</td>
+                    </React.Fragment>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
