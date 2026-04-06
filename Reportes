@@ -89,7 +89,8 @@ export default function Home() {
               lineHeight: '1.4',
               fontFamily: 'Arial, sans-serif',
               tableLayout: 'auto',
-              textAlign: 'left'
+              textAlign: 'left',
+              borderCollapse: 'collapse'
             }}
           >
          <thead style={{ 
@@ -101,7 +102,10 @@ export default function Home() {
       
           }}>
             <tr
-            style={{fontSize: '20px'}}>
+            style={{fontSize: '20px',
+            
+            }}>
+              
               <th rowSpan={2}>Nombre</th>
               <th rowSpan={2}>Cantidad</th>
               <th rowSpan={2}>Unidad</th>
