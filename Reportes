@@ -1,19 +1,15 @@
-const observacionesStyle = {
-  padding: '18px 12px',
-  lineHeight: '1.6',
-  verticalAlign: 'middle',
-  textAlign: 'left',
-  fontFamily: 'Arial, sans-serif',
-
-  // TAMAÑO FIJO (3 líneas aprox)
-  height: '4.8em', // 1.6 * 3 líneas
-  minWidth: '300px',
-  maxWidth: '1100px',
-
-  //SCROLL SOLO EN OBSERVACIONES
-  overflowY: 'auto',
-  overflowX: 'hidden',
-
-  // TEXTO
-  wordBreak: 'break-word'
-};
+<td style={{ minWidth: '300px', maxWidth: '1100px' }}>
+  <div
+    style={{
+      maxHeight: '4.8em', // 3 líneas aprox
+      lineHeight: '1.6',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      wordBreak: 'break-word',
+      fontFamily: 'Arial, sans-serif',
+      paddingRight: '5px'
+    }}
+  >
+    {info?.Observaciones || '-'}
+  </div>
+</td>
