@@ -1,7 +1,3 @@
-
-*/
-Necesito que en la siguiente,  se pueda al exportar a Excel quiero que la fila 1 y dos quede de forma fija u inmovilizarlas y cuando se descargue este inmovilizada
-*/
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -91,13 +87,12 @@ export default function Home() {
 
   const ws = XLSX.utils.aoa_to_sheet(wsData);
   ws["!merges"] = [];
-  (ws as any)["!freeze"] = true;
-  (ws as any)["!pane"] = {
+  (ws as any)["!views"] =  {
     state: "frozen",
-    xSplit: 4,
+    xSplit: 0,
     ySplit: 2,
-    topLeftCell: "E3",
-    activePane: "bottomRight"
+    activePane: "bottomLeft",
+    topLefCell: "A3"
   }
   ws["!merges"].push(
     { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, // Nombre
