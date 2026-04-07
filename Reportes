@@ -217,12 +217,12 @@ export default function Home() {
 
   return (
 
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '15px' }}>
                 <h1 style={{
-            fontSize: '28px',
+            fontSize: '38px',
             fontWeight: 'bold',
             color: '#1e3a8a',
-            marginBottom: '10px',
+            marginBottom: '5px',          
             fontFamily: 'Arial, sans-serif'
           }}>
             Cuadro Comparativo
@@ -246,7 +246,7 @@ export default function Home() {
           ><table
             style={{
               width: 'max-content',
-              fontSize: '14px',
+              fontSize: '13px',
               lineHeight: '1.4',
               fontFamily: 'Arial, sans-serif',
               tableLayout: 'auto',
@@ -319,11 +319,13 @@ export default function Home() {
 
           <tbody>
             {data.map((grupo: any, index: number) => (
-              <tr key={index} style={{ height: '70px' }}>
+              <tr key={index} style={{ height: '60px' }}>
                 <td>{grupo.Nombre}</td>
                 <td>{grupo.Cantidad}</td>
                 <td>{grupo.Unidad}</td>
-                <td>{grupo.Descripcion}</td>
+                <td style={{
+                  minWidth: '30px', maxWidth: '500px'
+                }}>{grupo.Descripcion}</td>
                 
 
     {columnas.map((col, i) => {
@@ -345,7 +347,7 @@ export default function Home() {
                       <td>{info?.Valor_Cotizado_Proveedor || '-'}</td>
                       <td>{info?.Dias_Entrega ?? '-'}</td>
                       <td>{info?.Forma_Pago || '-'}</td>
-                      <td style={{ minWidth: '300px', maxWidth: '1000px' }}>
+                      <td style={{ minWidth: '300px', maxWidth: '900px' }}>
                       <div
                         style={{
                           maxHeight: '4.0em', // 3 líneas aprox
