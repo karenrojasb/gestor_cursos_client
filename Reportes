@@ -1,3 +1,7 @@
+
+*/
+Necesito que en la siguiente,  se pueda al exportar a Excel quiero que la fila 1 y dos quede de forma fija u inmovilizarlas y cuando se descargue este inmovilizada
+*/
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
