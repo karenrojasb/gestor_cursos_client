@@ -13,7 +13,7 @@
     //  Encabezado principal
   const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", "", ""];
     columnas.forEach((col) => {
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 13; i++) {
         header1.push(col.proveedor);
       }
     });
@@ -30,6 +30,7 @@
         "Días de Entrega",
         "Forma de Pago",
         "Observaciones",
+        "",
         "Fecha",
         "TRM",
         "Total",
@@ -63,6 +64,7 @@
           info?.Dias_Entrega ?? "-",
           info?.Forma_Pago || "-",
           info?.Observaciones || "-",
+          "",
           info?.Fecha_Cotizacion || "-",
           info?.TRM || "-",
           info?.Valor_Total_COP || "-",
@@ -98,7 +100,7 @@
       s: { r: 0, c: colIndex },
       e: { r: 0, c: colIndex + 11 }
     });
-    colIndex += 12;
+    colIndex += 13;
   }); 
   const hexToExcel = (hex: string) => {
     return hex.replace('#', '').substring(0, 6).toUpperCase();
@@ -136,8 +138,8 @@ if (R === 0 || R === 1) {
     fillCollor = hexToExcel(getColorCeldas(R - 2));
   }
 }
-    const isInicioProveedor = C >= 7 && (C - 7) % 12 === 0;
-    const isFinProveedor = C >= 7 && (C - 7) % 12 === 11;
+    const isInicioProveedor = C >= 7 && (C - 7) % 13 === 0;
+    const isFinProveedor = C >= 7 && (C - 7) % 13 === 12;
       ws[cellAddress].s = {
         font: {
           name: "Arial",
