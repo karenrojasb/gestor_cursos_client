@@ -1,10 +1,7 @@
-let filaInicioDatos = 2; // porque tienes 2 encabezados
-
-data.forEach((_, index) => {
-  const fila = filaInicioDatos + index;
-
-  ws["!merges"].push(
-    { s: { r: fila, c: 0 }, e: { r: fila, c: 1 } }, // Nombre
-    { s: { r: fila, c: 4 }, e: { r: fila, c: 6 } }  // Descripción
+// 🔥 COMBINAR FILAS DE DATOS (Nombre y Descripción)
+for (let i = 2; i < wsData.length; i++) {
+  ws["!merges"]!.push(
+    { s: { r: i, c: 0 }, e: { r: i, c: 1 } }, // Nombre (2 columnas)
+    { s: { r: i, c: 4 }, e: { r: i, c: 6 } }  // Descripción (3 columnas)
   );
-});
+}
