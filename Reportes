@@ -249,7 +249,7 @@ import { Suspense } from 'react';
                 <h1 style={{
             fontSize: '38px',
             fontWeight: 'bold',
-            color: '#1e3a8a',
+            color: '#0f243e',
             marginBottom: '5px',          
             fontFamily: 'Arial, sans-serif'
           }}>Cuadro Comparativo</h1>
@@ -263,7 +263,7 @@ import { Suspense } from 'react';
         <button
           onClick={exportarExcel}
           style={{
-            background: 'linear-gradient(135deg, #2563eb, #1e3a8a)',
+            background: 'linear-gradient(135deg, #2563eb, #366092)',
             color: '#fff',
             border: 'none',
             padding: '12px 20px',
@@ -366,11 +366,11 @@ import { Suspense } from 'react';
           <tbody>
             {data.map((grupo: any, rowIndex: number) => (
               <tr key={rowIndex} style={{ height: '60px' }}>
-                <td>{grupo.Nombre}</td>
-                <td>{grupo.Cantidad}</td>
-                <td>{grupo.Unidad}</td>
+                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Nombre}</td>
+                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Cantidad}</td>
+                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Unidad}</td>
                 <td style={{
-                  minWidth: '30px', maxWidth: '500px'
+                  minWidth: '30px', maxWidth: '500px', backgroundColor: getColorCeldas(rowIndex)
                 }}>{grupo.Descripcion}</td>
               
                 {columnas.map((col, i) => {
@@ -379,7 +379,7 @@ import { Suspense } from 'react';
                       (p: any) => p.Proveedor === col.proveedor
                     ) || [];        
                     const info = lista[col.index];
-                    const bgColor = getColorCeldas(i);                    
+                    const bgColor = getColorCeldas(rowIndex);                    
   return (
           <React.Fragment key={i}>      
                       <td style={{ backgroundColor: bgColor }}>{info?.Moneda || '-'}</td>
