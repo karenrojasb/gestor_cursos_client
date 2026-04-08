@@ -1,7 +1,1 @@
-columnas.forEach((col) => {
-  const lista =
-    grupo.Proveedores?.filter(
-      (p: any) => p.Proveedor === col.proveedor
-    ) || [];
-
-  const info = lista[col.index];
+p.Proveedor?.trim().toLowerCase() === col.proveedor?.trim().toLowerCase()
