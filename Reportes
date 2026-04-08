@@ -355,7 +355,7 @@ import { Suspense } from 'react';
             <th style={{ backgroundColor: bgColor, color: '#fff' }}>Observaciones</th>
             <th style={{ backgroundColor: bgColor, color: '#fff' }}>Fecha de Cotización</th>
             <th style={{ backgroundColor: bgColor, color: '#fff' }}>TRM</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Valor Total</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Total $ (COP)</th>
             <th style={{ backgroundColor: bgColor, color: '#fff' }}>Ganador</th>
           </React.Fragment>
         );
