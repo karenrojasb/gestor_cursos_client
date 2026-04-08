@@ -1,15 +1,4 @@
-'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { getCuadroComparativo } from '../lib/api';
-import * as XLSX from "xlsx-js-style";
-import { saveAs } from "file-saver";
-import { Suspense } from 'react';
-
-
-
-  
   function HomeContent () {        
   const searchParams = useSearchParams();
   const referencia = searchParams.get('referencia');
@@ -21,7 +10,7 @@ import { Suspense } from 'react';
   
 
     //  Encabezado principal
-  const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", ""];
+  const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", "", ""];
     columnas.forEach((col) => {
       for (let i = 0; i < 12; i++) {
         header1.push(col.proveedor);
@@ -29,7 +18,7 @@ import { Suspense } from 'react';
     });
     wsData.push(header1);
     // Sub encabezado
-  const header2 = ["", "", "", "", "", ""];
+  const header2 = ["", "", "", "", "", "", ""];
     columnas.forEach(() => {
       header2.push(
         "Moneda",
@@ -55,6 +44,7 @@ import { Suspense } from 'react';
         grupo.Cantidad,
         grupo.Unidad,
         grupo.Descripcion,
+        "",
         ""
       ];
       columnas.forEach((col) => {
@@ -93,9 +83,9 @@ import { Suspense } from 'react';
     { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Nombre
     { s: { r: 0, c: 1 }, e: { r: 1, c: 2 } }, // Cantidad
     { s: { r: 0, c: 2 }, e: { r: 1, c: 3 } }, // Unidad
-    { s: { r: 0, c: 3 }, e: { r: 1, c: 5 } }  // Descripción
+    { s: { r: 0, c: 3 }, e: { r: 1, c: 6 } }  // Descripción
   );
-  let colIndex = 4;
+  let colIndex = 7;
   columnas.forEach(() => {
     ws["!merges"]!.push({
       s: { r: 0, c: colIndex },
@@ -120,18 +110,18 @@ import { Suspense } from 'react';
 
 if (R === 0 || R === 1) {
   // ENCABEZADOS
-  if (C < 6) {
+  if (C < 7) {
     // Nombre, Cantidad, Unidad, Descripción
     fillCollor = '0F243E'; // azul oscuro EXACTO de la web
   } else {
     // Proveedores
-    const proveedorIndex = Math.floor((C - 6) / 12);
+    const proveedorIndex = Math.floor((C - 7) / 12);
     fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
   }
 
 } else {
   // FILAS (como en la web)
-  if (C < 6) {
+  if (C < 7) {
     // columnas fijas
     fillCollor = hexToExcel(getColorCeldas(R - 2));
   } else {
@@ -139,8 +129,8 @@ if (R === 0 || R === 1) {
     fillCollor = hexToExcel(getColorCeldas(R - 2));
   }
 }
-    const isInicioProveedor = C >= 6 && (C - 6) % 12 === 0;
-    const isFinProveedor = C >= 6 && (C - 6) % 12 === 11;
+    const isInicioProveedor = C >= 7 && (C - 7) % 12 === 0;
+    const isFinProveedor = C >= 7 && (C - 7) % 12 === 11;
       ws[cellAddress].s = {
         font: {
           name: "Arial",
@@ -215,226 +205,3 @@ if (R === 0 || R === 1) {
         });
     return resultado;
       }, [data]);
-
-      if (loading) {
-  return (
-      <div style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f9fafb'
-      }}>
-        <div style={{
-          width: '60px',
-          height: '60px',
-          border: '6px solid #e5e7eb',
-          borderTop: '6px solid #1e3a8a',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }} />
-        
-        <style>
-          {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}
-        </style>
-      </div>
-    );
-  }
-  const getColorProveedor = (index: number) => {
-  return index % 2 === 0
-    ? '#366092'   
-    : '#1f497d';  
-  };
-  const getColorCeldas = (rowIndex: number) => {
-    return rowIndex % 2 === 0
-      ? '#FFFFFF' 
-      : '#dce6f1';
-  };
-
-    return (
-        <div style={{ padding: '15px' }}>
-                <h1 style={{
-            fontSize: '38px',
-            fontWeight: 'bold',
-            color: '#0f243e',
-            marginBottom: '5px',          
-            fontFamily: 'Arial, sans-serif'
-          }}>Cuadro Comparativo</h1>
-                <p style={{fontFamily: 'Arial, sans-serif'}}><b>Referencia:</b> {referencia}</p>
-                {loading && <p>Cargando...</p>}
-         {/* <img
-        src="/logoEscuela.png"
-        alt="Escuela Colombiana de Ingenieria Julio Garavito"
-        style={{ width: '180px', height: 'auto', top: '15px', right: '0', position: 'absolute' }}
-        />*/}
-        <button
-          onClick={exportarExcel}
-          style={{
-            background: 'linear-gradient(135deg, #164bbbff, #366092)',
-            color: '#fff',
-            border: 'none',
-            padding: '12px 20px',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.3)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
-          }}>Exportar Excel</button>
-          <div
-            style={{
-              width: '100%',
-              padding: '10px',
-            }}
-          ><table
-            style={{
-              width: 'max-content',
-              fontSize: '13px',
-              lineHeight: '1.4',
-              fontFamily: 'Arial, sans-serif',
-              tableLayout: 'auto',
-              textAlign: 'left',
-              borderCollapse: 'collapse',
-              border: '2px solid #0f243e'
-            }}
-          >
-         <thead style={{ 
-            position: 'sticky',
-            top: 0,
-            zIndex: 10,
-            backgroundColor: '#0f243e',
-            color: 'white',      
-          }}>
-            <tr
-            style={{fontSize: '20px'            
-            }}>
-              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Nombre</th>
-              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Cantidad</th>
-              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Unidad</th>
-              <th rowSpan={2}>Descripción</th>
-              
-
-          {columnas.map((col, i) => (
-          <th
-            key={i}
-            colSpan={12}
-            style={{
-              whiteSpace: 'normal',
-              wordBreak: 'break-word',
-              maxWidth: '50px',
-              padding: '5px',
-              fontSize: '20px',
-              lineHeight: '1.6',
-              background: getColorProveedor(i),
-              borderLeft: '2px solid #0f243e',
-              borderRight: '2px solid #0f243e'
-              
-            }}
-          >
-            {col.proveedor}
-          </th>
-          ))} 
-          </tr>
-            <tr>
-              {columnas.map((prov, i) => {
-        const bgColor = getColorProveedor(i);
-
-        return (
-          <React.Fragment key={i}>
-            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff', borderLeft: '2px solid #0f243e'}}>Moneda</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Valor Unitario</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Descuento</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>IVA</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Valor Cotizado</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Días de Entrega</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Forma de Pago</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Observaciones</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Fecha de Cotización</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>TRM</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Total $ (COP)</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff', borderRight: '2px solid #0f243e' }}>Ganador</th>
-          </React.Fragment>
-        );
-      })}
-            </tr>
-          </thead>
-
-          <tbody>
-            {data.map((grupo: any, rowIndex: number) => (
-              <tr key={rowIndex} style={{ height: '60px' }}>
-                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Nombre}</td>
-                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Cantidad}</td>
-                <td style={{ backgroundColor: getColorCeldas(rowIndex) }}>{grupo.Unidad}</td>
-                <td style={{
-                  minWidth: '30px', maxWidth: '500px', backgroundColor: getColorCeldas(rowIndex)
-                }}>{grupo.Descripcion}</td>
-              
-                {columnas.map((col, i) => {
-                    // filtrar proveedores de este grupo por nombre
-                    const lista = grupo.Proveedores?.filter(
-                      (p: any) => p.Proveedor === col.proveedor
-                    ) || [];        
-                    const info = lista[col.index];
-                    const bgColor = getColorCeldas(rowIndex);                    
-  return (
-          <React.Fragment key={i}>      
-                      <td style={{ backgroundColor: bgColor, borderLeft: '2px solid #0f243e' }}>{info?.Moneda || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Valor_Unitario || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Descuento || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.IVA || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Valor_Cotizado_Proveedor || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Dias_Entrega ?? '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Forma_Pago || '-'}</td>
-                      <td style={{ minWidth: '300px', maxWidth: '900px', backgroundColor: bgColor }}>
-                      <div
-                        style={{
-                          maxHeight: '4.0em', // 3 líneas aprox
-                          lineHeight: '1.6',
-                          overflowY: 'auto',
-                          overflowX: 'hidden',
-                          wordBreak: 'break-word',
-                          fontFamily: 'Arial, sans-serif',
-                          paddingRight: '5px',
-                          
-                        }}
-                      >
-                      {info?.Observaciones || '-'}
-                      </div>
-                    </td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Fecha_Cotizacion || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.TRM || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Valor_Total_COP || '-'}</td>
-                      <td style={{ backgroundColor: bgColor }}>{info?.Proveedor_Ganador || '-'}</td>
-                    </React.Fragment>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-} export default function Home () {
-    return (
-      <Suspense fallback={(<div>Cargando...</div>)}>
-        <HomeContent />
-      </Suspense>
-    )
-  }
