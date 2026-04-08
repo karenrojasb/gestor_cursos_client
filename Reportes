@@ -1,14 +1,4 @@
 
-  function HomeContent () {        
-  const searchParams = useSearchParams();
-  const referencia = searchParams.get('referencia');
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const exportarExcel = () => {
-  const wb = XLSX.utils.book_new();
-  const wsData: any[] = [];
-  
-
     //  Encabezado principal
   const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", "", ""];
     columnas.forEach((col) => {
@@ -81,9 +71,9 @@
     }]
   ws["!merges"].push(
     { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Nombre
-    { s: { r: 0, c: 1 }, e: { r: 1, c: 2 } }, // Cantidad
-    { s: { r: 0, c: 2 }, e: { r: 1, c: 3 } }, // Unidad
-    { s: { r: 0, c: 3 }, e: { r: 1, c: 6 } }  // Descripción
+    { s: { r: 0, c: 2 }, e: { r: 1, c: 2 } }, // Cantidad
+    { s: { r: 0, c: 3 }, e: { r: 1, c: 3 } }, // Unidad
+    { s: { r: 0, c: 4 }, e: { r: 1, c: 6 } }  // Descripción
   );
   let colIndex = 7;
   columnas.forEach(() => {
@@ -203,5 +193,3 @@ if (R === 0 || R === 1) {
             });
           }
         });
-    return resultado;
-      }, [data]);
