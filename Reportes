@@ -11,3 +11,12 @@ border: {
     ? { style: "medium", color: { rgb: "0F243E" } }
     : { style: "thin", color: { rgb: "000000" } }
 }
+
+if (R === 0 || R === 1) {
+  if (C >= 4) {
+    const proveedorIndex = Math.floor((C - 4) / 12);
+    fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
+  } else {
+    fillCollor = '0F243E';
+  }
+}
