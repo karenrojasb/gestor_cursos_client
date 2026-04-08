@@ -1,4 +1,5 @@
 
+  
   function HomeContent () {        
   const searchParams = useSearchParams();
   const referencia = searchParams.get('referencia');
@@ -13,7 +14,7 @@
   const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", "", ""];
     columnas.forEach((col) => {
       header1.push(col.proveedor);
-      for (let i = 0; i < 12; i++) {
+      for (let i = 1; i < 12; i++) {
         header1.push("");
       }
     });
