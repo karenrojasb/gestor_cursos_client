@@ -1,19 +1,215 @@
-let obsIndex = 7;
 
-columnas.forEach(() => {
-  // 🔹 Merge en encabezado (Observaciones)
-  ws["!merges"]!.push({
-    s: { r: 1, c: obsIndex + 7 },
-    e: { r: 1, c: obsIndex + 8 }
-  });
+  function HomeContent () {        
+  const searchParams = useSearchParams();
+  const referencia = searchParams.get('referencia');
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const exportarExcel = () => {
+  const wb = XLSX.utils.book_new();
+  const wsData: any[] = [];
+  
 
-  // 🔹 Merge en filas de datos
-  for (let i = 2; i < wsData.length; i++) {
-    ws["!merges"]!.push({
-      s: { r: i, c: obsIndex + 7 },
-      e: { r: i, c: obsIndex + 8 }
+    //  Encabezado principal
+  const header1 = ["Nombre", "", "Cantidad", "Unidad", "Descripción", "", ""];
+    columnas.forEach((col) => {
+      for (let i = 0; i < 13; i++) {
+        header1.push(col.proveedor);
+      }
     });
+    wsData.push(header1);
+    // Sub encabezado
+  const header2 = ["", "", "", "", "", "", ""];
+    columnas.forEach(() => {
+      header2.push(
+        "Moneda",
+        "Valor Unitario",
+        "Descuento",
+        "IVA",
+        "Valor Cotizado",
+        "Días de Entrega",
+        "Forma de Pago",
+        "Observaciones",
+        "",
+        "Fecha",
+        "TRM",
+        "Total",
+        "Ganador"
+      );
+    });
+    wsData.push(header2);
+    //  Datos
+    data.forEach((grupo) => {
+  const row = [
+        grupo.Nombre,
+        "",
+        grupo.Cantidad,
+        grupo.Unidad,
+        grupo.Descripcion,
+        "",
+        ""
+      ];
+      columnas.forEach((col) => {
+  const lista =
+          grupo.Proveedores?.filter(
+            (p: any) => p.Proveedor === col.proveedor
+          ) || [];
+  const info = lista[col.index];
+        row.push(
+          info?.Moneda || "-",
+          info?.Valor_Unitario || "-",
+          info?.Descuento || "-",
+          info?.IVA || "-",
+          info?.Valor_Cotizado_Proveedor || "-",
+          info?.Dias_Entrega ?? "-",
+          info?.Forma_Pago || "-",
+          info?.Observaciones || "-",
+          "",
+          info?.Fecha_Cotizacion || "-",
+          info?.TRM || "-",
+          info?.Valor_Total_COP || "-",
+          info?.Proveedor_Ganador || "-"
+        );
+      });
+      wsData.push(row);
+    });
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws["!merges"] = [];
+  (ws as any)["!views"] = [  {
+    state: "frozen",
+    xSplit: 0,
+    ySplit: 2,
+    topLeftCell: "A3",
+    activePane: "bottomLeft"
+    }]
+  ws["!merges"].push(
+    { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // Nombre
+    { s: { r: 0, c: 2 }, e: { r: 1, c: 2 } }, // Cantidad
+    { s: { r: 0, c: 3 }, e: { r: 1, c: 3 } }, // Unidad
+    { s: { r: 0, c: 4 }, e: { r: 1, c: 6 } }  // Descripción
+  );
+  for (let i = 2; i < wsData.length; i++) {
+  ws["!merges"]!.push(
+    { s: { r: i, c: 0 }, e: { r: i, c: 1 } }, // Nombre (2 columnas)
+    { s: { r: i, c: 4 }, e: { r: i, c: 6 } }  // Descripción (3 columnas)
+  );
+}
+  let colIndex = 7;
+  columnas.forEach(() => {
+    ws["!merges"]!.push({
+      s: { r: 0, c: colIndex },
+      e: { r: 0, c: colIndex + 12 }
+    });
+    colIndex += 13;
+  }); 
+  const hexToExcel = (hex: string) => {
+    return hex.replace('#', '').substring(0, 6).toUpperCase();
+  };
+  
+  const getColorCeldasExcel = (rowIndex: number) => {
+    return rowIndex % 2 === 0 ? 'FFFFFF' : 'dce6f1';
+  }
+ 
+  const range = XLSX.utils.decode_range(ws["!ref"] || "");
+  for (let R = range.s.r; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+      if (!ws[cellAddress]) continue;
+      let fillCollor;
+
+if (R === 0 || R === 1) {
+  // ENCABEZADOS
+  if (C < 7) {
+    // Nombre, Cantidad, Unidad, Descripción
+    fillCollor = '0F243E'; // azul oscuro EXACTO de la web
+  } else {
+    // Proveedores
+    const proveedorIndex = Math.floor((C - 7) / 13);
+    fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
   }
 
-  obsIndex += 13;
-});
+} else {
+  // FILAS (como en la web)
+  if (C < 7) {
+    // columnas fijas
+    fillCollor = hexToExcel(getColorCeldas(R - 2));
+  } else {
+    // proveedores
+    fillCollor = hexToExcel(getColorCeldas(R - 2));
+  }
+}
+    const isInicioProveedor = C >= 7 && (C - 7) % 13 === 0;
+    const isFinProveedor = C >= 7 && (C - 7) % 13 === 12;
+      ws[cellAddress].s = {
+        font: {
+          name: "Arial",
+          sz: 10,
+          bold: R < 2,
+          color: R < 2 ? { rgb: "FFFFFF" } : { rgb: "000000" }
+        }, 
+        fill: fillCollor
+          ? { 
+              patternType: 'solid', // CORREGIDO
+              fgColor: { rgb: fillCollor}
+            }
+          : undefined,
+
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: isInicioProveedor
+            ? { style: "medium", color: { rgb: "0F243E" } }
+            : { style: "thin", color: { rgb: "000000" } },
+          right: isFinProveedor
+            ? { style: "medium", color: { rgb: "0F243E" } }
+            : { style: "thin", color: { rgb: "000000" } }
+        },
+        alignment: {
+          vertical: "center",
+          horizontal: R === 0 ? "center" : "left",
+          wrapText: true
+        }
+      };
+    }
+  }
+  XLSX.utils.book_append_sheet(wb, ws, "Cuadro Comparativo");
+  const excelBuffer = XLSX.write(wb, {
+    bookType: "xlsx",
+    type: "array"
+  });
+  const file = new Blob([excelBuffer], {
+    type:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+  saveAs(file, `CuadroComparativo_${referencia}.xlsx`);
+  };
+  useEffect(() => {if (referencia) consultar(referencia);}, [referencia]);
+  const consultar = async (ref: string) => {setLoading(true);
+      try {
+        const res = await getCuadroComparativo(ref); setData(res.resultado);
+      } catch (error) { console.error(error);
+      }
+      setLoading(false);
+    };
+  const maxProveedores = useMemo(() => { return data.reduce((max, grupo) => {
+        return Math.max(max, grupo.Proveedores?.length || 0);
+      }, 0); }, [data]);
+
+  const columnas = useMemo(() => {
+  const contador: Record<string, number> = {};
+  // contar máximo de repeticiones por proveedor
+  data.forEach((grupo) => { const temp: Record<string, number> = {};
+    grupo.Proveedores?.forEach((p: any) => { const nombre = p.Proveedor; temp[nombre] = (temp[nombre] || 0) + 1;});
+          Object.entries(temp).forEach(([nombre, cantidad]) => { contador[nombre] = Math.max(contador[nombre] || 0, cantidad); });
+        });
+
+        // construir columnas globales
+        const resultado: { proveedor: string; index: number }[] = [];
+        Object.entries(contador).forEach(([nombre, cantidad]) => {for (let i = 0; i < cantidad; i++) {
+            resultado.push({
+              proveedor: nombre,
+              index: i
+            });
+          }
+        });
+    return resultado;
+      }, [data]);
