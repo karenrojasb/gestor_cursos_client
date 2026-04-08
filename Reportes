@@ -263,7 +263,7 @@ import { Suspense } from 'react';
         <button
           onClick={exportarExcel}
           style={{
-            background: 'linear-gradient(135deg, #2563eb, #366092)',
+            background: 'linear-gradient(135deg, #164bbbff, #366092)',
             color: '#fff',
             border: 'none',
             padding: '12px 20px',
@@ -312,9 +312,9 @@ import { Suspense } from 'react';
             <tr
             style={{fontSize: '20px'            
             }}>
-              <th rowSpan={2}>Nombre</th>
-              <th rowSpan={2}>Cantidad</th>
-              <th rowSpan={2}>Unidad</th>
+              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Nombre</th>
+              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Cantidad</th>
+              <th rowSpan={2} style={{ borderRight: '2px solid #ffffffff'}}>Unidad</th>
               <th rowSpan={2}>Descripción</th>
               
 
@@ -330,8 +330,8 @@ import { Suspense } from 'react';
               fontSize: '20px',
               lineHeight: '1.6',
               background: getColorProveedor(i),
-              borderLeft: '2px solid #1e3a8a',
-              borderRight: '2px solid #1e3a8a'
+              borderLeft: '2px solid #0f243e',
+              borderRight: '2px solid #0f243e'
               
             }}
           >
@@ -345,18 +345,18 @@ import { Suspense } from 'react';
 
         return (
           <React.Fragment key={i}>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Moneda</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Valor Unitario</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Descuento</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>IVA</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Valor Cotizado</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Días de Entrega</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Forma de Pago</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Observaciones</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Fecha de Cotización</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>TRM</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Total $ (COP)</th>
-            <th style={{ backgroundColor: bgColor, color: '#fff' }}>Ganador</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff', borderLeft: '2px solid #0f243e'}}>Moneda</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Valor Unitario</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Descuento</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>IVA</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff' , border: '2px solid #ffffffff' }}>Valor Cotizado</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Días de Entrega</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Forma de Pago</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Observaciones</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Fecha de Cotización</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>TRM</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff' }}>Total $ (COP)</th>
+            <th style={{ backgroundColor: bgColor, color: '#fff', border: '2px solid #ffffffff', borderRight: '2px solid #0f243e' }}>Ganador</th>
           </React.Fragment>
         );
       })}
@@ -382,7 +382,7 @@ import { Suspense } from 'react';
                     const bgColor = getColorCeldas(rowIndex);                    
   return (
           <React.Fragment key={i}>      
-                      <td style={{ backgroundColor: bgColor }}>{info?.Moneda || '-'}</td>
+                      <td style={{ backgroundColor: bgColor, borderLeft: '2px solid #0f243e' }}>{info?.Moneda || '-'}</td>
                       <td style={{ backgroundColor: bgColor }}>{info?.Valor_Unitario || '-'}</td>
                       <td style={{ backgroundColor: bgColor }}>{info?.Descuento || '-'}</td>
                       <td style={{ backgroundColor: bgColor }}>{info?.IVA || '-'}</td>
