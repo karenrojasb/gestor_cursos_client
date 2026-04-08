@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { getCuadroComparativo } from '../lib/api';
 import * as XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
+import { Suspense } from 'react';
 
 export default function Home() {
   const searchParams = useSearchParams();
@@ -99,6 +100,9 @@ export default function Home() {
   const hexToExcel = (hex: string) => {
     return hex.replace('#', '').substring(0, 6).toUpperCase();
   };
+  const getColorCeldasExcel = (index: number) => {
+    return index % 2 === 0 ? 'D6E4FF' : 'E6F0FF';
+  }
   const range = XLSX.utils.decode_range(ws["!ref"] || "");
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -124,9 +128,9 @@ export default function Home() {
     else {
       if (C >= 4) {
         const proveedorIndex = Math.floor((C - 4) / 12);
-        fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
+        fillCollor = getColorCeldasExcel(proveedorIndex);
       } else {
-        fillCollor = 'E6F0FF'
+        fillCollor = 'FFFFFF'
       }
     }
       ws[cellAddress].s = {
@@ -411,4 +415,29 @@ export default function Home() {
       </div>
     </div>
   );
-}
+}PS C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client> npm run build 
+
+> cuadro-comparativo-auraquantic-client@0.1.0 build
+> next build
+
+▲ Next.js 16.2.1 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 5.8s
+✓ Finished TypeScript in 5.3s
+✓ Collecting page data using 3 workers in 1243ms    
+⨯ useSearchParams() should be wrapped in a suspense boundary at page "/". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at S (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\.next\server\chunks\ssr\[root-of-the-server]__0b8dydd._.js:2:2692)
+    at r (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\.next\server\chunks\ssr\[root-of-the-server]__0b8dydd._.js:4:6760)
+    at C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\.next\server\chunks\ssr\[root-of-the-server]__0b8dydd._.js:4:627571
+    at an (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:84267)     
+    at ai (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:86086)     
+    at al (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:107860)    
+    at ao (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:105275)    
+    at aa (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:84619)     
+    at ai (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:86135)     
+    at ai (C:\Users\karen.rojas-b\Documents\GitHub\cuadro-comparativo-auraquantic-client\node_modules\next\dist\compiled\next-server\app-page-turbo.runtime.prod.js:2:104615)    
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /page: /, exiting the build.
+⨯ Next.js build worker exited with code: 1 and signal: null
