@@ -95,25 +95,50 @@ export default function Home() {
       e: { r: 0, c: colIndex + 11 }
     });
     colIndex += 12;
-  });  
+  }); 
+  const hexToExcel = (hex: string) => {
+    return hex.replace('#', '').substring(0, 6).toUpperCase();
+  };
   const range = XLSX.utils.decode_range(ws["!ref"] || "");
   for (let R = range.s.r; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
       if (!ws[cellAddress]) continue;
+      let fillCollor;
+      if (R === 0){
+        if (C >= 4) {
+          const proveedorIndex = Math.floor((C - 4) / 12);
+          fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
+        
+      } else {
+        fillCollor = '1E3A8A'
+      } 
+    } else if (R === 1) {
+      if (C >= 4) {
+        const proveedorIndex = Math.floor((C - 4) / 12);
+        fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
+      } else {
+      fillCollor = '1E3A8A'
+    }
+    } 
+    else {
+      if (C >= 4) {
+        const proveedorIndex = Math.floor((C - 4) / 12);
+        fillCollor = hexToExcel(getColorProveedor(proveedorIndex));
+      } else {
+        fillCollor = 'E6F0FF'
+      }
+    }
       ws[cellAddress].s = {
         font: {
           name: "Arial",
           sz: 10,
           bold: R < 2,
           color: R < 2 ? { rgb: "FFFFFF" } : { rgb: "000000" }
-        },
-        fill:
-          R < 2
-            ? {
-                fgColor: { rgb: "1E3A8A" } 
-              }
-            : undefined,       
+        }, 
+        fill: fillCollor
+        ? { fgColor: { rgb: fillCollor } }
+        : undefined,
         border: {
           top: { style: "thin", color: { rgb: "000000" } },
           bottom: { style: "thin", color: { rgb: "000000" } },
