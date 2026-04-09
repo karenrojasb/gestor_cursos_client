@@ -1,15 +1,16 @@
-//export const API_URL = 'http://localhost:3000';
-
 export async function getCuadroComparativo(referencia: string) {
-  const res = await fetch('http://localhost:3000/auraquantic/cuadrocomparativo', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      referencia,
-    }),
-  });
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auraquantic/cuadrocomparativo`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        referencia,
+      }),
+    }
+  );
 
   if (!res.ok) {
     throw new Error('Error en la petición');
